@@ -1,0 +1,21 @@
+{
+    "name": "mojito",
+    "version": "0.1",
+    "homepage": "https://github.com/thomaspink/mojito.js",
+    "authors": [
+        "thomas.pink <thomas.pink@netural.com>"
+    ],
+    "description": "js framework with controller logic",
+    "main": "src/core.js",
+    "dependencies": {
+    "jquery": ">= 1.9.0"
+    },
+    "keywords": [
+        "mojito",
+        "js",
+        "javascript",
+        "framework",
+        "controller"
+    ],
+    "license": "MIT"
+}
