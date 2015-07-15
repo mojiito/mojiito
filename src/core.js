@@ -101,6 +101,7 @@
             var Controller = $.extend(Mojito.createObject($.extend(Mojito.createObject(this), {_name: name})), extendController);
 
             Controller.setup();
+            Mojito[name] = Controller;
 
             return Controller;
         },
