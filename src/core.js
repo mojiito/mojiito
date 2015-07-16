@@ -6,6 +6,7 @@
 
     DATA_NAMESPACE = 'mojito';
     DATA_CONTROLLER = DATA_NAMESPACE + '-controller';
+    DATA_CONTROLLER_ID = DATA_NAMESPACE + '-controller-id';
     DATA_CONTROLLER_REF = DATA_NAMESPACE + '-controller-ref';
     DATA_ACTION = DATA_NAMESPACE + '-action';
     DATA_ACTION_PARAMS = DATA_NAMESPACE + '-params';
@@ -14,23 +15,23 @@
     Mojito = 'object' === typeof Mojito ? Mojito : Object.create({
 
         controllers: [],
+        controllersTotalAmount: 0,
 
         /**
             METHODS
         */
-        toString: function() {
-            return 'Mojito';
+        init: function() {
+            this.controllersTotalAmount = $('[data-'+ DATA_CONTROLLER + ']').length
         },
 
-        generateRandomString: function(stringLength) {
-            var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-            var strgLength = typeof stringLength === 'number' && stringLength > 0 ? stringLength : 4;
-            var randomString = '';
-            for (var i=0; i<strgLength; i++) {
-                var rnum = Math.floor(Math.random() * chars.length);
-                randomString += chars.substring(rnum,rnum+1);
+        setupControllers: function() {
+            if(this.controllers.length === this.controllersTotalAmount) {
+                for (var i = 0, max = this.controllers.length; i < max; i++) {
+                    this.controllers[i].setupController();
+                }
+                return true;
             }
-            return randomString;
+            return false;
         },
 
         get: function(obj, param) {
@@ -43,9 +44,9 @@
         set: function(obj, param, value) {
             if(typeof obj === 'object') {
                 obj[param] = value;
-                return true;
+                return obj;
             }
-            return false;
+            return null;
         },
 
         createObject: function(obj) {
@@ -67,7 +68,22 @@
                  }
             }
             return attributes;
-        }
+        },
+
+        generateRandomString: function(stringLength) {
+            var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+            var strgLength = typeof stringLength === 'number' && stringLength > 0 ? stringLength : 4;
+            var randomString = '';
+            for (var i=0; i<strgLength; i++) {
+                var rnum = Math.floor(Math.random() * chars.length);
+                randomString += chars.substring(rnum,rnum+1);
+            }
+            return randomString;
+        },
+
+        toString: function() {
+            return 'Mojito';
+        },
     });
 
     Mojito.Controller = {
@@ -75,48 +91,57 @@
         _name: 'Controller',
 
         init: function() {
+            console.log('init Controller');
         },
 
-        setup: function() {
+        setupController: function() {
+            if(!this.get('_isInitialized')) {
+                this.set('_isInitialized', true);
+                this.init.apply(this, Mojito.getDataParams(this.$));
+            }
+        },
+
+        extend: function(name, ExtendController) {
+
             var self = this;
-            $('[data-'+ DATA_CONTROLLER + '="' + self.toString()+'"]').each(function() {
-                if(!$(this).data(DATA_CONTROLLER_REF)) {
-                    var controllerObject = self.create($(this));
-                    controllerObject.applyEvents();
-                    Mojito.controllers.push(controllerObject);
-                }
-            });
-        },
-
-        extend: function(name, extendController) {
 
             if(typeof name !== 'string') {
                 throw 'No controller name specified';
             }
 
-            if(typeof extendController !== 'object') {
-                throw 'you have to extend an object not a ' + typeof(extendController);
+            if(typeof ExtendController !== 'object') {
+                throw 'you have to extend an object not a ' + typeof(ExtendController);
             }
 
-            var Controller = $.extend(Mojito.createObject($.extend(Mojito.createObject(this), {_name: name})), extendController);
-
-            Controller.setup();
+            var Controller = $.extend(true,Mojito.createObject(self), ExtendController);
+            Controller.set('_name', name);
             Mojito[name] = Controller;
+
+            $('[data-'+ DATA_CONTROLLER + '="' + name+'"]').each(function() {
+                if(!$(this).data(DATA_CONTROLLER_ID)) {
+                    var controllerObject = Controller.create($(this));
+                    controllerObject.applyEvents();
+                    Mojito.controllers.push(controllerObject);
+                }
+            });
+            Mojito.setupControllers();
 
             return Controller;
         },
 
-        create: function(element) {
+        create: function(element, controllerId) {
             if(typeof $ === 'undefined') {
                 element = $('body');
             }
-            var id = Mojito.generateRandomString(16);
-            var obj = $.extend(Mojito.createObject(this), {
+            var id = typeof controllerId === 'string' ? controllerId : Mojito.generateRandomString(16);
+            var obj = $.extend(true, this, {
                 _id: id,
-                _super: this._super,
-                $: element.attr('data-'+DATA_NAMESPACE+'-controller-id', id),
+                _ref: element.data(DATA_CONTROLLER_REF),
+                _super: typeof this._super === 'object' && this._super && typeof this._super.create === 'function' ? this._super.create(element, id) : null,
+                _isInitialized: false,
+                $: element.attr('data-'+DATA_CONTROLLER_ID, id),
             });
-            obj.init.apply(obj, Mojito.getDataParams(obj.$));
+
             return obj;
         },
 
@@ -133,7 +158,7 @@
                     var method = actionParams[1];
 
                     if(controller === self.get('_name') && self.get(method)) {
-                        $(this).on('click.'+EVENT_NAMESPACE, function(event) {
+                        $(this).on('click.' + EVENT_NAMESPACE, function(event) {
                             var attributes = Mojito.getDataParams($(this));
                             event.preventDefault();
                             attributes.push(event);
@@ -145,10 +170,22 @@
             });
         },
 
-        controllerFor: function(reference) {
-            for(var i=0, max=reference.length; i<max; i++) {
+        controllerById: function(id) {
+            return this.controllerFor('_id', id);
+        },
 
+        controllerByRef: function(ref) {
+            return this.controllerFor('_ref', ref);
+        },
+
+        controllerFor: function(param, value) {
+            for(var i=0, max=Mojito.controllers.length; i<max; i++) {
+                var controller = Mojito.controllers[i];
+                if(controller.get(param) === value) {
+                    return controller;
+                }
             }
+            return null;
         },
 
         get: function(param) {
@@ -163,4 +200,6 @@
             return this._name;
         },
     };
+
+    Mojito.init();
 })(jQuery)
