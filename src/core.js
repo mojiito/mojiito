@@ -113,7 +113,7 @@
                 throw 'you have to extend an object not a ' + typeof(ExtendController);
             }
 
-            var Controller = $.extend(true,Mojito.createObject(self), ExtendController);
+            var Controller = $.extend(Mojito.createObject(self), ExtendController);
             Controller.set('_name', name);
             Mojito[name] = Controller;
 
@@ -134,7 +134,7 @@
                 element = $('body');
             }
             var id = typeof controllerId === 'string' ? controllerId : Mojito.generateRandomString(16);
-            var obj = $.extend(true, this, {
+            var obj = $.extend(Object.create(this), {
                 _id: id,
                 _ref: element.data(DATA_CONTROLLER_REF),
                 _super: typeof this._super === 'object' && this._super && typeof this._super.create === 'function' ? this._super.create(element, id) : null,
