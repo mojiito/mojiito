@@ -91,7 +91,6 @@
         _name: 'Controller',
 
         init: function() {
-            console.log('init Controller');
         },
 
         setupController: function() {
