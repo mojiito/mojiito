@@ -10,6 +10,7 @@
     DATA_CONTROLLER_REF = DATA_NAMESPACE + '-controller-ref';
     DATA_ACTION = DATA_NAMESPACE + '-action';
     DATA_ACTION_PARAMS = DATA_NAMESPACE + '-params';
+    DATA_ACTION_EVENT = DATA_ACTION + '-event';
     EVENT_NAMESPACE = 'mojito';
 
     Mojito = 'object' === typeof Mojito ? Mojito : Object.create({
@@ -151,13 +152,14 @@
             }
             self.$.find('[data-'+ DATA_ACTION +']').each(function() {
                 var action = $(this).data(DATA_ACTION);
+                var actionEvent = $(this).data(DATA_ACTION_EVENT);
                 var actionParams = action.split('.');
                 if(typeof actionParams === 'object' && actionParams.length > 1) {
                     var controller = actionParams[0];
                     var method = actionParams[1];
 
                     if(controller === self.get('_name') && self.get(method)) {
-                        $(this).on('click.' + EVENT_NAMESPACE, function(event) {
+                        $(this).on(typeof actionEvent === 'string' ? actionEvent.split(',').join(' ') : 'click.' + EVENT_NAMESPACE, function(event) {
                             var attributes = Mojito.getDataParams($(this));
                             event.preventDefault();
                             attributes.push(event);
