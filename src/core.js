@@ -60,7 +60,7 @@
         getDataParams: function(elem) {
             var params = elem.data(DATA_ACTION_PARAMS);
             var attributes = [];
-            if(!!params) {
+            if(typeof params === 'string' && params.length > 0) {
                 if(typeof JSON === 'undefined') {
                     throw 'Mojito needs JSON to work. Min. IE8';
                 }
@@ -74,7 +74,13 @@
                 params = params.replace(/"{/g,"{");
                 params = params.replace(/]"/g,"]");
                 params = params.replace(/"\[/g,"[");
-                params = '["'+params+'"]';
+                if(params.charAt(0) !== '{' && params.charAt(0) !== '[') {
+                    params = '\"'+params;
+                }
+                if(params.charAt(params.length-1) !== '}' && params.charAt(params.length-1) !== ']') {
+                    params = '\"'+params;
+                }
+                params = '[' + params+']';
                 attributes = JSON.parse(params);
                 for(var i=0, max=attributes.length; i<max; i++) {
                     if(!isNaN(attributes[i])) {
