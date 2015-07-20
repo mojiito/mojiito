@@ -61,9 +61,7 @@
             var params = elem.data(DATA_ACTION_PARAMS);
             var attributes = [];
             if(typeof params === 'string' && params.length > 0) {
-                if(typeof JSON === 'undefined') {
-                    throw 'Mojito needs JSON to work. Min. IE8';
-                }
+
                 params = params.replace(/,/g,"\",\"");
                 params = params.replace(/:/g,"\":\"");
                 params = params.replace(/{/g,"{\"");
@@ -78,18 +76,10 @@
                     params = '\"'+params;
                 }
                 if(params.charAt(params.length-1) !== '}' && params.charAt(params.length-1) !== ']') {
-                    params = '\"'+params;
+                    params = params+'\"';
                 }
                 params = '[' + params+']';
-                attributes = JSON.parse(params);
-                for(var i=0, max=attributes.length; i<max; i++) {
-                    if(!isNaN(attributes[i])) {
-                        attributes[i] = attributes[i].indexOf('.') ? parseFloat(attributes[i]) : parseInt(attributes[i], 10);
-                    } else {
-                        attributes[i] = attributes[i] === 'true' ? true : attributes[i];
-                        attributes[i] = attributes[i] === 'false' ? false : attributes[i];
-                    }
-                }
+                attributes = this.parseJSON(params);
             }
             return attributes;
         },
@@ -103,6 +93,47 @@
                 randomString += chars.substring(rnum,rnum+1);
             }
             return randomString;
+        },
+
+        parseJSON: function(item) {
+            if(typeof item === 'string') {
+                if(typeof JSON === 'undefined') {
+                    throw 'Mojito needs JSON to work. Min. IE8';
+                }
+                try {
+                    item = JSON.parse(item);
+                } catch(ex) {
+                    if(!isNaN(item)) {
+                        item = item.indexOf('.') ? parseFloat(item) : parseInt(item, 10);
+                    } else {
+                        item = item === 'true' ? true : item;
+                        item = item === 'false' ? false : item;
+                    }
+                }
+            }
+
+            if(this.isArray(item)) {
+                // handle array
+                for(var i =0, max=item.length; i<max; i++) {
+                    item[i] = this.parseJSON(item[i]);
+                }
+            } else if(this.isObject(item)){
+                // handle object
+                for (var prop in item) {
+                    if(item.hasOwnProperty(prop)) {
+                        item[prop] = this.parseJSON(item[prop]);
+                    }
+                }
+            }
+            return item;
+        },
+
+        isArray: function(obj) {
+            return Object.prototype.toString.call(obj) === '[object Array]';
+        },
+
+        isObject: function(obj) {
+            return typeof obj === 'object' && !this.isArray(obj);
         },
 
         toString: function() {
