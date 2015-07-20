@@ -61,12 +61,29 @@
             var params = elem.data(DATA_ACTION_PARAMS);
             var attributes = [];
             if(!!params) {
-                 attributes = params.split(',');
-                 for(var i=0, max=attributes.length; i<max; i++) {
-                     if(!isNaN(attributes[i])) {
-                         attributes[i] = attributes[i].indexOf('.') ? parseFloat(attributes[i]) : parseInt(attributes[i], 10);
-                     }
-                 }
+                if(typeof JSON === 'undefined') {
+                    throw 'Mojito needs JSON to work. Min. IE8';
+                }
+                params = params.replace(/,/g,"\",\"");
+                params = params.replace(/:/g,"\":\"");
+                params = params.replace(/{/g,"{\"");
+                params = params.replace(/}/g,"\"}");
+                params = params.replace(/\[/g,"[\"");
+                params = params.replace(/\]/g,"\"]");
+                params = params.replace(/}"/g,"}");
+                params = params.replace(/"{/g,"{");
+                params = params.replace(/]"/g,"]");
+                params = params.replace(/"\[/g,"[");
+                params = '["'+params+'"]';
+                attributes = JSON.parse(params);
+                for(var i=0, max=attributes.length; i<max; i++) {
+                    if(!isNaN(attributes[i])) {
+                        attributes[i] = attributes[i].indexOf('.') ? parseFloat(attributes[i]) : parseInt(attributes[i], 10);
+                    } else {
+                        attributes[i] = attributes[i] === 'true' ? true : attributes[i];
+                        attributes[i] = attributes[i] === 'false' ? false : attributes[i];
+                    }
+                }
             }
             return attributes;
         },
