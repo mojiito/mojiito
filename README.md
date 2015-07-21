@@ -14,7 +14,7 @@ mojito.js is just a little framework on top of [jQuery](https://github.com/jquer
 - It is not a abstraction layer for web components [Polymer](https://www.polymer-project.org/1.0/).
 
 ## Functionality
-After you installed mojito and included it in your project, the doors are now open to write your first controller:
+After you [installed](#how-to-install-it) mojito and included it in your project, the doors are now open to write your first controller:
 
 ### Create a controller
 To create a controller, add the following code to your javascipt. We suggest to put every controller in its own file, for a better structure.
