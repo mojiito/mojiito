@@ -32,6 +32,16 @@ After creating the controller you need to append/link it to a HTML-Tag.
 ```
 With `data-mojito-controller` you define which controller class is responsible for this HTML-Tag. Mojito now creates a new instance of `FooController` and links it to this <div>
 
+### The init method
+When you an `init` function to your controller, this is the place to start. The `init` automatically gets called after mojito has successfully setup your controller. Normally the `init` method is the place were you initialize/add/setup the jQuery plugins and run code for setting up this part of your app
+```JavaScript
+Mojito.Controller.extend('FooController', {
+    init: function() {
+        // add here some init code, set up your jQuery plugins
+    }
+});
+```
+
 ## How to install it
 We suggest you to use bower for installing mojito.js
 
