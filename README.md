@@ -18,7 +18,7 @@ After you installed mojito and included it in your project, the doors are now op
 
 ### Create a controller
 To create a controller, add the following code to your javascipt. We suggest to put every controller in its own file, for a better structure.
-```javascipt
+```JavaScript
 Mojito.Controller.extend('FooController', {
     // Your code goes here
 });
@@ -37,12 +37,12 @@ We suggest you to use bower for installing mojito.js
 Install mojito.js via bower.
 
 1. executed the following command in your terminal
-```javascipt
+```Shell
 bower install --save thomaspink/mojito.js
 ```
 
 2. Include mojito in your project
-```html
+```HTML
 <script src="bower_components/mojito/src/core.js"></script>
 ```
 
