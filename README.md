@@ -1,7 +1,7 @@
 # mojito
 Lightweight Controller JS Framework
 
-## What is it
+## What is mojito.js
 mojito.js is just a little framework on top of [jQuery](https://github.com/jquery/jquery) to better structurize your JavaScript for your (static) website.
 - put controller on DOM Nodes
 - the controller handles the JavaScript you need to write for that specific part and encapsulate it
@@ -9,7 +9,7 @@ mojito.js is just a little framework on top of [jQuery](https://github.com/jquer
 - add actions/event to a DOM Node (e.g. <button>) and handle it in the controller
 - extend from other controllers and inherit function, variables and logic
 
-## What is it not
+## What mojito.js is not
 - It is not a MVC JavaScript framework for client side applications like [Angular](https://www.angularjs.org/), [React](http://facebook.github.io/react/), [Ember](http://emberjs.com/), ...
 - It is not a abstraction layer for web components [Polymer](https://www.polymer-project.org/1.0/).
 
