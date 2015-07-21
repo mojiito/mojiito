@@ -1,4 +1,4 @@
-(function($) {
+;(function($) {
 
     if(typeof $ !== 'function') {
         throw 'Mojito needs jQuery to run';
@@ -257,4 +257,4 @@
     };
 
     Mojito.init();
-})(jQuery)
+})(jQuery);
