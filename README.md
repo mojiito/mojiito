@@ -23,12 +23,14 @@ Mojito.Controller.extend('FooController', {
     // Your code goes here
 });
 ```
+The first parameter is the name of the controller class, the second one is an object were you put your variables, functions and actions. After that your newly created `FooController` Class has been a to mojito.js
 
 ### Link the controller to a DOM Node
-After creating the controller you need to append/link it to a HTML-Tag. Then this controller is responsible for this HTML.
+After creating the controller you need to append/link it to a HTML-Tag.
 ```HTML
 <div class="some css classes" data-mojito-controller="FooController"></div>
 ```
+With `data-mojito-controller` you define which controller class is responsible for this HTML-Tag. Mojito now creates a new instance of `FooController` and links it to this <div>
 
 ## How to install it
 We suggest you to use bower for installing mojito.js
