@@ -42,6 +42,52 @@ Mojito.Controller.extend('FooController', {
 });
 ```
 
+### Methods/Functions
+Of course your controller can have as many functions as you want
+```JavaScript
+Mojito.Controller.extend('FooController', {
+    init: function() {
+        this.myFunction(); // calling a function
+    },
+
+    myFunction: function() {
+        console.log("myfunction");
+        this.anotherFunction('anotherFunction');
+    },
+
+    anotherFunction: function(msg) {
+        console.log(msg);
+    },
+});
+```
+
+### Communication between controllers
+To communicate between controllers, you have to give the controller you want to access a reference name. This reference is needed for mojito to know which controller instance (you can have the same controller class on multible HTML-Tags) you want. To specify the reference name, just add it via the `data-mojito-controller-ref` attribute.
+```HTML
+<div class="some css classes" data-mojito-controller="FooController" data-mojito-controller-ref="onlyFooController"></div>
+<div class="some css classes" data-mojito-controller="BarController" data-mojito-controller-ref="myBarController"></div>
+<div class="some css classes" data-mojito-controller="BarController" data-mojito-controller-ref="anotherBarController"></div>
+```
+
+```JavaScript
+Mojito.Controller.extend('FooController', {
+    isActive: false,
+    init: function() {
+        // request the controller instance with the reference name myBarController
+        var myBarController = this.controllerByRef('myBarController');
+        myBarController.makeAwesomeStuff('much awesomeness');
+    }
+});
+
+Mojito.Controller.extend('BarController', {
+    init: function() {
+    },
+    makeAwesomeStuff: function(msg) {
+        alert(msg);
+    }
+});
+```
+
 ## How to install it
 We suggest you to use bower for installing mojito.js
 
