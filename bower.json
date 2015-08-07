@@ -6,9 +6,9 @@
         "thomas.pink <thomas.pink@netural.com>"
     ],
     "description": "js framework with controller logic",
-    "main": "src/core.js",
+    "main": "lib/core.js",
     "dependencies": {
-    "jquery": ">= 1.9.0"
+        "jquery": ">= 1.9.0"
     },
     "keywords": [
         "mojito",
