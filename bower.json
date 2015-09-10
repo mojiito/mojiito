@@ -9,6 +9,7 @@
     "main": "lib/core.js",
     "dependencies": {
     },
+    "ignore": [],
     "keywords": [
         "mojito",
         "js",
