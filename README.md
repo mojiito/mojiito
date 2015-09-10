@@ -101,7 +101,7 @@ bower install --save thomaspink/mojito.js
 
 2. Include mojito in your project
 ```HTML
-<script src="bower_components/mojito/src/core.js"></script>
+<script src="bower_components/mojito/lib/core.js"></script>
 ```
 
 ## Issues/Feedback
