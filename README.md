@@ -1,4 +1,4 @@
 # mojito
-Lightweight Controller JS Framework
+Mojito is a JavaScript framework which brings the benefits of Controllers, Observers, Computed Properties, Class Bindings, ... you know from big MVC frameworks like Ember to your (static) website.
 
-#### Documentation is on its way
+Check the [wiki/documentation](https://github.com/thomaspink/mojito.js/wiki) for more information!
