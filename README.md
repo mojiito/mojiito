@@ -1,4 +1,4 @@
 # mojito
 Lightweight Controller JS Framework
 
-## Readme coming soon
+## Documentation is on its way
