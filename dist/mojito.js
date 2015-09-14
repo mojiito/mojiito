@@ -4,47 +4,109 @@
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
+exports.computed = computed;
+exports.applyComputed = applyComputed;
+exports.getComputedProperty = getComputedProperty;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _libControllerJs = require('../lib/controller.js');
+var _main = require('./main');
 
-var _libControllerJs2 = _interopRequireDefault(_libControllerJs);
+var _main2 = _interopRequireDefault(_main);
 
-var _libUtils = require('../lib/utils');
+var _utils = require('./utils');
 
-var Utils = _interopRequireWildcard(_libUtils);
+var Utils = _interopRequireWildcard(_utils);
 
-var _libMainJs = require('../lib/main.js');
+var _observer = require('./observer');
 
-var _libMainJs2 = _interopRequireDefault(_libMainJs);
-
-var ControllerProxy = {
-
-    register: function register(name, controller) {
-        if (!Utils.isObject(controller) && ! typeof controller === 'function') {
-            return null;
-        }
-
-        if (_libMainJs2['default'].isObject(document) && 'querySelectorAll' in document) {
-            var elements = document.querySelectorAll('[data-controller="' + name + '"]');
-
-            for (var i = 0, max = elements.length; i < max; i++) {
-                var element = elements[i];
-                _libMainJs2['default'].controllers.push(new controller(element));
-            }
-        }
-        return controller;
+function computed() {
+    if (arguments.length < 2) {
+        throw '[Type Exeption] observer needs at least 2 arguments';
     }
 
-};
+    var fn = arguments[arguments.length - 1];
+    var keyNames = Array.prototype.slice.call(arguments, 0, -1);
+    var i = keyNames.length;
 
-exports['default'] = ControllerProxy;
-module.exports = exports['default'];
+    if (!Utils.isFunction(fn)) {
+        throw '[Type Exeption] last argument has to be a function';
+    }
 
-},{"../lib/controller.js":2,"../lib/main.js":4,"../lib/utils":5}],2:[function(require,module,exports){
+    while (i--) {
+        if (!Utils.isString(keyNames[i])) {
+            throw '[Type Exeption] all keyNames have to be a string';
+        }
+    }
+
+    return {
+        keyNames: keyNames,
+        fn: fn
+    };
+}
+
+function applyComputed(obj, context) {
+    if (!Utils.isObject(obj)) {
+        return;
+    }
+
+    if (!context) {
+        context = obj;
+        if (!Utils.get(context, '__meta__', true)) {
+            Utils.set(context, '__meta__', {});
+        }
+        if (Utils.get(context, '__meta__.computedApplied', true)) {
+            return;
+        }
+        Utils.set(context, '__meta__.computedApplied', true);
+    }
+
+    var keys = Object.getOwnPropertyNames(obj);
+    for (var index in keys) {
+        if (obj.hasOwnProperty(keys[index])) {
+            var key = keys[index];
+            var keySplit = key.split('Computed');
+            if (keySplit.length >= 2 && !keySplit[keySplit.length - 1]) {
+                var computedKey = keySplit.join('');
+                var computedObject = obj[key].call(context);
+                var fn = Utils.get(computedObject, 'fn', true);
+                var keyNames = Utils.get(computedObject, 'keyNames', true);
+                if (Utils.isFunction(fn) && Utils.isArray(keyNames)) {
+                    var i = keyNames.length;
+                    while (i--) {
+                        var keyName = keyNames[i];
+                        if (Utils.isString(keyName)) {
+                            (0, _observer.addObserver)(context, keyName, function (computedKey, fn) {
+                                (0, _observer.callObserver)(context, computedKey);
+                                this.set('__meta__.cache.' + computedKey, fn.call(this));
+                            }, [computedKey, fn, context]);
+                            if (i === 0) {
+                                (0, _observer.callObserver)(context, keyName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!!obj.prototype) {
+        applyComputed(obj.prototype, context);
+    } else if ('__proto__' in obj) {
+        applyComputed(obj.__proto__, context);
+    }
+}
+
+function getComputedProperty(obj, keyName) {
+    if (Utils.isObject(obj) && Utils.isString(keyName) && Utils.get(obj, '__meta__.cache.' + keyName, true)) {
+        return Utils.get(obj, '__meta__.cache.' + keyName, true);
+    }
+    return null;
+}
+
+},{"./main":7,"./observer":8,"./utils":9}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -63,40 +125,85 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _libCoreObject = require('../lib/core-object');
+var _coreObject = require('./core-object');
 
-var _libCoreObject2 = _interopRequireDefault(_libCoreObject);
+var _coreObject2 = _interopRequireDefault(_coreObject);
 
-var _libUtils = require('../lib/utils');
+var _utils = require('./utils');
 
-var Utils = _interopRequireWildcard(_libUtils);
+var Utils = _interopRequireWildcard(_utils);
+
+var _main = require('./main');
+
+var _main2 = _interopRequireDefault(_main);
+
+var _core = require('./core');
 
 var Controller = (function (_CoreObject) {
     _inherits(Controller, _CoreObject);
 
-    function Controller($) {
+    function Controller() {
         _classCallCheck(this, Controller);
 
         _get(Object.getPrototypeOf(Controller.prototype), 'constructor', this).call(this);
-        if (Utils.isArray($)) {
-            this.$ = $;
+
+        var args = !!arguments.length && Utils.isArray(arguments[arguments.length - 1]) ? arguments[arguments.length - 1] : arguments;
+
+        if (Utils.isArray(args) && !!args.length && Utils.isObject(args[args.length - 1])) {
+
+            var config = args.pop();
+
+            this.set('_$', config.element);
+            this.set('_id', config.id);
+            this.set('_ref', config.ref);
+            this.set('_className', config.className);
+
+            if (typeof jQuery === 'function') {
+                var $ = function $(selector) {
+                    if (typeof selector === 'string') {
+                        return jQuery(this.get('_$', true)).find(selector);
+                    } else {
+                        return jQuery(this.get('_$', true));
+                    }
+                };
+                this.set('$', $);
+            } else {
+                this.set('$', this.get('_$', true));
+            }
+        } else {
+            throw 'Please call super(args), in your Controller!';
         }
     }
 
     _createClass(Controller, [{
-        key: 'toString',
-        value: function toString() {
-            return 'Mojito Controller';
+        key: 'getControllersByParam',
+        value: function getControllersByParam(param, value) {
+            return (0, _core.getControllersByParam)(param, value);
+        }
+    }, {
+        key: 'getControllerById',
+        value: function getControllerById(id) {
+            return (0, _core.getControllerById)(id);
+        }
+    }, {
+        key: 'getControllerByRef',
+        value: function getControllerByRef(ref) {
+            return (0, _core.getControllerByRef)(ref);
+        }
+    }, {
+        key: 'getControllersByClassName',
+        value: function getControllersByClassName(name) {
+            return (0, _core.getControllersByClassName)(name);
         }
     }]);
 
     return Controller;
-})(_libCoreObject2['default']);
+})(_coreObject2['default']);
 
 exports['default'] = Controller;
 module.exports = exports['default'];
 
-},{"../lib/core-object":3,"../lib/utils":5}],3:[function(require,module,exports){
+},{"./core":4,"./core-object":3,"./main":7,"./utils":9}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -112,6 +219,12 @@ var _libUtilsJs = require('../lib/utils.js');
 var CoreObject = (function () {
     function CoreObject() {
         _classCallCheck(this, CoreObject);
+
+        this.set('__meta__', {
+            observerApplied: false,
+            computedApplied: false,
+            cache: {}
+        }, true);
     }
 
     _createClass(CoreObject, [{
@@ -121,13 +234,8 @@ var CoreObject = (function () {
         }
     }, {
         key: 'get',
-        value: function get(param) {
-            return (0, _libUtilsJs.get)(this, param);
-        }
-    }, {
-        key: 'toString',
-        value: function toString() {
-            return 'Mojito Core Object';
+        value: function get(param, ignoreComputed) {
+            return (0, _libUtilsJs.get)(this, param, ignoreComputed);
         }
     }]);
 
@@ -137,53 +245,825 @@ var CoreObject = (function () {
 exports['default'] = CoreObject;
 module.exports = exports['default'];
 
-},{"../lib/utils.js":5}],4:[function(require,module,exports){
+},{"../lib/utils.js":9}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.registerController = registerController;
+exports.applyActionsToController = applyActionsToController;
+exports.applyClassBindingsToController = applyClassBindingsToController;
+exports.applyInputBindingsToController = applyInputBindingsToController;
+exports.register = register;
+exports.getControllersByParam = getControllersByParam;
+exports.getControllerById = getControllerById;
+exports.getControllerByRef = getControllerByRef;
+exports.getControllersByClassName = getControllersByClassName;
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _environment = require('./environment');
+
+var _environment2 = _interopRequireDefault(_environment);
+
+var _utils = require('./utils');
+
+var Utils = _interopRequireWildcard(_utils);
+
+var _dom = require('./dom');
+
+var _main = require('./main');
+
+var _main2 = _interopRequireDefault(_main);
+
+var _observer = require('./observer');
+
+var _computed = require('./computed');
+
+/**
+    registers a controller in mojito, creates an instance
+    and does all the magic for setting up all the controller stuff
+*/
+
+function registerController(name, ControllerClass) {
+
+    // make sure registerController has exactly two arguments
+    if (arguments.length < 2) {
+        throw '[Type Exeption] missing parameters';
+    }
+
+    // check name to make sure it is an array
+    if (!Utils.isString(name)) {
+        throw '[Type Exeption] name has to be a string';
+    }
+
+    // check ControllerClass to make sure it is a function or object
+    if (!Utils.isFunction(ControllerClass) && !Utils.isObject(ControllerClass)) {
+        throw '[Type Exeption] No ControllerClass found for ' + name + ' (maybe you forgot to export ' + name + ' as default)';
+    }
+
+    // check for controller instances array
+    if (!Utils.isArray(_main2['default']._controllerInstances)) {
+        throw '[Type Exeption] No _controllerInstances found';
+    }
+
+    // grab elements from DOM where this controller has been attached
+    var elements = (0, _dom.querySelectorAll)('[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_DEF_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_DEF) + ']');
+
+    // loop through elements and create controller instances
+    for (var i = 0, max = elements.length; i < max; i++) {
+
+        var element = elements[0];
+        var params = [];
+
+        // check if controller is already registered (has an id)
+        if ((0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID))) {
+            continue;
+        }
+
+        // check if there are any params for controller init
+        if ((0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_PARAMS_SHORTHAND : _environment2['default'].HTMLDATA_PARAMS))) {
+            params = (0, _dom.getDataParams)(element);
+        }
+
+        // check if controller reference is set and apply it to instance
+        var ref = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_REF_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_REF));
+
+        // merge params with config
+        params = params.concat([{
+            element: element,
+            id: Utils.generateRandomString(16),
+            ref: ref,
+            className: name
+        }]);
+
+        // create new controller instance from class
+        // instead of new ControllerClass() using the following code to apply
+        // the params as an arguments array
+        var controller = new (Function.prototype.bind.apply(ControllerClass, [null].concat(params)))();
+
+        // apply id to dome node
+        (0, _dom.setAttribute)(element, _environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID, controller.get('_id', true));
+
+        // add controller instance to instances array for later access
+        _main2['default']._controllerInstances.push(controller);
+
+        // add all the computed properties on this controller
+        (0, _computed.applyComputed)(controller);
+
+        // add all the observers on this controller
+        (0, _observer.applyObserver)(controller);
+
+        // apply actions
+        applyActionsToController(controller);
+
+        // apply class bindings
+        applyClassBindingsToController(controller);
+
+        // apply input bindings
+        applyInputBindingsToController(controller);
+
+        // return instance
+        return controller;
+    }
+
+    return null;
+}
+
+function applyActionsToController(controller) {
+
+    // make sure applyDomToController has exactly one arguments
+    if (arguments.length < 1) {
+        throw '[Type Exeption] missing parameters';
+    }
+
+    // check controller to make sure it is an object
+    if (!Utils.isObject(controller)) {
+        throw '[Type Exeption] controller has to be an object';
+    }
+
+    var actionElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION) + ']');
+
+    var i = actionElements.length;
+
+    var _loop = function () {
+        var element = actionElements[i];
+        var action = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION));
+        var id = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND_ID : _environment2['default'].HTMLDATA_ACTION_ID));
+        var eventType = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_EVENT_SHORTHAND : _environment2['default'].HTMLDATA_EVENT));
+
+        if (id) {
+            return 'continue';
+        }
+
+        if (Utils.isString(action)) {
+            (function () {
+                var actionParts = action.split('.');
+
+                if (actionParts.length === 2 && actionParts[0] === controller.get('_className', true) && actionParts[1] in controller) {
+
+                    if (!eventType || _environment2['default'].EVENTTYPES.split(' ').indexOf(eventType) === -1) {
+                        eventType = _environment2['default'].DEFAULT_EVENTTYPE;
+                    }
+
+                    (0, _dom.setAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_ID_SHORTHAND : _environment2['default'].HTMLDATA_ACTION_ID), Utils.generateRandomString(16));
+                    (0, _dom.addEventListener)(element, eventType, function (event) {
+                        event.preventDefault();
+                        controller[actionParts[1]].apply(controller, [event].concat((0, _dom.getDataParams)(element)));
+                    }, controller);
+                }
+            })();
+        }
+    };
+
+    while (i--) {
+        var _ret = _loop();
+
+        if (_ret === 'continue') continue;
+    }
+}
+
+function applyClassBindingsToController(controller) {
+    // make sure applyDomToController has exactly one arguments
+    if (arguments.length < 1) {
+        throw '[Type Exeption] missing parameters';
+    }
+
+    // check controller to make sure it is an object
+    if (!Utils.isObject(controller)) {
+        throw '[Type Exeption] controller has to be an object';
+    }
+
+    var bindingElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING) + ']');
+
+    var i = bindingElements.length;
+
+    while (i--) {
+        var element = bindingElements[i];
+        var bindings = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING)).split(' ');
+        var j = bindings.length;
+
+        while (j--) {
+            var binding = bindings[j];
+
+            if (!Utils.isString(binding)) {
+                continue;
+            }
+
+            binding = binding.split('.');
+
+            if (binding.length !== 2 || binding[0] !== controller.get('_className', true)) {
+                continue;
+            }
+
+            binding = binding[1].split(':');
+
+            if (!binding.length || !binding[0].length) {
+                continue;
+            }
+
+            var trigger = binding[0];
+            var class1 = binding.length > 1 && binding[1].length ? binding[1] : null;
+            var class2 = binding.length > 2 && binding[2].length ? binding[2] : null;
+
+            (0, _observer.addObserver)(controller, trigger, function (trigger, element, class1, class2) {
+                if (this.get(trigger)) {
+                    if (!!class1) {
+                        (0, _dom.addClass)(element, class1);
+                    } else {
+                        (0, _dom.addClass)(element, trigger);
+                    }
+                    !!class2 && (0, _dom.removeClass)(element, class2);
+                } else {
+                    if (!!class1) {
+                        (0, _dom.removeClass)(element, class1);
+                    } else {
+                        (0, _dom.removeClass)(element, trigger);
+                    }
+                    !!class2 && (0, _dom.addClass)(element, class2);
+                }
+            }, [trigger, element, class1, class2]);
+            (0, _observer.callObserver)(controller, trigger);
+        }
+    }
+}
+
+function applyInputBindingsToController(controller) {
+
+    // make sure applyDomToController has exactly one arguments
+    if (arguments.length < 1) {
+        throw '[Type Exeption] missing parameters';
+    }
+
+    // check controller to make sure it is an object
+    if (!Utils.isObject(controller)) {
+        throw '[Type Exeption] controller has to be an object';
+    }
+
+    var bindingElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_INPUTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_INPUTBINDING) + ']');
+
+    var i = bindingElements.length;
+
+    var _loop2 = function () {
+        var element = bindingElements[i];
+        var binding = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_INPUTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_INPUTBINDING));
+
+        if (!Utils.isString(binding)) {
+            return 'continue';
+        }
+
+        binding = binding.split('.');
+
+        if (binding.length < 2 || binding[0] !== controller.get('_className', true)) {
+            return 'continue';
+        }
+
+        var param = binding.slice(1).join('.');
+        var events = '';
+        //if()
+        switch (element.tagName.toLowerCase()) {
+            case 'textarea':
+            case 'input':
+                events = 'input change paste';
+                break;
+            case 'select':
+                events = 'change';
+                break;
+        }
+        (function (element, events, controller, param) {
+            (0, _dom.addEventListener)(element, events, function (event) {
+                if (element.type === 'checkbox') {
+                    value = element.checked;
+                } else if (element.type !== 'radio' || element.checked) {
+                    value = element.value;
+                }
+
+                if (value !== controller.get(param)) {
+                    controller.set(param, value);
+                }
+            });
+        })(element, events, controller, param);
+
+        (0, _observer.addObserver)(controller, param, function (param, element) {
+            switch (element.type) {
+                case 'checkbox':
+                    element.checked !== !!controller.get(param) && (element.checked = !!controller.get(param));
+                    break;
+                case 'radio':
+                    element.checked = controller.get(param) === element.value;
+                    break;
+                default:
+                    if (controller.get(param) !== element.value) {
+                        element.value = controller.get(param);
+                    }
+                    break;
+            }
+        }, [param, element]);
+
+        var value = null;
+        if (element.type === 'checkbox') {
+            value = element.checked;
+        } else if (element.type !== 'radio' || element.checked) {
+            value = element.value;
+        }
+
+        if (!!value) {
+            controller.set(param, value);
+        } else if (controller.get(param)) {
+            switch (element.type) {
+                case 'checkbox':
+                    element.checked !== !!controller.get(param) && (element.checked = !!controller.get(param));
+                    break;
+                case 'radio':
+                    element.checked = controller.get(param) === element.value;
+                    break;
+                default:
+                    if (controller.get(param) !== element.value) {
+                        element.value = controller.get(param);
+                    }
+                    break;
+            }
+        }
+    };
+
+    while (i--) {
+        var _ret3 = _loop2();
+
+        if (_ret3 === 'continue') continue;
+    }
+}
+
+function register(type, name, Class) {
+
+    if (arguments.length < 3) {
+        throw '[Type Exeption] missing parameters';
+    }
+
+    if (!Utils.isString(type) || !Utils.isString(name)) {
+        throw '[Type Exeption] type and name have to be strings';
+    }
+
+    if (type === 'controller') {
+        return registerController(name, Class);
+    }
+
+    return null;
+}
+
+function getControllersByParam(param, value) {
+
+    // check for controller instances array
+    if (!Utils.isArray(_main2['default']._controllerInstances)) {
+        throw '[Type Exeption] No _controllerInstances found';
+    }
+
+    // check id to make sure it is a string
+    if (!Utils.isString(value)) {
+        console.error('[Type Error] ' + param + ' has to be a string');
+        return null;
+    }
+
+    var i = _main2['default']._controllerInstances.length;
+    var result = [];
+    while (i--) {
+        var controller = _main2['default']._controllerInstances[i];
+        if (controller.get(param) === value) {
+            result.push(controller);
+        }
+    }
+    return result;
+}
+
+function getControllerById(id) {
+
+    var controllers = getControllersByParam('_id', id);
+    return controllers.length ? controllers[0] : null;
+}
+
+function getControllerByRef(ref) {
+
+    var controllers = getControllersByParam('_ref', ref);
+    return controllers.length ? controllers[0] : null;
+}
+
+function getControllersByClassName(name) {
+
+    return getControllersByParam('_className', name);
+}
+
+},{"./computed":1,"./dom":5,"./environment":6,"./main":7,"./observer":8,"./utils":9}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.querySelectorAll = querySelectorAll;
+exports.querySelector = querySelector;
+exports.getAttribute = getAttribute;
+exports.setAttribute = setAttribute;
+exports.getDataParams = getDataParams;
+exports.addEventListener = addEventListener;
+exports.hasClass = hasClass;
+exports.addClass = addClass;
+exports.removeClass = removeClass;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _environment = require('./environment');
+
+var _environment2 = _interopRequireDefault(_environment);
+
+var _utils = require('./utils');
+
+function querySelectorAll(root, selector) {
+    if (typeof document !== 'object') {
+        throw 'No document found';
+    }
+
+    if (!('querySelectorAll' in document)) {
+        try {
+            console.error('[Type Error] querySelectorAll function not found, probably your browser version is too old. (http://caniuse.com/#search=querySelectorAll)');
+        } finally {
+            return [];
+        }
+    }
+
+    if (typeof root === 'string') {
+        selector = root;
+        root = document;
+    } else if (typeof root !== 'object') {
+        try {
+            console.error('[Type Error] Root has to be a DOM Element');
+        } finally {
+            return [];
+        }
+    }
+
+    if (typeof selector !== 'string') {
+        try {
+            console.error('[Type Error] Selector has to be a string');
+        } finally {
+            return [];
+        }
+    }
+
+    return document.querySelectorAll(selector);
+}
+
+function querySelector(selector) {
+    if (typeof document !== 'object') {
+        throw 'No document found';
+    }
+
+    if (!('querySelector' in document)) {
+        try {
+            console.error('[Type Error] querySelector function not found, probably your browser version is too old. (http://caniuse.com/#search=querySelector)');
+        } finally {
+            return [];
+        }
+    }
+
+    if (typeof selector !== 'string') {
+        try {
+            console.error('[Type Error] Selector has to be a string');
+        } finally {
+            return [];
+        }
+    }
+
+    return document.querySelector(selector);
+}
+
+function getAttribute(element, name) {
+
+    if (typeof document !== 'object') {
+        throw 'No document found';
+    }
+
+    if (typeof element !== 'object' || !('getAttribute' in element)) {
+        try {
+            console.error('[Type Error] Element has to be a DOM Element and support the getAttribute method');
+        } finally {
+            return null;
+        }
+    }
+
+    if (typeof name !== 'string') {
+        try {
+            console.error('[Type Error] Attribute name has to be a string');
+        } finally {
+            return null;
+        }
+    }
+
+    return element.getAttribute(name);
+}
+
+function setAttribute(element, name, value) {
+
+    if (typeof document !== 'object') {
+        throw 'No document found';
+    }
+
+    if (typeof element !== 'object' || !('setAttribute' in element)) {
+        try {
+            console.error('[Type Error] Element has to be a DOM Element and support the getAttribute method');
+        } finally {
+            return null;
+        }
+    }
+
+    if (typeof name !== 'string') {
+        try {
+            console.error('[Type Error] Attribute name has to be a string');
+        } finally {
+            return null;
+        }
+    }
+
+    element.setAttribute(name, value);
+}
+
+function getDataParams(element) {
+
+    var params = getAttribute(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_PARAMS_SHORTHAND : _environment2['default'].HTMLDATA_PARAMS));
+    var attributes = [];
+    if (typeof params === 'string' && params.length > 0) {
+
+        params = params.replace(/,/g, "\",\"");
+        params = params.replace(/:/g, "\":\"");
+        params = params.replace(/{/g, "{\"");
+        params = params.replace(/}/g, "\"}");
+        params = params.replace(/\[/g, "[\"");
+        params = params.replace(/\]/g, "\"]");
+        params = params.replace(/}"/g, "}");
+        params = params.replace(/"{/g, "{");
+        params = params.replace(/]"/g, "]");
+        params = params.replace(/"\[/g, "[");
+        if (params.charAt(0) !== '{' && params.charAt(0) !== '[') {
+            params = '\"' + params;
+        }
+        if (params.charAt(params.length - 1) !== '}' && params.charAt(params.length - 1) !== ']') {
+            params = params + '\"';
+        }
+        params = '[' + params + ']';
+        attributes = (0, _utils.parseJSON)(params);
+    }
+    return attributes;
+}
+
+;
+
+function addEventListener(element, types, callback, context) {
+    if (typeof element !== 'object') {
+        throw '[Type Exeption] element has to be a DOM Element';
+    }
+
+    if (typeof types === 'string') {
+        types = types.split(' ');
+    } else if (types !== 'array') {
+        throw '[Type Exeption] types has to be a string or an array';
+    }
+
+    if (typeof callback !== 'function') {
+        throw '[Type Exeption] callback has to be a function';
+    }
+
+    if (!element.addEventListener) {
+        throw '[Type Exeption] There is no addEventListener function on element';
+    }
+
+    var validTypes = _environment2['default'].EVENTTYPES.split(' ');
+    var i = types.length;
+
+    while (i--) {
+        var type = types[i];
+        if (validTypes.indexOf(type)) {
+            element.addEventListener(type, function (event) {
+                callback.apply(!!context ? context : callback, [].concat([event]));
+            });
+        }
+    }
+
+    return element;
+}
+
+function hasClass(elem, className) {
+
+    // Check if there is an element and
+    // a Class Name given
+    if (!elem || !className) return null;
+
+    // Check if it is a list of elements
+    if (elem.length > 1) {
+
+        // Run through the list and check if
+        // one of them has not that class Name
+        for (var i = 0, max = elem.length; i < max; i++) {
+            if (!hasClass(elem[i], className)) {
+                return false;
+            }
+        }
+
+        // Not found - return false
+        return true;
+    } else {
+        // Check if browser supports classList
+        // Jep: Check with classList
+        // Nope: Do a regex
+        if (!!elem.classList) {
+            return elem.classList.contains(className);
+        } else {
+            var className = " " + className + " ";
+            return (" " + elem.className + " ").replace(/[\n\t]/g, " ").indexOf(className) > -1;
+        }
+    }
+}
+
+function addClass(elem, className) {
+
+    // Check if there is an element and
+    // a Class Name given
+    if (!elem || !className) return null;
+
+    // Check if it is a list of elements
+    if (elem.length > 1) {
+
+        // Run through the list and add
+        // Class Name to all of them
+        for (var i = 0, max = elem.length; i < max; i++) {
+            addClass(elem[i], className);
+        }
+
+        // Extend all Elements and return it
+        return elem;
+    } else {
+
+        // Check if browser supports classList
+        // Jep: Add it to classList
+        // Nope: Add it as string
+        if (!!elem.classList) {
+            elem.classList.add(className);
+        } else if (!hasClass(elem, className)) {
+            elem.className += " " + className;
+        }
+
+        // return the extended Element
+        return elem;
+    }
+}
+
+function removeClass(elem, className) {
+    // Check if there is an element and
+    // a Class Name given
+    if (!elem || !className) return null;
+
+    // Check if it is a list of elements
+    if (elem.length > 1) {
+
+        // Run through the list and remove
+        // Class Name of them all
+        for (var i = 0, max = elem.length; i < max; i++) {
+            removeClass(elem[i], className);
+        }
+
+        // Extend all Elements and return it
+        return elem;
+    } else {
+        // Check if browser supports classList
+        // Jep: Remove it from classList
+        // Nope: Remove it with regex
+        if (!!elem.classList) {
+            elem.classList.remove(className);
+        } else if (hasClass(elem, className)) {
+            var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+            elem.className = elem.className.replace(reg, ' ');
+        }
+
+        // return the extended Element
+        return elem;
+    }
+}
+
+},{"./environment":6,"./utils":9}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+	value: true
+});
+var ENV = {};
+
+// HTML data attributes
+ENV.HTMLDATA_SHORTHAND = false;
+ENV.HTMLDATA_NAMESPACE = 'mojito';
+ENV.HTMLDATA_CONTROLLER_DEF = ENV.HTMLDATA_NAMESPACE + '-controller';
+ENV.HTMLDATA_CONTROLLER_DEF_SHORTHAND = 'controller';
+ENV.HTMLDATA_CONTROLLER_ID = ENV.HTMLDATA_CONTROLLER_DEF + '-id';
+ENV.HTMLDATA_CONTROLLER_ID_SHORTHAND = ENV.HTMLDATA_CONTROLLER_DEF_SHORTHAND + '-id';
+ENV.HTMLDATA_CONTROLLER_REF = ENV.HTMLDATA_CONTROLLER_DEF + '-ref';
+ENV.HTMLDATA_CONTROLLER_REF_SHORTHAND = ENV.HTMLDATA_CONTROLLER_DEF_SHORTHAND + '-ref';
+ENV.HTMLDATA_ACTION = ENV.HTMLDATA_NAMESPACE + '-action';
+ENV.HTMLDATA_ACTION_SHORTHAND = 'action';
+ENV.HTMLDATA_ACTION_ID = ENV.HTMLDATA_ACTION + '-id';
+ENV.HTMLDATA_ACTION_ID_SHORTHAND = ENV.HTMLDATA_ACTION_SHORTHAND + '-id';
+ENV.HTMLDATA_EVENT = ENV.HTMLDATA_NAMESPACE + '-event';
+ENV.HTMLDATA_EVENT_SHORTHAND = 'event';
+ENV.HTMLDATA_PARAMS = ENV.HTMLDATA_NAMESPACE + '-params';
+ENV.HTMLDATA_PARAMS_SHORTHAND = 'params';
+ENV.HTMLDATA_CLASSBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-class';
+ENV.HTMLDATA_CLASSBINDING_SHORTHAND = 'bind-class';
+ENV.HTMLDATA_INPUTBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-input';
+ENV.HTMLDATA_INPUTBINDING_SHORTHAND = 'bind-input';
+
+// events
+ENV.EVENTTYPES = "blur focus focusin focusout resize scroll click dblclick " + "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " + "change select submit keydown keypress keyup contextmenu";
+ENV.DEFAULT_EVENTTYPE = 'click';
+
+exports['default'] = ENV;
+module.exports = exports['default'];
+
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _libUtilsJs = require('../lib/utils.js');
+var _environment = require('./environment');
 
-var _libCoreObject = require('../lib/core-object');
+var _environment2 = _interopRequireDefault(_environment);
 
-var _libCoreObject2 = _interopRequireDefault(_libCoreObject);
+var _utils = require('./utils');
 
-var _libController = require('../lib/controller');
+var _dom = require('./dom');
 
-var _libController2 = _interopRequireDefault(_libController);
+var _coreObject = require('./core-object');
 
-var _libControllerProxy = require('../lib/controller-proxy');
+var _coreObject2 = _interopRequireDefault(_coreObject);
 
-var _libControllerProxy2 = _interopRequireDefault(_libControllerProxy);
+var _controller = require('./controller');
 
-var _libUtils = require('../lib/utils');
+var _controller2 = _interopRequireDefault(_controller);
 
-var Utils = _interopRequireWildcard(_libUtils);
+var _core = require('./core');
+
+var _observer = require('./observer');
+
+var _computed = require('./computed');
 
 var Mojito = {
-    toString: function toString() {
-        return 'Mojito';
-    },
-    get: _libUtilsJs.get,
-    set: _libUtilsJs.set,
-    isArray: _libUtilsJs.isArray,
-    isObject: _libUtilsJs.isObject,
-    isNumber: _libUtilsJs.isNumber,
-    isBoolean: _libUtilsJs.isBoolean,
-    isString: _libUtilsJs.isString,
-    isEmpty: _libUtilsJs.isEmpty,
-    typeOf: _libUtilsJs.typeOf,
-    extend: _libUtilsJs.extend,
-    CoreObject: new _libCoreObject2['default'](),
-    ControllerClass: _libController2['default'],
-    Controller: _libControllerProxy2['default'],
-    controllers: []
+    // core
+    ENV: _environment2['default'],
+    register: _core.register,
+    registerController: _core.registerController,
+    Controller: _controller2['default'],
+    CoreObject: _coreObject2['default'],
+    getControllersByParam: _core.getControllersByParam,
+    getControllerById: _core.getControllerById,
+    getControllerByRef: _core.getControllerByRef,
+    getControllersByClassName: _core.getControllersByClassName,
+
+    // public
+    get: _utils.get,
+    set: _utils.set,
+    isArray: _utils.isArray,
+    isObject: _utils.isObject,
+    isNumber: _utils.isNumber,
+    isBoolean: _utils.isBoolean,
+    isString: _utils.isString,
+    isFunction: _utils.isFunction,
+    isEmpty: _utils.isEmpty,
+    typeOf: _utils.typeOf,
+    extend: _utils.extend,
+    querySelector: _dom.querySelector,
+    querySelectorAll: _dom.querySelectorAll,
+    getAttribute: _dom.getAttribute,
+    setAttribute: _dom.setAttribute,
+    hasClass: _dom.hasClass,
+    addClass: _dom.addClass,
+    removeClass: _dom.removeClass,
+    getDataParams: _dom.getDataParams,
+    parseJSON: _utils.parseJSON,
+    generateRandomString: _utils.generateRandomString,
+    addEventListener: _dom.addEventListener,
+    addObserver: _observer.addObserver,
+    getObservers: _observer.getObservers,
+    applyObserver: _observer.applyObserver,
+    callObserver: _observer.callObserver,
+    observer: _observer.observer,
+    applyComputed: _computed.applyComputed,
+    getComputedProperty: _computed.getComputedProperty,
+    computed: _computed.computed,
+
+    // intern
+    _controllerInstances: [],
+    _ids: [],
+    _observers: []
 };
 
 // make Mojito a global object
@@ -194,30 +1074,268 @@ if (typeof window !== 'undefined') {
 exports['default'] = Mojito;
 module.exports = exports['default'];
 
-},{"../lib/controller":2,"../lib/controller-proxy":1,"../lib/core-object":3,"../lib/utils":5,"../lib/utils.js":5}],5:[function(require,module,exports){
+},{"./computed":1,"./controller":2,"./core":4,"./core-object":3,"./dom":5,"./environment":6,"./observer":8,"./utils":9}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
+exports.observer = observer;
+exports.addObserver = addObserver;
+exports.applyObserver = applyObserver;
+exports.getObservers = getObservers;
+exports.callObserver = callObserver;
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _main = require('./main');
+
+var _main2 = _interopRequireDefault(_main);
+
+var _utils = require('./utils');
+
+var Utils = _interopRequireWildcard(_utils);
+
+function observer() {
+    if (arguments.length < 2) {
+        throw '[Type Exeption] observer needs at least 2 arguments';
+    }
+
+    var fn = arguments[arguments.length - 1];
+    var keyNames = Array.prototype.slice.call(arguments, 0, -1);
+    var i = keyNames.length;
+
+    if (!Utils.isFunction(fn)) {
+        throw '[Type Exeption] last argument has to be a function';
+    }
+
+    while (i--) {
+        if (!Utils.isString(keyNames[i])) {
+            throw '[Type Exeption] all keyNames have to be a string';
+        }
+    }
+
+    return {
+        keyNames: keyNames,
+        fn: fn
+    };
+}
+
+function addObserver(obj, keyName, fn, args) {
+
+    if (arguments.length < 3) {
+        throw '[Type Exeption] addObserver needs 3 arguments';
+    }
+    if (!Utils.isObject(obj)) {
+        throw '[Type Exeption] obj has to be an object';
+    }
+    if (!Utils.isString(keyName)) {
+        throw '[Type Exeption] keyName has to be a string';
+    }
+    if (!Utils.isFunction(fn)) {
+        throw '[Type Exeption] fn has to be a function';
+    }
+    if (!Utils.isArray(args)) {
+        args = [];
+    }
+
+    _main2['default']._observers.push({
+        obj: obj,
+        keyName: keyName,
+        fn: fn,
+        args: args
+    });
+}
+
+function applyObserver(obj, context) {
+
+    if (!Utils.isObject(obj)) {
+        return;
+    }
+
+    if (!context) {
+        context = obj;
+        if (!!context.__meta__.observerApplied) {
+            return;
+        }
+        context.__meta__.observerApplied = true;
+    }
+
+    var keys = Object.getOwnPropertyNames(obj);
+    for (var index in keys) {
+        if (obj.hasOwnProperty(keys[index])) {
+            var key = keys[index];
+            var keySplit = key.split('Observer');
+            if (keySplit.length >= 2 && !keySplit[keySplit.length - 1]) {
+                var observerObject = obj[key].call(context);
+                var fn = Utils.get(observerObject, 'fn', true);
+                var keyNames = Utils.get(observerObject, 'keyNames', true);
+                if (Utils.isFunction(fn) && Utils.isArray(keyNames)) {
+                    var i = keyNames.length;
+                    while (i--) {
+                        var keyName = keyNames[i];
+                        if (Utils.isString(keyName)) {
+                            addObserver(context, keyName, fn);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!!obj.prototype) {
+        applyObserver(obj.prototype, context);
+    } else if ('__proto__' in obj) {
+        applyObserver(obj.__proto__, context);
+    }
+}
+
+function getObservers(obj, keyName) {
+    if (!Utils.isObject(obj)) {
+        throw '[Type Exeption] obj has to be an object';
+    }
+    if (!Utils.isString(keyName)) {
+        throw '[Type Exeption] keyName has to be a string';
+    }
+    var i = _main2['default']._observers.length;
+    var observers = [];
+
+    while (i--) {
+        var _observer = _main2['default']._observers[i];
+        var observerObject = Utils.get(_observer, 'obj', true);
+        var observerKeyName = Utils.get(_observer, 'keyName', true);
+        if (Utils.isObject(observerObject) && Utils.isString(observerKeyName) && obj === observerObject && keyName === observerKeyName) {
+            observers.push(_observer);
+        }
+    }
+    return observers;
+}
+
+function callObserver(obj, keyName) {
+    var observers = getObservers(obj, keyName);
+    var i = observers.length;
+    while (i--) {
+        var _observer2 = observers[i];
+        var fn = Utils.get(_observer2, 'fn', true);
+        var args = Utils.get(_observer2, 'args', true);
+
+        if (!Utils.isArray(args)) {
+            args = [];
+        }
+
+        if (_observer2 && Utils.isFunction(fn)) {
+            fn.apply(obj, args);
+        }
+    }
+}
+
+},{"./main":7,"./utils":9}],9:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.get = get;
+exports.set = set;
+exports.generateRandomString = generateRandomString;
+exports.parseJSON = parseJSON;
+exports.isArray = isArray;
+exports.isObject = isObject;
+exports.isBoolean = isBoolean;
+exports.isNumber = isNumber;
+exports.isString = isString;
+exports.isFunction = isFunction;
+exports.isEmpty = isEmpty;
+exports.typeOf = typeOf;
+exports.extend = extend;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _main = require('./main');
+
+var _main2 = _interopRequireDefault(_main);
+
+var _observer = require('./observer');
+
+var _coreObject = require('./core-object');
+
+var _coreObject2 = _interopRequireDefault(_coreObject);
+
+var _computed = require('./computed');
+
 var undefined = undefined;
 
-var get = function get(obj, param) {
-    if (typeof obj === 'object' && param in obj) {
-        return obj[param];
-    }
-    return null;
-};
+function get(_x, _x2, _x3) {
+    var _again = true;
 
-var set = function set(obj, param, value) {
-    if (typeof obj === 'object') {
+    _function: while (_again) {
+        var obj = _x,
+            param = _x2,
+            ignoreComputed = _x3;
+        params = undefined;
+        _again = false;
+
+        if (isObject(obj) && isString(param)) {
+            var params = param.split('.');
+            param = params.slice(0, 1)[0];
+            if (param in obj) {
+                if (params.length === 1) {
+                    return obj[param];
+                } else {
+                    _x = obj[param];
+                    _x2 = params.slice(1).join('.');
+                    _x3 = ignoreComputed;
+                    _again = true;
+                    continue _function;
+                }
+            }
+            if (params.length === 1 && !ignoreComputed) {
+                (0, _computed.applyComputed)(obj);
+                return (0, _computed.getComputedProperty)(obj, param);
+            }
+            return null;
+        }
+        throw '[Type Exeption] obj has to be an object [' + obj + '] & param has to be a string [' + param + ']';
+    }
+}
+
+;
+
+function set(obj, paramName, value) {
+    if (!isObject(obj)) {
+        throw '[Type Exeption] obj has to be an object';
+    }
+
+    if (!isString(paramName) && !isArray(paramName)) {
+        throw 'Param has to be a string or array';
+    }
+
+    var params = isArray(paramName) ? paramName : paramName.split('.');
+    var param = params.slice(0, 1)[0];
+
+    if (params.length === 1) {
         obj[param] = value;
-        return obj;
+    } else {
+        if (!(param in obj)) {
+            obj[param] = {};
+        } else if (!isObject(obj[param])) {
+            throw '[Type Exeption] param has to be an object to cue it';
+        }
+        set(obj[param], params.slice(1), value);
     }
-    return null;
-};
 
-var generateRandomString = function generateRandomString(stringLength) {
+    if (isString(paramName)) {
+        (0, _observer.callObserver)(obj, paramName);
+    }
+
+    return obj;
+}
+
+;
+
+function generateRandomString(stringLength) {
     var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
     var strgLength = typeof stringLength === 'number' && stringLength > 0 ? stringLength : 4;
     var randomString = '';
@@ -225,10 +1343,16 @@ var generateRandomString = function generateRandomString(stringLength) {
         var rnum = Math.floor(Math.random() * chars.length);
         randomString += chars.substring(rnum, rnum + 1);
     }
+    if (_main2['default']._ids.indexOf(randomString) !== -1) {
+        randomString = generateRandomString(stringLength);
+    }
+    _main2['default']._ids.push(randomString);
     return randomString;
-};
+}
 
-var parseJSON = function parseJSON(item) {
+;
+
+function parseJSON(item) {
     if (typeof item === 'string') {
         if (typeof JSON === 'undefined') {
             throw 'Mojito needs JSON to work. Min. IE8';
@@ -245,44 +1369,62 @@ var parseJSON = function parseJSON(item) {
         }
     }
 
-    if (this.isArray(item)) {
+    if (isArray(item)) {
         // handle array
         for (var i = 0, max = item.length; i < max; i++) {
-            item[i] = this.parseJSON(item[i]);
+            item[i] = parseJSON(item[i]);
         }
-    } else if (this.isObject(item)) {
+    } else if (isObject(item)) {
         // handle object
         for (var prop in item) {
             if (item.hasOwnProperty(prop)) {
-                item[prop] = this.parseJSON(item[prop]);
+                item[prop] = parseJSON(item[prop]);
             }
         }
     }
     return item;
-};
+}
 
-var isArray = function isArray(array) {
+;
+
+function isArray(array) {
     return Object.prototype.toString.call(array) === '[object Array]';
-};
+}
 
-var isObject = function isObject(obj) {
-    return typeof obj === 'object' && !isArray(obj);
-};
+;
 
-var isBoolean = function isBoolean(bool) {
+function isObject(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+}
+
+;
+
+function isBoolean(bool) {
     return typeof bool === 'boolean';
-};
+}
 
-var isNumber = function isNumber(number) {
+;
+
+function isNumber(number) {
     return typeof number === 'number' && !isNaN(number) && isFinite(number);
-};
+}
 
-var isString = function isString(string) {
+;
+
+function isString(string) {
     return typeof string === 'string';
-};
+}
 
-var isEmpty = function isEmpty(obj) {
-    if (isBoolean(obj) || isNumber(obj)) {
+;
+
+function isFunction(fn) {
+    return typeof fn === 'function';
+}
+
+;
+
+function isEmpty(obj) {
+    if (isBoolean(obj) || isNumber(obj) || isFunction(obj)) {
         return false;
     } else if (isArray(obj)) {
         return !obj.length;
@@ -291,9 +1433,11 @@ var isEmpty = function isEmpty(obj) {
     } else {
         return !obj;
     }
-};
+}
 
-var typeOf = function typeOf(obj) {
+;
+
+function typeOf(obj) {
     if (isNumber(obj)) {
         return 'number';
     } else if (isBoolean(obj)) {
@@ -304,41 +1448,92 @@ var typeOf = function typeOf(obj) {
         return 'array';
     } else if (isObject(obj)) {
         return 'object';
+    } else if (isFunction(obj)) {
+        return 'function';
     } else {
         return 'undefined';
     }
-};
+}
 
-var extend = function extend(obj1, obj2) {
-    if (!isObject(obj1) || !isObject(obj2)) {
-        return null;
+;
+
+function extend(target, source) {
+
+    var item, tItem, o, idx;
+
+    // If either argument is undefined, return the other.
+    // If both are undefined, return undefined.
+    if (typeof source == 'undefined') {
+        return source;
+    } else if (typeof target == 'undefined') {
+        return target;
     }
-    var result = {};
-    for (var prop in obj2) {
-        if (obj2.hasOwnProperty(prop)) {
-            result[prop] = obj2[prop];
+
+    // Assume both are objects and don't care about inherited properties
+    for (var prop in source) {
+        item = source[prop];
+
+        if (typeof item == 'object' && item !== null) {
+
+            if (isArray(item) && item.length) {
+
+                // deal with arrays, will be either array of primitives or array of objects
+                // If primitives
+                if (typeof item[0] != 'object') {
+
+                    // if target doesn't have a similar property, just reference it
+                    tItem = target[prop];
+                    if (!tItem) {
+                        target[prop] = item;
+
+                        // Otherwise, copy only those members that don't exist on target
+                    } else {
+
+                            // Create an index of items on target
+                            o = {};
+                            for (var i = 0, iLen = tItem.length; i < iLen; i++) {
+                                o[tItem[i]] = true;
+                            }
+
+                            // Do check, push missing
+                            for (var j = 0, jLen = item.length; j < jLen; j++) {
+
+                                if (!(item[j] in o)) {
+                                    tItem.push(item[j]);
+                                }
+                            }
+                        }
+                } else {
+                    // Deal with array of objects
+                    // Create index of objects in target object using ID property
+                    // Assume if target has same named property then it will be similar array
+                    idx = {};
+                    tItem = target[prop];
+
+                    for (var k = 0, kLen = tItem.length; k < kLen; k++) {
+                        idx[tItem[k].id] = tItem[k];
+                    }
+
+                    // Do updates
+                    for (var l = 0, ll = item.length; l < ll; l++) {
+                        // If target doesn't have an equivalent, just add it
+                        if (!(item[l].id in idx)) {
+                            tItem.push(item[l]);
+                        } else {
+                            extend(idx[item[l].id], item[l]);
+                        }
+                    }
+                }
+            } else {
+                // deal with object
+                extend(target[prop], item);
+            }
+        } else {
+            // item is a primitive, just copy it over
+            target[prop] = item;
         }
     }
-    for (var prop in obj1) {
-        if (obj1.hasOwnProperty(prop)) {
-            result[prop] = obj1[prop];
-        }
-    }
-    return result;
-};
+    return target;
+}
 
-exports.get = get;
-exports.set = set;
-exports.parseJSON = parseJSON;
-exports.generateRandomString = generateRandomString;
-exports.isArray = isArray;
-exports.isObject = isObject;
-exports.isBoolean = isBoolean;
-exports.isNumber = isNumber;
-exports.isString = isString;
-exports.isEmpty = isEmpty;
-exports.typeOf = typeOf;
-exports.extend = extend;
-
-},{}]},{},[4])
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9icm93c2VyaWZ5L25vZGVfbW9kdWxlcy9icm93c2VyLXBhY2svX3ByZWx1ZGUuanMiLCIvVXNlcnMvdGhvbWFzcGluay9Qcm9qZWN0cy9tb2ppdG8uanMvbGliL2NvbnRyb2xsZXItcHJveHkuanMiLCIvVXNlcnMvdGhvbWFzcGluay9Qcm9qZWN0cy9tb2ppdG8uanMvbGliL2NvbnRyb2xsZXIuanMiLCIvVXNlcnMvdGhvbWFzcGluay9Qcm9qZWN0cy9tb2ppdG8uanMvbGliL2NvcmUtb2JqZWN0LmpzIiwiL1VzZXJzL3Rob21hc3BpbmsvUHJvamVjdHMvbW9qaXRvLmpzL2xpYi9tYWluLmpzIiwiL1VzZXJzL3Rob21hc3BpbmsvUHJvamVjdHMvbW9qaXRvLmpzL2xpYi91dGlscy5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQTs7Ozs7Ozs7Ozs7K0JDQXVCLHNCQUFzQjs7Ozt3QkFDdEIsY0FBYzs7SUFBekIsS0FBSzs7eUJBQ0UsZ0JBQWdCOzs7O0FBRW5DLElBQU0sZUFBZSxHQUFHOztBQUVwQixZQUFRLEVBQUUsa0JBQVMsSUFBSSxFQUFFLFVBQVUsRUFBRTtBQUNqQyxZQUFHLENBQUMsS0FBSyxDQUFDLFFBQVEsQ0FBQyxVQUFVLENBQUMsSUFBSSxFQUFDLE9BQU8sVUFBVSxLQUFLLFVBQVUsRUFBRTtBQUNqRSxtQkFBTyxJQUFJLENBQUM7U0FDZjs7QUFFRCxZQUFHLHVCQUFPLFFBQVEsQ0FBQyxRQUFRLENBQUMsSUFBSSxrQkFBa0IsSUFBSSxRQUFRLEVBQUU7QUFDNUQsZ0JBQUksUUFBUSxHQUFHLFFBQVEsQ0FBQyxnQkFBZ0IsQ0FBQyxvQkFBb0IsR0FBQyxJQUFJLEdBQUMsSUFBSSxDQUFDLENBQUM7O0FBRXpFLGlCQUFJLElBQUksQ0FBQyxHQUFDLENBQUMsRUFBRSxHQUFHLEdBQUMsUUFBUSxDQUFDLE1BQU0sRUFBRSxDQUFDLEdBQUMsR0FBRyxFQUFFLENBQUMsRUFBRSxFQUFFO0FBQzFDLG9CQUFJLE9B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LFFBQVEsQ0FBQztLQUNuQixNQUFNO0FBQ0gsZUFBTyxXQUFXLENBQUM7S0FDdEI7Q0FDSixDQUFDOztBQUVGLElBQU0sTUFBTSxHQUFHLFNBQVQsTUFBTSxDQUFZLElBQUksRUFBRSxJQUFJLEVBQUU7QUFDaEMsUUFBRyxDQUFDLFFBQVEsQ0FBQyxJQUFJLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxJQUFJLENBQUMsRUFBRTtBQUNuQyxlQUFPLElBQUksQ0FBQztLQUNmO0FBQ0QsUUFBSSxNQUFNLEdBQUcsRUFBRSxDQUFDO0FBQ2hCLFNBQUssSUFBSSxJQUFJLElBQUksSUFBSSxFQUFFO0FBQ25CLFlBQUcsSUFBSSxDQUFDLGNBQWMsQ0FBQyxJQUFJLENBQUMsRUFBRTtBQUMxQixrQkFBTSxDQUFDLElBQUksQ0FBQyxHQUFHLElBQUksQ0FBQyxJQUFJLENBQUMsQ0FBQztTQUM3QjtLQUNKO0FBQ0QsU0FBSyxJQUFJLElBQUksSUFBSSxJQUFJLEVBQUU7QUFDbkIsWUFBRyxJQUFJLENBQUMsY0FBYyxDQUFDLElBQUksQ0FBQyxFQUFFO0FBQzFCLGtCQUFNLENBQUMsSUFBSSxDQUFDLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFDO1NBQzdCO0tBQ0o7QUFDRCxXQUFPLE1BQU0sQ0FBQztDQUNqQixDQUFBOztRQUVRLEdBQUcsR0FBSCxHQUFHO1FBQUUsR0FBRyxHQUFILEdBQUc7UUFBRSxTQUFTLEdBQVQsU0FBUztRQUFFLG9CQUFvQixHQUFwQixvQkFBb0I7UUFBRSxPQUFPLEdBQVAsT0FBTztRQUFFLFFBQVEsR0FBUixRQUFRO1FBQUUsU0FBUyxHQUFULFNBQVM7UUFBRSxRQUFRLEdBQVIsUUFBUTtRQUFFLFFBQVEsR0FBUixRQUFRO1FBQUUsT0FBTyxHQUFQLE9BQU87UUFBRSxNQUFNLEdBQU4sTUFBTTtRQUFFLE1BQU0sR0FBTixNQUFNIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyIoZnVuY3Rpb24gZSh0LG4scil7ZnVuY3Rpb24gcyhvLHUpe2lmKCFuW29dKXtpZighdFtvXSl7dmFyIGE9dHlwZW9mIHJlcXVpcmU9PVwiZnVuY3Rpb25cIiYmcmVxdWlyZTtpZighdSYmYSlyZXR1cm4gYShvLCEwKTtpZihpKXJldHVybiBpKG8sITApO3ZhciBmPW5ldyBFcnJvcihcIkNhbm5vdCBmaW5kIG1vZHVsZSAnXCIrbytcIidcIik7dGhyb3cgZi5jb2RlPVwiTU9EVUxFX05PVF9GT1VORFwiLGZ9dmFyIGw9bltvXT17ZXhwb3J0czp7fX07dFtvXVswXS5jYWxsKGwuZXhwb3J0cyxmdW5jdGlvbihlKXt2YXIgbj10W29dWzFdW2VdO3JldHVybiBzKG4/bjplKX0sbCxsLmV4cG9ydHMsZSx0LG4scil9cmV0dXJuIG5bb10uZXhwb3J0c312YXIgaT10eXBlb2YgcmVxdWlyZT09XCJmdW5jdGlvblwiJiZyZXF1aXJlO2Zvcih2YXIgbz0wO288ci5sZW5ndGg7bysrKXMocltvXSk7cmV0dXJuIHN9KSIsImltcG9ydCBDb250cm9sbGVyIGZyb20gJy4uL2xpYi9jb250cm9sbGVyLmpzJztcbmltcG9ydCAqIGFzIFV0aWxzIGZyb20gJy4uL2xpYi91dGlscyc7XG5pbXBvcnQgTW9qaXRvIGZyb20gJy4uL2xpYi9tYWluLmpzJztcblxuY29uc3QgQ29udHJvbGxlclByb3h5ID0ge1xuXG4gICAgcmVnaXN0ZXI6IGZ1bmN0aW9uKG5hbWUsIGNvbnRyb2xsZXIpIHtcbiAgICAgICAgaWYoIVV0aWxzLmlzT2JqZWN0KGNvbnRyb2xsZXIpICYmICF0eXBlb2YgY29udHJvbGxlciA9PT0gJ2Z1bmN0aW9uJykge1xuICAgICAgICAgICAgcmV0dXJuIG51bGw7XG4gICAgICAgIH1cblxuICAgICAgICBpZihNb2ppdG8uaXNPYmplY3QoZG9jdW1lbnQpICYmICdxdWVyeVNlbGVjdG9yQWxsJyBpbiBkb2N1bWVudCkge1xuICAgICAgICAgICAgbGV0IGVsZW1lbnRzID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnW2RhdGEtY29udHJvbGxlcj1cIicrbmFtZSsnXCJdJyk7XG5cbiAgICAgICAgICAgIGZvcih2YXIgaT0wLCBtYXg9ZWxlbWVudHMubGVuZ3RoOyBpPG1heDsgaSsrKSB7XG4gICAgICAgICAgICAgICAgbGV0IGVsZW1lbnQgPSBlbGVtZW50c1tpXTtcbiAgICAgICAgICAgICAgICBNb2ppdG8uY29udHJvbGxlcnMucHVzaChuZXcgY29udHJvbGxlcihlbGVtZW50KSk7XG4gICAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgICAgcmV0dXJuIGNvbnRyb2xsZXI7XG4gICAgfSxcblxuXG59XG5cbmV4cG9ydCBkZWZhdWx0IENvbnRyb2xsZXJQcm94eTtcbiIsImltcG9ydCBDb3JlT2JqZWN0IGZyb20gJy4uL2xpYi9jb3JlLW9iamVjdCc7XG5pbXBvcnQgKiBhcyBVdGlscyBmcm9tICcuLi9saWIvdXRpbHMnO1xuXG5jbGFzcyBDb250cm9sbGVyIGV4dGVuZHMgQ29yZU9iamVjdCB7XG5cbiAgICBjb25zdHJ1Y3RvcigkKSB7XG4gICAgICAgIHN1cGVyKCk7XG4gICAgICAgIGlmKFV0aWxzLmlzQXJyYXkoJCkpIHtcbiAgICAgICAgICAgIHRoaXMuJCA9ICQ7XG4gICAgICAgIH1cbiAgICB9XG5cbiAgICB0b1N0cmluZygpIHtcbiAgICAgICAgcmV0dXJuICdNb2ppdG8gQ29udHJvbGxlcic7XG4gICAgfVxuXG59XG5cbmV4cG9ydCBkZWZhdWx0IENvbnRyb2xsZXI7XG4iLCJpbXBvcnQgeyBnZXQsIHNldCB9IGZyb20gJy4uL2xpYi91dGlscy5qcyc7XG5cbmNsYXNzIENvcmVPYmplY3Qge1xuICAgIHNldChwYXJhbSwgdmFsdWUpIHtcbiAgICAgICAgcmV0dXJuIHNldCh0aGlzLCBwYXJhbSwgdmFsdWUpO1xuICAgIH1cblxuICAgIGdldChwYXJhbSkge1xuICAgICAgICByZXR1cm4gZ2V0KHRoaXMsIHBhcmFtKTtcbiAgICB9XG5cbiAgICB0b1N0cmluZygpIHtcbiAgICAgICAgcmV0dXJuICdNb2ppdG8gQ29yZSBPYmplY3QnO1xuICAgIH1cbn1cblxuZXhwb3J0IGRlZmF1bHQgQ29yZU9iamVjdDtcbiIsImltcG9ydCB7IGdldCwgc2V0LCBpc0FycmF5LCBpc09iamVjdCwgaXNCb29sZWFuLCBpc051bWJlciwgaXNTdHJpbmcsIGlzRW1wdHksIHR5cGVPZiwgZXh0ZW5kIH0gZnJvbSAnLi4vbGliL3V0aWxzLmpzJ1xuaW1wb3J0IENvcmVPYmplY3QgZnJvbSAnLi4vbGliL2NvcmUtb2JqZWN0JztcbmltcG9ydCBDb250cm9sbGVyIGZyb20gJy4uL2xpYi9jb250cm9sbGVyJztcbmltcG9ydCBDb250cm9sbGVyUHJveHkgZnJvbSAnLi4vbGliL2NvbnRyb2xsZXItcHJveHknO1xuaW1wb3J0ICogYXMgVXRpbHMgZnJvbSAnLi4vbGliL3V0aWxzJztcblxuY29uc3QgTW9qaXRvID0ge1xuICAgIHRvU3RyaW5nOiBmdW5jdGlvbigpIHsgcmV0dXJuICdNb2ppdG8nOyB9LFxuICAgIGdldDogZ2V0LFxuICAgIHNldDogc2V0LFxuICAgIGlzQXJyYXk6IGlzQXJyYXksXG4gICAgaXNPYmplY3Q6IGlzT2JqZWN0LFxuICAgIGlzTnVtYmVyOiBpc051bWJlcixcbiAgICBpc0Jvb2xlYW46IGlzQm9vbGVhbixcbiAgICBpc1N0cmluZzogaXNTdHJpbmcsXG4gICAgaXNFbXB0eTogaXNFbXB0eSxcbiAgICB0eXBlT2Y6IHR5cGVPZixcbiAgICBleHRlbmQ6IGV4dGVuZCxcbiAgICBDb3JlT2JqZWN0OiBuZXcgQ29yZU9iamVjdCgpLFxuICAgIENvbnRyb2xsZXJDbGFzczogQ29udHJvbGxlcixcbiAgICBDb250cm9sbGVyOiBDb250cm9sbGVyUHJveHksXG4gICAgY29udHJvbGxlcnM6IFtdXG59O1xuXG4vLyBtYWtlIE1vaml0byBhIGdsb2JhbCBvYmplY3RcbmlmKHR5cGVvZiB3aW5kb3cgIT09ICd1bmRlZmluZWQnKSB7XG4gICAgd2luZG93Lk1vaml0byA9IE1vaml0bztcbn1cblxuZXhwb3J0IGRlZmF1bHQgTW9qaXRvO1xuIiwibGV0IHVuZGVmaW5lZDtcblxuY29uc3QgZ2V0ID0gZnVuY3Rpb24ob2JqLCBwYXJhbSkge1xuICAgIGlmKHR5cGVvZiBvYmogPT09ICdvYmplY3QnICYmIHBhcmFtIGluIG9iaikge1xuICAgICAgICByZXR1cm4gb2JqW3BhcmFtXTtcbiAgICB9XG4gICAgcmV0dXJuIG51bGw7XG59O1xuXG5jb25zdCBzZXQgPSBmdW5jdGlvbihvYmosIHBhcmFtLCB2YWx1ZSkge1xuICAgIGlmKHR5cGVvZiBvYmogPT09ICdvYmplY3QnKSB7XG4gICAgICAgIG9ialtwYXJhbV0gPSB2YWx1ZTtcbiAgICAgICAgcmV0dXJuIG9iajtcbiAgICB9XG4gICAgcmV0dXJuIG51bGw7XG59O1xuXG5jb25zdCBnZW5lcmF0ZVJhbmRvbVN0cmluZyA9IGZ1bmN0aW9uKHN0cmluZ0xlbmd0aCkge1xuICAgIHZhciBjaGFycyA9IFwiMDEyMzQ1Njc4OUFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFRaYWJjZGVmZ2hpa2xtbm9wcXJzdHV2d3h5elwiO1xuICAgIHZhciBzdHJnTGVuZ3RoID0gdHlwZW9mIHN0cmluZ0xlbmd0aCA9PT0gJ251bWJlcicgJiYgc3RyaW5nTGVuZ3RoID4gMCA/IHN0cmluZ0xlbmd0aCA6IDQ7XG4gICAgdmFyIHJhbmRvbVN0cmluZyA9ICcnO1xuICAgIGZvciAodmFyIGk9MDsgaTxzdHJnTGVuZ3RoOyBpKyspIHtcbiAgICAgICAgdmFyIHJudW0gPSBNYXRoLmZsb29yKE1hdGgucmFuZG9tKCkgKiBjaGFycy5sZW5ndGgpO1xuICAgICAgICByYW5kb21TdHJpbmcgKz0gY2hhcnMuc3Vic3RyaW5nKHJudW0scm51bSsxKTtcbiAgICB9XG4gICAgcmV0dXJuIHJhbmRvbVN0cmluZztcbn07XG5cbmNvbnN0IHBhcnNlSlNPTiA9IGZ1bmN0aW9uKGl0ZW0pIHtcbiAgICBpZih0eXBlb2YgaXRlbSA9PT0gJ3N0cmluZycpIHtcbiAgICAgICAgaWYodHlwZW9mIEpTT04gPT09ICd1bmRlZmluZWQnKSB7XG4gICAgICAgICAgICB0aHJvdyAnTW9qaXRvIG5lZWRzIEpTT04gdG8gd29yay4gTWluLiBJRTgnO1xuICAgICAgICB9XG4gICAgICAgIHRyeSB7XG4gICAgICAgICAgICBpdGVtID0gSlNPTi5wYXJzZShpdGVtKTtcbiAgICAgICAgfSBjYXRjaChleCkge1xuICAgICAgICAgICAgaWYoIWlzTmFOKGl0ZW0pKSB7XG4gICAgICAgICAgICAgICAgaXRlbSA9IGl0ZW0uaW5kZXhPZignLicpID8gcGFyc2VGbG9hdChpdGVtKSA6IHBhcnNlSW50KGl0ZW0sIDEwKTtcbiAgICAgICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICAgICAgaXRlbSA9IGl0ZW0gPT09ICd0cnVlJyA/IHRydWUgOiBpdGVtO1xuICAgICAgICAgICAgICAgIGl0ZW0gPSBpdGVtID09PSAnZmFsc2UnID8gZmFsc2UgOiBpdGVtO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgfVxuXG4gICAgaWYodGhpcy5pc0FycmF5KGl0ZW0pKSB7XG4gICAgICAgIC8vIGhhbmRsZSBhcnJheVxuICAgICAgICBmb3IodmFyIGkgPTAsIG1heD1pdGVtLmxlbmd0aDsgaTxtYXg7IGkrKykge1xuICAgICAgICAgICAgaXRlbVtpXSA9IHRoaXMucGFyc2VKU09OKGl0ZW1baV0pO1xuICAgICAgICB9XG4gICAgfSBlbHNlIGlmKHRoaXMuaXNPYmplY3QoaXRlbSkpe1xuICAgICAgICAvLyBoYW5kbGUgb2JqZWN0XG4gICAgICAgIGZvciAodmFyIHByb3AgaW4gaXRlbSkge1xuICAgICAgICAgICAgaWYoaXRlbS5oYXNPd25Qcm9wZXJ0eShwcm9wKSkge1xuICAgICAgICAgICAgICAgIGl0ZW1bcHJvcF0gPSB0aGlzLnBhcnNlSlNPTihpdGVtW3Byb3BdKTtcbiAgICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgIH1cbiAgICByZXR1cm4gaXRlbTtcbn07XG5cbmNvbnN0IGlzQXJyYXkgPSBmdW5jdGlvbihhcnJheSkge1xuICAgIHJldHVybiBPYmplY3QucHJvdG90eXBlLnRvU3RyaW5nLmNhbGwoYXJyYXkpID09PSAnW29iamVjdCBBcnJheV0nO1xufTtcblxuY29uc3QgaXNPYmplY3QgPSBmdW5jdGlvbihvYmopIHtcbiAgICByZXR1cm4gdHlwZW9mIG9iaiA9PT0gJ29iamVjdCcgJiYgIWlzQXJyYXkob2JqKTtcbn07XG5cbmNvbnN0IGlzQm9vbGVhbiA9IGZ1bmN0aW9uKGJvb2wpIHtcbiAgICByZXR1cm4gdHlwZW9mIGJvb2wgPT09ICdib29sZWFuJztcbn07XG5cbmNvbnN0IGlzTnVtYmVyID0gZnVuY3Rpb24obnVtYmVyKSB7XG4gICAgcmV0dXJuIHR5cGVvZiBudW1iZXIgPT09ICdudW1iZXInICYmICFpc05hTihudW1iZXIpICYmIGlzRmluaXRlKG51bWJlcik7XG59O1xuXG5jb25zdCBpc1N0cmluZyA9IGZ1bmN0aW9uKHN0cmluZykge1xuICAgIHJldHVybiB0eXBlb2Ygc3RyaW5nID09PSAnc3RyaW5nJztcbn07XG5cbmNvbnN0IGlzRW1wdHkgPSBmdW5jdGlvbihvYmopIHtcbiAgICBpZihpc0Jvb2xlYW4ob2JqKSB8fCBpc051bWJlcihvYmopKSB7XG4gICAgICAgIHJldHVybiBmYWxzZTtcbiAgICB9IGVsc2UgaWYoaXNBcnJheShvYmopKSB7XG4gICAgICAgIHJldHVybiAhb2JqLmxlbmd0aFxuICAgIH0gZWxzZSBpZihpc09iamVjdChvYmopKSB7XG4gICAgICAgIHJldHVybiAhT2JqZWN0LmtleXMob2JqKS5sZW5ndGg7XG4gICAgfSBlbHNlIHtcbiAgICAgICAgcmV0dXJuICFvYmo7XG4gICAgfVxufTtcblxuY29uc3QgdHlwZU9mID0gZnVuY3Rpb24ob2JqKSB7XG4gICAgaWYoaXNOdW1iZXIob2JqKSkge1xuICAgICAgICByZXR1cm4gJ251bWJlcic7XG4gICAgfSBlbHNlIGlmKGlzQm9vbGVhbihvYmopKSB7XG4gICAgICAgIHJldHVybiAnYm9vbGVhbic7XG4gICAgfSBlbHNlIGlmKGlzU3RyaW5nKG9iaikpIHtcbiAgICAgICAgcmV0dXJuICdzdHJpbmcnO1xuICAgIH0gZWxzZSBpZihpc0FycmF5KG9iaikpIHtcbiAgICAgICAgcmV0dXJuICdhcnJheSc7XG4gICAgfSBlbHNlIGlmKGlzT2JqZWN0KG9iaikpIHtcbiAgICAgICAgcmV0dXJuICdvYmplY3QnO1xuICAgIH0gZWxzZSB7XG4gICAgICAgIHJldHVybiAndW5kZWZpbmVkJztcbiAgICB9XG59O1xuXG5jb25zdCBleHRlbmQgPSBmdW5jdGlvbihvYmoxLCBvYmoyKSB7XG4gICAgaWYoIWlzT2JqZWN0KG9iajEpIHx8ICFpc09iamVjdChvYmoyKSkge1xuICAgICAgICByZXR1cm4gbnVsbDtcbiAgICB9XG4gICAgdmFyIHJlc3VsdCA9IHt9O1xuICAgIGZvciAodmFyIHByb3AgaW4gb2JqMikge1xuICAgICAgICBpZihvYmoyLmhhc093blByb3BlcnR5KHByb3ApKSB7XG4gICAgICAgICAgICByZXN1bHRbcHJvcF0gPSBvYmoyW3Byb3BdO1xuICAgICAgICB9XG4gICAgfVxuICAgIGZvciAodmFyIHByb3AgaW4gb2JqMSkge1xuICAgICAgICBpZihvYmoxLmhhc093blByb3BlcnR5KHByb3ApKSB7XG4gICAgICAgICAgICByZXN1bHRbcHJvcF0gPSBvYmoxW3Byb3BdO1xuICAgICAgICB9XG4gICAgfVxuICAgIHJldHVybiByZXN1bHQ7XG59XG5cbmV4cG9ydCB7IGdldCwgc2V0LCBwYXJzZUpTT04sIGdlbmVyYXRlUmFuZG9tU3RyaW5nLCBpc0FycmF5LCBpc09iamVjdCwgaXNCb29sZWFuLCBpc051bWJlciwgaXNTdHJpbmcsIGlzRW1wdHksIHR5cGVPZiwgZXh0ZW5kIH07XG4iXX0=
+},{"./computed":1,"./core-object":3,"./main":7,"./observer":8}]},{},[7]);
