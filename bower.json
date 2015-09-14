@@ -1,12 +1,12 @@
 {
     "name": "mojito",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "homepage": "https://github.com/thomaspink/mojito.js",
     "authors": [
         "thomas.pink <thomas.pink@netural.com>"
     ],
     "description": "js framework with controller logic",
-    "main": "lib/core.js",
+    "main": "dist/mojito.js",
     "dependencies": {
     },
     "ignore": [],
