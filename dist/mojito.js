@@ -311,14 +311,13 @@ function registerController(name, ControllerClass) {
     }
 
     // grab elements from DOM where this controller has been attached
-    var elements = (0, _dom.querySelectorAll)('[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_DEF_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_DEF) + ']');
+    var elements = (0, _dom.querySelectorAll)('[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_DEF_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_DEF) + '="' + name + '"]');
 
     // loop through elements and create controller instances
     for (var i = 0, max = elements.length; i < max; i++) {
 
         var element = elements[0];
         var params = [];
-
         // check if controller is already registered (has an id)
         if ((0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID))) {
             continue;
