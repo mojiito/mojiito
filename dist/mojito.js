@@ -632,7 +632,7 @@ function applyContentBindingsToController(controller) {
         var keyName = binding.slice(1).join('.');
 
         (0, _observer.addObserver)(controller, keyName, function (keyName, element) {
-            element.innerHTML = controller.get(keyName);
+            element.innerHTML = controller.get(keyName) ? controller.get(keyName) : '';
         }, [keyName, element]);
         (0, _observer.callObserver)(controller, keyName);
     }
