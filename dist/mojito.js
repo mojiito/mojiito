@@ -78,9 +78,9 @@ function applyComputed(obj, context) {
                     while (i--) {
                         var keyName = keyNames[i];
                         if (Utils.isString(keyName)) {
-                            (0, _observer.addObserver)(context, keyName, function (computedKey, fn) {
-                                (0, _observer.callObserver)(context, computedKey);
+                            (0, _observer.addObserver)(context, keyName, function (computedKey, fn, context) {
                                 this.set('__meta__.cache.' + computedKey, fn.call(this));
+                                (0, _observer.callObserver)(context, computedKey);
                             }, [computedKey, fn, context]);
                             if (i === 0) {
                                 (0, _observer.callObserver)(context, keyName);
@@ -100,7 +100,7 @@ function applyComputed(obj, context) {
 }
 
 function getComputedProperty(obj, keyName) {
-    if (Utils.isObject(obj) && Utils.isString(keyName) && Utils.get(obj, '__meta__.cache.' + keyName, true)) {
+    if (Utils.isObject(obj) && Utils.isString(keyName)) {
         return Utils.get(obj, '__meta__.cache.' + keyName, true);
     }
     return null;
@@ -522,7 +522,7 @@ function applyInputBindingsToController(controller) {
 
         var param = binding.slice(1).join('.');
         var events = '';
-        //if()
+
         switch (element.tagName.toLowerCase()) {
             case 'textarea':
             case 'input':
