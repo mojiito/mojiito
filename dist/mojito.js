@@ -255,6 +255,7 @@ exports.registerController = registerController;
 exports.applyActionsToController = applyActionsToController;
 exports.applyClassBindingsToController = applyClassBindingsToController;
 exports.applyInputBindingsToController = applyInputBindingsToController;
+exports.applyContentBindingsToController = applyContentBindingsToController;
 exports.register = register;
 exports.getControllersByParam = getControllersByParam;
 exports.getControllerById = getControllerById;
@@ -365,6 +366,9 @@ function registerController(name, ControllerClass) {
         // apply input bindings
         applyInputBindingsToController(controller);
 
+        // apply content bindings
+        applyContentBindingsToController(controller);
+
         // return instance
         return controller;
     }
@@ -411,7 +415,8 @@ function applyActionsToController(controller) {
                     (0, _dom.setAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_ID_SHORTHAND : _environment2['default'].HTMLDATA_ACTION_ID), Utils.generateRandomString(16));
                     (0, _dom.addEventListener)(element, eventType, function (event) {
                         event.preventDefault();
-                        controller[actionParts[1]].apply(controller, [event].concat((0, _dom.getDataParams)(element)));
+                        var params = (0, _dom.getDataParams)(element);
+                        controller[actionParts[1]].apply(controller, params.concat([event]));
                     }, controller);
                 }
             })();
@@ -592,6 +597,44 @@ function applyInputBindingsToController(controller) {
         var _ret3 = _loop2();
 
         if (_ret3 === 'continue') continue;
+    }
+}
+
+function applyContentBindingsToController(controller) {
+    // make sure applyDomToController has exactly one arguments
+    if (arguments.length < 1) {
+        throw '[Type Exeption] missing parameters';
+    }
+
+    // check controller to make sure it is an object
+    if (!Utils.isObject(controller)) {
+        throw '[Type Exeption] controller has to be an object';
+    }
+
+    var bindingElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTENTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CONTENTBINDING) + ']');
+
+    var i = bindingElements.length;
+
+    while (i--) {
+        var element = bindingElements[i];
+        var binding = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTENTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CONTENTBINDING));
+
+        if (!Utils.isString(binding)) {
+            continue;
+        }
+
+        binding = binding.split('.');
+
+        if (binding.length < 2 || binding[0] !== controller.get('_className', true)) {
+            continue;
+        }
+
+        var keyName = binding.slice(1).join('.');
+
+        (0, _observer.addObserver)(controller, keyName, function (keyName, element) {
+            element.innerHTML = controller.get(keyName);
+        }, [keyName, element]);
+        (0, _observer.callObserver)(controller, keyName);
     }
 }
 
@@ -976,6 +1019,8 @@ ENV.HTMLDATA_CLASSBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-class';
 ENV.HTMLDATA_CLASSBINDING_SHORTHAND = 'bind-class';
 ENV.HTMLDATA_INPUTBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-input';
 ENV.HTMLDATA_INPUTBINDING_SHORTHAND = 'bind-input';
+ENV.HTMLDATA_CONTENTBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-content';
+ENV.HTMLDATA_CONTENTBINDING_SHORTHAND = 'bind-content';
 
 // events
 ENV.EVENTTYPES = "blur focus focusin focusout resize scroll click dblclick " + "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " + "change select submit keydown keypress keyup contextmenu";
