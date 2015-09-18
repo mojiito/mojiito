@@ -170,6 +170,7 @@ var Controller = (function (_CoreObject) {
             } else {
                 this.set('$', this.get('_$', true));
             }
+            (0, _core.applyController)(this);
         } else {
             throw 'Please call super(args), in your Controller!';
         }
@@ -252,6 +253,7 @@ Object.defineProperty(exports, '__esModule', {
     value: true
 });
 exports.registerController = registerController;
+exports.applyController = applyController;
 exports.applyActionsToController = applyActionsToController;
 exports.applyClassBindingsToController = applyClassBindingsToController;
 exports.applyInputBindingsToController = applyInputBindingsToController;
@@ -345,35 +347,43 @@ function registerController(name, ControllerClass) {
         // the params as an arguments array
         var controller = new (Function.prototype.bind.apply(ControllerClass, [null].concat(params)))();
 
-        // apply id to dome node
-        (0, _dom.setAttribute)(element, _environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID, controller.get('_id', true));
-
-        // add controller instance to instances array for later access
-        _main2['default']._controllerInstances.push(controller);
-
-        // add all the computed properties on this controller
-        (0, _computed.applyComputed)(controller);
-
-        // add all the observers on this controller
-        (0, _observer.applyObserver)(controller);
-
-        // apply actions
-        applyActionsToController(controller);
-
-        // apply class bindings
-        applyClassBindingsToController(controller);
-
-        // apply input bindings
-        applyInputBindingsToController(controller);
-
-        // apply content bindings
-        applyContentBindingsToController(controller);
-
         // return instance
         return controller;
     }
 
     return null;
+}
+
+function applyController(controller) {
+
+    // check name to make sure it is an array
+    if (typeof controller === 'undefined') {
+        throw '[Type Exeption] controller has to be a object';
+    }
+
+    // apply id to dome node
+    (0, _dom.setAttribute)(controller._$, _environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID, controller.get('_id', true));
+
+    // add controller instance to instances array for later access
+    _main2['default']._controllerInstances.push(controller);
+
+    // add all the computed properties on this controller
+    (0, _computed.applyComputed)(controller);
+
+    // add all the observers on this controller
+    (0, _observer.applyObserver)(controller);
+
+    // apply actions
+    applyActionsToController(controller);
+
+    // apply class bindings
+    applyClassBindingsToController(controller);
+
+    // apply input bindings
+    applyInputBindingsToController(controller);
+
+    // apply content bindings
+    applyContentBindingsToController(controller);
 }
 
 function applyActionsToController(controller) {
