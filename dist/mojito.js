@@ -394,7 +394,11 @@ function applyActionsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var actionElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION) + ']');
+    var actionElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION) + ']'));
+
+    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION))) {
+        actionElements.push(controller.get('_$', true));
+    }
 
     var i = actionElements.length;
 
@@ -447,7 +451,11 @@ function applyClassBindingsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var bindingElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING) + ']');
+    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING) + ']'));
+
+    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING))) {
+        bindingElements.push(controller.get('_$', true));
+    }
 
     var i = bindingElements.length;
 
@@ -513,7 +521,11 @@ function applyInputBindingsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var bindingElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_INPUTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_INPUTBINDING) + ']');
+    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_INPUTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_INPUTBINDING) + ']'));
+
+    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING))) {
+        bindingElements.push(controller.get('_$', true));
+    }
 
     var i = bindingElements.length;
 
@@ -617,7 +629,11 @@ function applyContentBindingsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var bindingElements = (0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTENTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CONTENTBINDING) + ']');
+    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTENTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CONTENTBINDING) + ']'));
+
+    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING))) {
+        bindingElements.push(controller.get('_$', true));
+    }
 
     var i = bindingElements.length;
 
