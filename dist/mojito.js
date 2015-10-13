@@ -319,8 +319,9 @@ function registerController(name, ControllerClass) {
     // loop through elements and create controller instances
     for (var i = 0, max = elements.length; i < max; i++) {
 
-        var element = elements[0];
+        var element = elements[i];
         var params = [];
+
         // check if controller is already registered (has an id)
         if ((0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID))) {
             continue;
@@ -346,12 +347,7 @@ function registerController(name, ControllerClass) {
         // instead of new ControllerClass() using the following code to apply
         // the params as an arguments array
         var controller = new (Function.prototype.bind.apply(ControllerClass, [null].concat(params)))();
-
-        // return instance
-        return controller;
     }
-
-    return null;
 }
 
 function applyController(controller) {
@@ -762,7 +758,7 @@ function querySelectorAll(root, selector) {
         }
     }
 
-    return document.querySelectorAll(selector);
+    return root.querySelectorAll(selector);
 }
 
 function querySelector(selector) {
@@ -778,6 +774,17 @@ function querySelector(selector) {
         }
     }
 
+    if (typeof root === 'string') {
+        selector = root;
+        root = document;
+    } else if (typeof root !== 'object') {
+        try {
+            console.error('[Type Error] Root has to be a DOM Element');
+        } finally {
+            return [];
+        }
+    }
+
     if (typeof selector !== 'string') {
         try {
             console.error('[Type Error] Selector has to be a string');
@@ -786,7 +793,7 @@ function querySelector(selector) {
         }
     }
 
-    return document.querySelector(selector);
+    return root.querySelector(selector);
 }
 
 function getAttribute(element, name) {
