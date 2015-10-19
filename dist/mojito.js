@@ -147,7 +147,8 @@ var Controller = (function (_CoreObject) {
 
         _get(Object.getPrototypeOf(Controller.prototype), 'constructor', this).call(this);
 
-        var args = !!arguments.length && Utils.isArray(arguments[arguments.length - 1]) ? arguments[arguments.length - 1] : arguments;
+        var args = Array.prototype.slice.call(arguments);
+        args = !!args.length && Utils.isArray(args[args.length - 1]) ? args[arguments.length - 1] : args;
 
         if (Utils.isArray(args) && !!args.length && Utils.isObject(args[args.length - 1])) {
 
