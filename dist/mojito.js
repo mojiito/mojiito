@@ -255,6 +255,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.registerController = registerController;
 exports.applyController = applyController;
+exports.applyDomToController = applyDomToController;
 exports.applyActionsToController = applyActionsToController;
 exports.applyClassBindingsToController = applyClassBindingsToController;
 exports.applyInputBindingsToController = applyInputBindingsToController;
@@ -315,7 +316,7 @@ function registerController(name, ControllerClass) {
     }
 
     // grab elements from DOM where this controller has been attached
-    var elements = (0, _dom.querySelectorAll)('[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_DEF_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_DEF) + '="' + name + '"]');
+    var elements = (0, _dom.querySelectorAll)('[data-' + _environment2['default'].HTMLDATA().CONTROLLER_DEF + '="' + name + '"]');
 
     // loop through elements and create controller instances
     for (var i = 0, max = elements.length; i < max; i++) {
@@ -324,17 +325,17 @@ function registerController(name, ControllerClass) {
         var params = [];
 
         // check if controller is already registered (has an id)
-        if ((0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID))) {
+        if ((0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTROLLER_ID)) {
             continue;
         }
 
         // check if there are any params for controller init
-        if ((0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_PARAMS_SHORTHAND : _environment2['default'].HTMLDATA_PARAMS))) {
+        if ((0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().PARAMS)) {
             params = (0, _dom.getDataParams)(element);
         }
 
         // check if controller reference is set and apply it to instance
-        var ref = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_REF_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_REF));
+        var ref = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTROLLER_REF);
 
         // merge params with config
         params = params.concat([{
@@ -358,8 +359,12 @@ function applyController(controller) {
         throw '[Type Exeption] controller has to be a object';
     }
 
+    if ((0, _dom.getAttribute)(controller._$, 'data-' + _environment2['default'].HTMLDATA().CONTROLLER_ID)) {
+        return controller;
+    }
+
     // apply id to dome node
-    (0, _dom.setAttribute)(controller._$, _environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTROLLER_ID_SHORTHAND : _environment2['default'].HTMLDATA_CONTROLLER_ID, controller.get('_id', true));
+    (0, _dom.setAttribute)(controller._$, 'data-' + _environment2['default'].HTMLDATA().CONTROLLER_ID, controller.get('_id', true));
 
     // add controller instance to instances array for later access
     _main2['default']._controllerInstances.push(controller);
@@ -370,20 +375,30 @@ function applyController(controller) {
     // add all the observers on this controller
     (0, _observer.applyObserver)(controller);
 
-    // apply actions
-    applyActionsToController(controller);
+    // add dom logic to controller
+    applyDomToController(controller);
 
-    // apply class bindings
-    applyClassBindingsToController(controller);
-
-    // apply input bindings
-    applyInputBindingsToController(controller);
-
-    // apply content bindings
-    applyContentBindingsToController(controller);
+    return controller;
 }
 
-function applyActionsToController(controller) {
+function applyDomToController(controller, rootElement) {
+
+    // apply actions
+    applyActionsToController(controller, rootElement);
+
+    // apply class bindings
+    applyClassBindingsToController(controller, rootElement);
+
+    // apply input bindings
+    applyInputBindingsToController(controller, rootElement);
+
+    // apply content bindings
+    applyContentBindingsToController(controller, rootElement);
+
+    return controller;
+}
+
+function applyActionsToController(controller, rootElement) {
 
     // make sure applyDomToController has exactly one arguments
     if (arguments.length < 1) {
@@ -395,19 +410,23 @@ function applyActionsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var actionElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION) + ']'));
+    if (typeof rootElement !== 'object') {
+        rootElement = controller.get('_$', true);
+    }
 
-    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION))) {
-        actionElements.push(controller.get('_$', true));
+    var actionElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(rootElement, '[data-' + _environment2['default'].HTMLDATA().ACTION + ']'));
+
+    if ((0, _dom.getAttribute)(rootElement, 'data-' + _environment2['default'].HTMLDATA().ACTION)) {
+        actionElements.push(rootElement);
     }
 
     var i = actionElements.length;
 
     var _loop = function () {
         var element = actionElements[i];
-        var action = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND : _environment2['default'].HTMLDATA_ACTION));
-        var id = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_SHORTHAND_ID : _environment2['default'].HTMLDATA_ACTION_ID));
-        var eventType = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_EVENT_SHORTHAND : _environment2['default'].HTMLDATA_EVENT));
+        var action = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().ACTION);
+        var id = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().ACTION_ID);
+        var eventType = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().EVENT);
 
         if (id) {
             return 'continue';
@@ -423,7 +442,7 @@ function applyActionsToController(controller) {
                         eventType = _environment2['default'].DEFAULT_EVENTTYPE;
                     }
 
-                    (0, _dom.setAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_ACTION_ID_SHORTHAND : _environment2['default'].HTMLDATA_ACTION_ID), Utils.generateRandomString(16));
+                    (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().ACTION_ID, Utils.generateRandomString(16));
                     (0, _dom.addEventListener)(element, eventType, function (event) {
                         event.preventDefault();
                         var params = (0, _dom.getDataParams)(element);
@@ -441,7 +460,7 @@ function applyActionsToController(controller) {
     }
 }
 
-function applyClassBindingsToController(controller) {
+function applyClassBindingsToController(controller, rootElement) {
     // make sure applyDomToController has exactly one arguments
     if (arguments.length < 1) {
         throw '[Type Exeption] missing parameters';
@@ -452,18 +471,27 @@ function applyClassBindingsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING) + ']'));
+    if (typeof rootElement !== 'object') {
+        rootElement = controller.get('_$', true);
+    }
 
-    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING))) {
-        bindingElements.push(controller.get('_$', true));
+    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(rootElement, '[data-' + _environment2['default'].HTMLDATA().CLASSBINDING + ']'));
+
+    if ((0, _dom.getAttribute)(rootElement, 'data-' + _environment2['default'].HTMLDATA().CLASSBINDING)) {
+        bindingElements.push(rootElement);
     }
 
     var i = bindingElements.length;
 
     while (i--) {
         var element = bindingElements[i];
-        var bindings = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING)).split(' ');
+        var bindings = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CLASSBINDING).split(' ');
+        var id = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CLASSBINDING_ID);
         var j = bindings.length;
+
+        if (id) {
+            continue;
+        }
 
         while (j--) {
             var binding = bindings[j];
@@ -488,7 +516,7 @@ function applyClassBindingsToController(controller) {
             var class1 = binding.length > 1 && binding[1].length ? binding[1] : null;
             var class2 = binding.length > 2 && binding[2].length ? binding[2] : null;
 
-            (0, _observer.addObserver)(controller, trigger, function (trigger, element, class1, class2) {
+            var observerId = (0, _observer.addObserver)(controller, trigger, function (trigger, element, class1, class2) {
                 if (this.get(trigger)) {
                     if (!!class1) {
                         (0, _dom.addClass)(element, class1);
@@ -505,12 +533,15 @@ function applyClassBindingsToController(controller) {
                     !!class2 && (0, _dom.addClass)(element, class2);
                 }
             }, [trigger, element, class1, class2]);
+
+            (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CLASSBINDING_ID, observerId);
+
             (0, _observer.callObserver)(controller, trigger);
         }
     }
 }
 
-function applyInputBindingsToController(controller) {
+function applyInputBindingsToController(controller, rootElement) {
 
     // make sure applyDomToController has exactly one arguments
     if (arguments.length < 1) {
@@ -522,17 +553,26 @@ function applyInputBindingsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_INPUTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_INPUTBINDING) + ']'));
+    if (typeof rootElement !== 'object') {
+        rootElement = controller.get('_$', true);
+    }
 
-    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING))) {
-        bindingElements.push(controller.get('_$', true));
+    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(rootElement, '[data-' + _environment2['default'].HTMLDATA().INPUTBINDING + ']'));
+
+    if ((0, _dom.getAttribute)(rootElement, 'data-' + _environment2['default'].HTMLDATA().INPUTBINDING)) {
+        bindingElements.push(rootElement);
     }
 
     var i = bindingElements.length;
 
     var _loop2 = function () {
         var element = bindingElements[i];
-        var binding = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_INPUTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_INPUTBINDING));
+        var binding = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().INPUTBINDING);
+        var id = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().INPUTBINDING_ID);
+
+        if (id) {
+            return 'continue';
+        }
 
         if (!Utils.isString(binding)) {
             return 'continue';
@@ -543,6 +583,8 @@ function applyInputBindingsToController(controller) {
         if (binding.length < 2 || binding[0] !== controller.get('_className', true)) {
             return 'continue';
         }
+
+        (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().INPUTBINDING_ID, Utils.generateRandomString(16));
 
         var param = binding.slice(1).join('.');
         var events = '';
@@ -570,7 +612,7 @@ function applyInputBindingsToController(controller) {
             });
         })(element, events, controller, param);
 
-        (0, _observer.addObserver)(controller, param, function (param, element) {
+        var observerId = (0, _observer.addObserver)(controller, param, function (param, element) {
             switch (element.type) {
                 case 'checkbox':
                     element.checked !== !!controller.get(param) && (element.checked = !!controller.get(param));
@@ -585,6 +627,8 @@ function applyInputBindingsToController(controller) {
                     break;
             }
         }, [param, element]);
+
+        (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().INPUTBINDING_ID, observerId);
 
         var value = null;
         if (element.type === 'checkbox') {
@@ -619,7 +663,7 @@ function applyInputBindingsToController(controller) {
     }
 }
 
-function applyContentBindingsToController(controller) {
+function applyContentBindingsToController(controller, rootElement) {
     // make sure applyDomToController has exactly one arguments
     if (arguments.length < 1) {
         throw '[Type Exeption] missing parameters';
@@ -630,17 +674,26 @@ function applyContentBindingsToController(controller) {
         throw '[Type Exeption] controller has to be an object';
     }
 
-    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(controller.get('_$', true), '[data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTENTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CONTENTBINDING) + ']'));
+    if (typeof rootElement !== 'object') {
+        rootElement = controller.get('_$', true);
+    }
 
-    if ((0, _dom.getAttribute)(controller.get('_$', true), 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CLASSBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CLASSBINDING))) {
-        bindingElements.push(controller.get('_$', true));
+    var bindingElements = Array.prototype.slice.call((0, _dom.querySelectorAll)(rootElement, '[data-' + _environment2['default'].HTMLDATA().CONTENTBINDING + ']'));
+
+    if ((0, _dom.getAttribute)(rootElement, 'data-' + _environment2['default'].HTMLDATA().CONTENTBINDING)) {
+        bindingElements.push(rootElement);
     }
 
     var i = bindingElements.length;
 
     while (i--) {
         var element = bindingElements[i];
-        var binding = (0, _dom.getAttribute)(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_CONTENTBINDING_SHORTHAND : _environment2['default'].HTMLDATA_CONTENTBINDING));
+        var binding = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTENTBINDING);
+        var id = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTENTBINDING_ID);
+
+        if (id) {
+            continue;
+        }
 
         if (!Utils.isString(binding)) {
             continue;
@@ -652,11 +705,22 @@ function applyContentBindingsToController(controller) {
             continue;
         }
 
+        (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTENTBINDING_ID, Utils.generateRandomString(16));
+
         var keyName = binding.slice(1).join('.');
 
-        (0, _observer.addObserver)(controller, keyName, function (keyName, element) {
+        var observerId = (0, _observer.addObserver)(controller, keyName, function (keyName, element) {
             element.innerHTML = controller.get(keyName) ? controller.get(keyName) : '';
+            setTimeout(function () {
+
+                var elements = (0, _dom.querySelectorAll)(element, '[data-' + _environment2['default'].HTMLDATA().ACTION + ']');
+
+                applyDomToController(controller, element);
+            }, 0);
         }, [keyName, element]);
+
+        (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTENTBINDING_ID, observerId);
+
         (0, _observer.callObserver)(controller, keyName);
     }
 }
@@ -865,7 +929,7 @@ function setAttribute(element, name, value) {
 
 function getDataParams(element) {
 
-    var params = getAttribute(element, 'data-' + (_environment2['default'].HTMLDATA_SHORTHAND ? _environment2['default'].HTMLDATA_PARAMS_SHORTHAND : _environment2['default'].HTMLDATA_PARAMS));
+    var params = getAttribute(element, 'data-' + _environment2['default'].HTMLDATA().PARAMS);
     var attributes = [];
     if (typeof params === 'string' && params.length > 0) {
 
@@ -1034,30 +1098,44 @@ var ENV = {};
 
 // HTML data attributes
 ENV.HTMLDATA_SHORTHAND = false;
-ENV.HTMLDATA_NAMESPACE = 'mojito';
-ENV.HTMLDATA_CONTROLLER_DEF = ENV.HTMLDATA_NAMESPACE + '-controller';
-ENV.HTMLDATA_CONTROLLER_DEF_SHORTHAND = 'controller';
-ENV.HTMLDATA_CONTROLLER_ID = ENV.HTMLDATA_CONTROLLER_DEF + '-id';
-ENV.HTMLDATA_CONTROLLER_ID_SHORTHAND = ENV.HTMLDATA_CONTROLLER_DEF_SHORTHAND + '-id';
-ENV.HTMLDATA_CONTROLLER_REF = ENV.HTMLDATA_CONTROLLER_DEF + '-ref';
-ENV.HTMLDATA_CONTROLLER_REF_SHORTHAND = ENV.HTMLDATA_CONTROLLER_DEF_SHORTHAND + '-ref';
-ENV.HTMLDATA_ACTION = ENV.HTMLDATA_NAMESPACE + '-action';
-ENV.HTMLDATA_ACTION_SHORTHAND = 'action';
-ENV.HTMLDATA_ACTION_ID = ENV.HTMLDATA_ACTION + '-id';
-ENV.HTMLDATA_ACTION_ID_SHORTHAND = ENV.HTMLDATA_ACTION_SHORTHAND + '-id';
-ENV.HTMLDATA_EVENT = ENV.HTMLDATA_NAMESPACE + '-event';
-ENV.HTMLDATA_EVENT_SHORTHAND = 'event';
-ENV.HTMLDATA_PARAMS = ENV.HTMLDATA_NAMESPACE + '-params';
-ENV.HTMLDATA_PARAMS_SHORTHAND = 'params';
-ENV.HTMLDATA_CLASSBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-class';
-ENV.HTMLDATA_CLASSBINDING_SHORTHAND = 'bind-class';
-ENV.HTMLDATA_INPUTBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-input';
-ENV.HTMLDATA_INPUTBINDING_SHORTHAND = 'bind-input';
-ENV.HTMLDATA_CONTENTBINDING = ENV.HTMLDATA_NAMESPACE + '-bind-content';
-ENV.HTMLDATA_CONTENTBINDING_SHORTHAND = 'bind-content';
 
-// events
+ENV.HTMLDATA = function () {
+	var HTMLDATA = {};
+
+	// global html data namespace
+	HTMLDATA.NAMESPACE = ENV.HTMLDATA_SHORTHAND ? '' : 'mojito-';
+
+	// controller data attributes
+	HTMLDATA.CONTROLLER_DEF = HTMLDATA.NAMESPACE + 'controller';
+	HTMLDATA.CONTROLLER_ID = HTMLDATA.CONTROLLER_DEF + '-id';
+	HTMLDATA.CONTROLLER_REF = HTMLDATA.CONTROLLER_DEF + '-ref';
+
+	// action data attributes
+	HTMLDATA.ACTION = HTMLDATA.NAMESPACE + 'action';
+	HTMLDATA.ACTION_ID = HTMLDATA.ACTION + '-id';
+	HTMLDATA.EVENT = HTMLDATA.NAMESPACE + 'event';
+
+	// params data attributes
+	HTMLDATA.PARAMS = HTMLDATA.NAMESPACE + 'params';
+
+	// classbindings data attributes
+	HTMLDATA.CLASSBINDING = HTMLDATA.NAMESPACE + 'bind-class';
+	HTMLDATA.CLASSBINDING_ID = HTMLDATA.CLASSBINDING + '-id';
+
+	// inputbindings data attributes
+	HTMLDATA.INPUTBINDING = HTMLDATA.NAMESPACE + 'bind-input';
+	HTMLDATA.INPUTBINDING_ID = HTMLDATA.INPUTBINDING + '-id';
+
+	// contentbindings data attributes
+	HTMLDATA.CONTENTBINDING = HTMLDATA.NAMESPACE + 'bind-content';
+	HTMLDATA.CONTENTBINDING_ID = HTMLDATA.CONTENTBINDING + '-id';
+
+	return HTMLDATA;
+};
+
+// valid events
 ENV.EVENTTYPES = "blur focus focusin focusout resize scroll click dblclick " + "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " + "change select submit keydown keypress keyup contextmenu";
+// default event
 ENV.DEFAULT_EVENTTYPE = 'click';
 
 exports['default'] = ENV;
@@ -1163,6 +1241,7 @@ exports.addObserver = addObserver;
 exports.applyObserver = applyObserver;
 exports.getObservers = getObservers;
 exports.callObserver = callObserver;
+exports.removeObserverById = removeObserverById;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
@@ -1219,12 +1298,17 @@ function addObserver(obj, keyName, fn, args) {
         args = [];
     }
 
+    var id = Utils.generateRandomString(16);
+
     _main2['default']._observers.push({
+        id: id,
         obj: obj,
         keyName: keyName,
         fn: fn,
         args: args
     });
+
+    return id;
 }
 
 function applyObserver(obj, context) {
@@ -1306,6 +1390,22 @@ function callObserver(obj, keyName) {
         if (_observer2 && Utils.isFunction(fn)) {
             fn.apply(obj, args);
         }
+    }
+}
+
+function removeObserverById(id) {
+    if (!Utils.isString(id)) {
+        throw '[Type Exeption] id has to be a string';
+    }
+    var i = _main2['default']._observers.length;
+
+    while (i--) {
+        var _observer3 = _main2['default']._observers[i];
+        if (_observer3.id === id) {
+            _main2['default']._observers.splice(i, 1);
+        }
+
+        return _observer3;
     }
 }
 
