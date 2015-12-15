@@ -254,6 +254,7 @@ Object.defineProperty(exports, '__esModule', {
     value: true
 });
 exports.registerController = registerController;
+exports.applyControllers = applyControllers;
 exports.applyController = applyController;
 exports.applyDomToController = applyDomToController;
 exports.applyActionsToController = applyActionsToController;
@@ -310,22 +311,71 @@ function registerController(name, ControllerClass) {
         throw '[Type Exeption] No ControllerClass found for ' + name + ' (maybe you forgot to export ' + name + ' as default)';
     }
 
+    // check for controller classes array
+    // if it does not exist, create one
+    if (!Utils.isArray(_main2['default']._controllerClasses)) {
+        _main2['default']._controllerClasses = [];
+    }
+
+    var contains = false;
+    for (var i = 0, max = _main2['default']._controllerClasses.length; i < max; i++) {
+        var controllerClass = _main2['default']._controllerClasses[i];
+        if (controllerClass.name === name) {
+            contains = true;
+            break;
+        }
+    }
+
+    if (!contains) {
+        _main2['default']._controllerClasses.push({
+            name: name,
+            controllerClass: ControllerClass
+        });
+    }
+
+    applyControllers();
+}
+
+function applyControllers(root) {
+    if (typeof root === 'undefined') {
+        var _root = document.body;
+    }
+
     // check for controller instances array
+    // if it does not exist, create one
     if (!Utils.isArray(_main2['default']._controllerInstances)) {
-        throw '[Type Exeption] No _controllerInstances found';
+        _main2['default']._controllerInstances = [];
     }
 
     // grab elements from DOM where this controller has been attached
-    var elements = (0, _dom.querySelectorAll)('[data-' + _environment2['default'].HTMLDATA().CONTROLLER_DEF + '="' + name + '"]');
+    var elements = (0, _dom.querySelectorAll)('[data-' + _environment2['default'].HTMLDATA().CONTROLLER_DEF + ']');
 
     // loop through elements and create controller instances
     for (var i = 0, max = elements.length; i < max; i++) {
 
         var element = elements[i];
         var params = [];
+        var _name = (0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTROLLER_DEF);
+        var controllerClass = null;
 
         // check if controller is already registered (has an id)
         if ((0, _dom.getAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTROLLER_ID)) {
+            continue;
+        }
+
+        if (!_name) {
+            continue;
+        }
+
+        for (var _i = 0, _max = _main2['default']._controllerClasses.length; _i < _max; _i++) {
+            var cc = _main2['default']._controllerClasses[_i];
+            if (cc.name === _name) {
+                controllerClass = cc.controllerClass;
+                break;
+            }
+        }
+
+        if (!controllerClass) {
             continue;
         }
 
@@ -342,13 +392,13 @@ function registerController(name, ControllerClass) {
             element: element,
             id: Utils.generateRandomString(16),
             ref: ref,
-            className: name
+            className: _name
         }]);
 
         // create new controller instance from class
         // instead of new ControllerClass() using the following code to apply
         // the params as an arguments array
-        var controller = new (Function.prototype.bind.apply(ControllerClass, [null].concat(params)))();
+        var controller = new (Function.prototype.bind.apply(controllerClass, [null].concat(params)))();
     }
 }
 
@@ -664,6 +714,8 @@ function applyInputBindingsToController(controller, rootElement) {
 }
 
 function applyContentBindingsToController(controller, rootElement) {
+    console.log("applyContentBindingsToController", controller);
+
     // make sure applyDomToController has exactly one arguments
     if (arguments.length < 1) {
         throw '[Type Exeption] missing parameters';
@@ -714,8 +766,9 @@ function applyContentBindingsToController(controller, rootElement) {
             setTimeout(function () {
 
                 var elements = (0, _dom.querySelectorAll)(element, '[data-' + _environment2['default'].HTMLDATA().ACTION + ']');
-
+                console.log("asdfasfasfsa");
                 applyDomToController(controller, element);
+                applyControllers(element);
             }, 0);
         }, [keyName, element]);
 
@@ -1213,11 +1266,13 @@ var Mojito = {
     callObserver: _observer.callObserver,
     observer: _observer.observer,
     applyComputed: _computed.applyComputed,
+    applyControllers: _core.applyControllers,
     getComputedProperty: _computed.getComputedProperty,
     computed: _computed.computed,
 
     // intern
     _controllerInstances: [],
+    _controllerClasses: [],
     _ids: [],
     _observers: []
 };
