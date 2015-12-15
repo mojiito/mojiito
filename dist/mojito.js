@@ -714,7 +714,6 @@ function applyInputBindingsToController(controller, rootElement) {
 }
 
 function applyContentBindingsToController(controller, rootElement) {
-    console.log("applyContentBindingsToController", controller);
 
     // make sure applyDomToController has exactly one arguments
     if (arguments.length < 1) {
@@ -766,7 +765,6 @@ function applyContentBindingsToController(controller, rootElement) {
             setTimeout(function () {
 
                 var elements = (0, _dom.querySelectorAll)(element, '[data-' + _environment2['default'].HTMLDATA().ACTION + ']');
-                console.log("asdfasfasfsa");
                 applyDomToController(controller, element);
                 applyControllers(element);
             }, 0);
