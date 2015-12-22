@@ -92,10 +92,8 @@ function applyComputed(obj, context) {
         }
     }
 
-    if (!!obj.prototype) {
-        applyComputed(obj.prototype, context);
-    } else if ('__proto__' in obj) {
-        applyComputed(obj.__proto__, context);
+    if (!!Object.getPrototypeOf(obj)) {
+        applyComputed(Object.getPrototypeOf(obj), context);
     }
 }
 
