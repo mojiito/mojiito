@@ -6,5 +6,7 @@
     "url": "https://github.com/thomaspink/mojito.js"
   },
   "devDependencies": {
+    "karma": "^0.13.19",
+    "typescript": "^1.7.5"
   }
 }
