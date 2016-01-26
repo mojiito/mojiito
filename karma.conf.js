@@ -1,5 +1,5 @@
 // Karma configuration
-// Generated on Tue Jan 26 2016 17:33:31 GMT+0100 (CET)
+// Generated on Tue Jan 26 2016 22:34:57 GMT+0100 (CET)
 
 module.exports = function(config) {
   config.set({
@@ -15,7 +15,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'dist/**/*.js'
+      'bundle/mojito.spec.js'
     ],
 
 
@@ -50,7 +50,7 @@ module.exports = function(config) {
 
 
     // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: true,
+    autoWatch: false,
 
 
     // start these browsers
@@ -60,10 +60,10 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
+    singleRun: true,
 
     // Concurrency level
-    // how many browser should be started simultaneous
+    // how many browser should be started simultanous
     concurrency: Infinity
   })
 }
