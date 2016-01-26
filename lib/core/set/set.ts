@@ -6,6 +6,7 @@ import assert from './../../debug/assert/assert';
  * If the object itself is `undefined`, this method will throw an error.
  * The propertyName can also be a path (e.g. `y.m.c.a`)
  * 
+ * @function meta
  * @param  {Object} obj
  * @param  {string} key
  * @param  {any} value
