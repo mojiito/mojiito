@@ -1,19 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es5",
     "module": "commonjs",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "declaration": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "removeComments": false,
-    "noImplicitAny": false,
-    "outDir": "dist/",
-    "rootDir": "lib/"
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "dist",
+    "rootDir": "lib",
+    "sourceMap": true
   },
   "exclude": [
-    "node_modules",
-    "dist"
+    "node_modules"
   ]
 }
