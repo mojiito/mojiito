@@ -1400,10 +1400,8 @@ function applyObserver(obj, context) {
         }
     }
 
-    if (!!obj.prototype) {
-        applyObserver(obj.prototype, context);
-    } else if ('__proto__' in obj) {
-        applyObserver(obj.__proto__, context);
+    if (!!Object.getPrototypeOf(obj)) {
+        applyObserver(Object.getPrototypeOf(obj), context);
     }
 }
 
