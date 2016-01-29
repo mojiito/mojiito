@@ -113,7 +113,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
@@ -747,7 +747,6 @@ function applyContentBindingsToController(controller, rootElement) {
         if (!Utils.isString(binding)) {
             continue;
         }
-
         binding = binding.split('.');
 
         if (binding.length < 2 || binding[0] !== controller.get('_className', true)) {
@@ -757,12 +756,15 @@ function applyContentBindingsToController(controller, rootElement) {
         (0, _dom.setAttribute)(element, 'data-' + _environment2['default'].HTMLDATA().CONTENTBINDING_ID, Utils.generateRandomString(16));
 
         var keyName = binding.slice(1).join('.');
-
         var observerId = (0, _observer.addObserver)(controller, keyName, function (keyName, element) {
-            element.innerHTML = controller.get(keyName) ? controller.get(keyName) : '';
-            setTimeout(function () {
+            var content = controller.get(keyName);
+            if (window.jQuery) {
+                window.jQuery(element).html(content);
+            } else {
+                element.innerHTML = content;
+            }
 
-                var elements = (0, _dom.querySelectorAll)(element, '[data-' + _environment2['default'].HTMLDATA().ACTION + ']');
+            setTimeout(function () {
                 applyDomToController(controller, element);
                 applyControllers(element);
             }, 0);
@@ -906,7 +908,7 @@ function querySelector(selector) {
 
     if (typeof root === 'string') {
         selector = root;
-        root = document;
+        exports.root = root = document;
     } else if (typeof root !== 'object') {
         try {
             console.error('[Type Error] Root has to be a DOM Element');
@@ -1503,7 +1505,6 @@ function get(_x, _x2, _x3) {
         var obj = _x,
             param = _x2,
             ignoreComputed = _x3;
-        params = undefined;
         _again = false;
 
         if (isObject(obj) && isString(param)) {
@@ -1517,6 +1518,7 @@ function get(_x, _x2, _x3) {
                     _x2 = params.slice(1).join('.');
                     _x3 = ignoreComputed;
                     _again = true;
+                    params = undefined;
                     continue _function;
                 }
             }
