@@ -6,3 +6,6 @@ bower_components
 dist
 build
 typings
+.tmp
+.results
+.bundle
