@@ -14,12 +14,7 @@
     "tsc": "tsc --rootDir lib --outDir .tmp --module amd -w",
     "tsc:single": "tsc --rootDir lib --outDir .tmp --module amd",
     "karma": "karma start karma.conf.js",
-    
-    "watch-bundle": "watch 'npm run bundle' dist/mojito",
-    "bundle": "browserify dist/mojito/mojito.js -o bundle/mojito.bundle.js",
-    "watch-bundle-spec": "watch 'npm run bundle-spec' dist/mojito --wait=1",
-    "bundle-spec": "browserify dist/mojito/mojito.spec.js -o bundle/mojito.spec.js"
-    
+    "bundle": "browserify .tmp/mojito/mojito.js -o mojito.js"
   },
   "devDependencies": {
     "browserify": "^13.0.0",
