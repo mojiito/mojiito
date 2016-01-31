@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "amd",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outDir": "dist",
     "rootDir": "lib",
     "sourceMap": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "typings"
   ]
 }
