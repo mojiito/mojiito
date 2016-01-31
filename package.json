@@ -6,17 +6,29 @@
     "url": "https://github.com/thomaspink/mojito.js"
   },
   "scripts": {
-    "start": "tsc -w & live-server",
+    "start": "npm run tsc & live-server",
+    "start:test": "npm test & live-server",
+    "test": "npm run tsc & npm run karma",
+    "tsc": "tsc --rootDir lib --outDir .tmp --module amd -w",
+    "tsc:single": "tsc --rootDir lib --outDir .tmp --module amd",
+    "karma": "karma start karma.conf.js",
+    
     "watch-bundle": "watch 'npm run bundle' dist/mojito",
     "bundle": "browserify dist/mojito/mojito.js -o bundle/mojito.bundle.js",
     "watch-bundle-spec": "watch 'npm run bundle-spec' dist/mojito --wait=1",
-    "bundle-spec": "browserify dist/mojito/mojito.spec.js -o bundle/mojito.spec.js",
-    "karma": "karma start karma.conf.js"
+    "bundle-spec": "browserify dist/mojito/mojito.spec.js -o bundle/mojito.spec.js"
+    
   },
   "devDependencies": {
     "browserify": "^13.0.0",
+    "jasmine-core": "^2.4.1",
     "karma": "^0.13.19",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-html-reporter": "^0.2.7",
+    "karma-jasmine": "^0.3.6",
+    "karma-requirejs": "^0.2.4",
     "live-server": "^0.9.1",
+    "requirejs": "^2.1.22",
     "systemjs": "^0.19.17",
     "tsd": "^0.6.5",
     "typescript": "^1.7.5",
