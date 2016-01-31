@@ -6,8 +6,10 @@
     "url": "https://github.com/thomaspink/mojito.js"
   },
   "scripts": {
-    "start": "npm run tsc & live-server",
-    "start:test": "npm test & live-server",
+    "start": "npm run tsc & npm run server",
+    "start:test": "npm test & npm run server & npm run server:test",
+    "server": "live-server --wait=1000 ",
+    "server:test": "live-server --wait=4000 --open=.results/mojito/index.html",
     "test": "npm run tsc & npm run karma",
     "tsc": "tsc --rootDir lib --outDir .tmp --module amd -w",
     "tsc:single": "tsc --rootDir lib --outDir .tmp --module amd",
