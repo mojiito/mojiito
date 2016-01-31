@@ -1,5 +1,5 @@
 // Karma configuration
-// Generated on Tue Jan 26 2016 22:34:57 GMT+0100 (CET)
+// Generated on Sun Jan 31 2016 11:17:21 GMT+0100 (CET)
 
 module.exports = function(config) {
   config.set({
@@ -10,12 +10,29 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine', 'requirejs'],
 
+
+    htmlReporter: {
+      outputDir: '.results', // where to put the reports  
+      templatePath: null, // set if you moved jasmine_template.html 
+      focusOnFailures: true, // reports show failures on start 
+      namedFiles: false, // name files instead of creating sub-directories 
+      pageTitle: null, // page title for reports; browser info by default 
+      urlFriendlyName: false, // simply replaces spaces with _ for files/dirs 
+      reportName: 'mojito', // report summary filename; browser info by default 
+      
+      
+      // experimental 
+      preserveDescribeNesting: false, // folded suites stay folded  
+      foldAll: false, // reports start folded (only with preserveDescribeNesting) 
+    },
 
     // list of files / patterns to load in the browser
     files: [
-      'bundle/mojito.spec.js'
+      'test-main.js',
+      {pattern: '.tmp/**/*.spec.js', included: false},
+      {pattern: '.tmp/**/*.js', included: false}
     ],
 
 
@@ -33,7 +50,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['progress', 'html'],
 
 
     // web server port
@@ -50,7 +67,7 @@ module.exports = function(config) {
 
 
     // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
+    autoWatch: true,
 
 
     // start these browsers
@@ -60,10 +77,10 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: true,
+    singleRun: false,
 
     // Concurrency level
-    // how many browser should be started simultanous
+    // how many browser should be started simultaneous
     concurrency: Infinity
   })
 }
