@@ -5,7 +5,7 @@
   <script>
     // set our baseURL reference path
   System.config({
-    baseURL: '/dist',
+    baseURL: '/.tmp',
     defaultJSExtensions: true
   });
   System.import('mojito/mojito.js');
@@ -17,11 +17,10 @@
 
 <body>
   <h1>mojito.js</h1>
-  <ul>
-    <li>1) npm start</li>
-    <li>2) npm run watch-bundle-spec</li>
-    <li>3) karma start karma-conf.js</li>
-  </ul>
+  <p>npm start</p>
+  <p>npm run start:test</p>
+  
+  <a href=".results/mojito/index.html" target="_blank">Test Results</a>
 </body>
 
 </html>
