@@ -1,3 +1,5 @@
+/// <reference path="../../typings/main.d.ts" />
+
 import {Mojito} from './mojito';
 describe('Mojito',() => {
   it('should test anything', () => {
