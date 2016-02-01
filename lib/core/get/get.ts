@@ -18,11 +18,12 @@ export default function get(obj: Object, propertyName: string): any {
     assert(typeof obj === 'object', 'The first argument of the get method has be an object', TypeError);
     assert(typeof propertyName === 'string', 'The key provided to get method must be a string', TypeError);
 
+    const source: any = obj;  // needed for enabled noImplicitAny    
     const properties = propertyName.split('.');
     const property = properties.slice(0, 1)[0];
 
     if (property in obj) {
-        return properties.length === 1 ? obj[property] : get(obj[property], properties.slice(1).join('.'));
+        return properties.length === 1 ? source[property] : get(source[property], properties.slice(1).join('.'));
     }
 
     if (properties.length === 1) {

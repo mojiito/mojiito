@@ -19,21 +19,22 @@ export default function set(obj: Object, propertyName: string, value: any): any 
     assert(typeof propertyName === 'string', 'The key provided to get method must be a string', TypeError);
     assert(typeof value !== 'undefined', 'Cannot call set with an `undefined` value ', TypeError);
 
+    const source: any = obj; // needed for enabled noImplicitAny    
     const properties = propertyName.split('.');
     const property = properties.slice(0, 1)[0];
 
     if (properties.length === 1) {
-        obj[property] = value;
+        source[property] = value;
         // TODO: Notify observer and listeners
         return value;
     }
 
     if (!(property in obj)) {
         // if property is `undefined` create an object to fullfil the path
-        obj[property] = {};
-    } else if (typeof obj[property] !== 'object') {
+        source[property] = {};
+    } else if (typeof source[property] !== 'object') {
         throw new TypeError('The property in the path has to be an object ');
     }
 
-    return set(obj[property], properties.slice(1).join('.'), value);
+    return set(source[property], properties.slice(1).join('.'), value);
 }
