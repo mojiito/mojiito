@@ -17,19 +17,19 @@ export default class CoreObject {
         
         // extend the CoreObject with a Meta hash 
         Meta.extend(this);
-        for (var key in obj) {
+        /*for (var key in obj) {
             if (obj.hasOwnProperty(key) && !(obj[key] instanceof Meta)) {
                 Object.defineProperty(this, key, {
                     get() {
-                        Meta.peek(this).get('values', key);
+                        Meta.peek(this).getProperty('values', key);
                     },
                     
                     set(value) {
-                        Meta.peek(this).set('values', key, value);
+                        Meta.peek(this).setProperty('values', key, value);
                     }
                 })
             }
-        }
+        }*/
     }
 
     /**
