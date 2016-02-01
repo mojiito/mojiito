@@ -1,3 +1,5 @@
+import assert from './../../debug/assert/assert';
+
 const META_FIELD = '__mojito_meta__';
 
 /**
@@ -16,6 +18,11 @@ export default class Meta {
      * @returns any
      */
     set(memberKey: string, propertyKey: string, value: any): any {
+        assert(arguments.length === 3, 'Set on an meta hash must be called with three arguments; a member key, a property key and a value');
+        assert(typeof memberKey === 'string', 'The member key provided to set method on a meta hash must be a string', TypeError);
+        assert(typeof propertyKey === 'string', 'The property key provided to set method on a meta hash must be a string', TypeError);
+        assert(typeof value !== 'undefined', 'Cannot call set on a meta hash with an `undefined` value ', TypeError);
+        
         let member = this[memberKey];
         if (!member) {
             Object.defineProperty(this, memberKey, {
@@ -38,6 +45,10 @@ export default class Meta {
      * @returns any
      */
     get(memberKey: string, propertyKey: string): any {
+        assert(arguments.length === 3, 'Get on an meta hash must be called with two arguments; a member key and a property key');
+        assert(typeof memberKey === 'string', 'The member key provided to get method on a meta hash must be a string', TypeError);
+        assert(typeof propertyKey === 'string', 'The property key provided to get method on a meta hash must be a string', TypeError);
+
         return this.has(memberKey, propertyKey) ? this[memberKey][propertyKey] : undefined;
     }
     

@@ -8,7 +8,7 @@ import Meta from '../meta/meta';
  * 
  * @class CoreObject
  */
-export default class CoreObject implements Observable {
+export default class CoreObject {
 
     constructor(obj?: Object) {
         if (obj instanceof CoreObject) {
