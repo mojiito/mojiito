@@ -17,7 +17,7 @@ export function isArray(value: any): boolean {
  * @returns boolean
  */
 export function isObject(value: any): boolean {
-    return !isArray(value) && typeof value === 'object';
+    return !isArray(value) && !isNull(value) && typeof value === 'object';
 }
 
 /**
@@ -39,7 +39,7 @@ export function isBoolean(value: any): boolean {
  * @returns boolean
  */
 export function isNumber(value: any): boolean {
-    return typeof value === 'number'
+    return typeof value === 'number' && !isNaN(value);
 }
 
 /**
@@ -56,7 +56,7 @@ export function isNumber(value: any): boolean {
  * @returns boolean
  */
 export function isFloat(value: any): boolean {
-    return isNumber(value) && value % 1 === 0;
+    return isNumber(value) && value % 1 !== 0;
 }
 
 /**
@@ -73,7 +73,7 @@ export function isFloat(value: any): boolean {
  * @returns boolean
  */
 export function isInt(value: any): boolean {
-    return isNumber(value) && value % 1 !== 0;
+    return isNumber(value) && value % 1 === 0;
 }
 
 /**
@@ -128,7 +128,7 @@ export function isDefined(value: any): boolean {
  * @returns boolean
  */
 export function isNull(value: any): boolean {
-    return typeof value !== 'undefined';
+    return value === null;
 }
 
 /**
@@ -149,12 +149,10 @@ export function isNull(value: any): boolean {
  * @returns boolean
  */
 export function isEmpty(value: any): boolean {
-    if (isBoolean(value) || isNumber(value) || isFunction(value)) {
-        return false;
-    } else if (isArray(value)) {
+    if (isArray(value) || isString(value)) {
         return !value.length
-    } else if (isObject(value)) {
-        return !Object.keys(value).length;
+    } else if (isNull(value) || !isDefined(value)) {
+        return true;
     }
     return false;
 }
@@ -177,11 +175,12 @@ export function isEmpty(value: any): boolean {
  * @returns boolean
  */
 export function isPrimitive(value: any): boolean {
-    return isString(value) || isNumber(value) || isSymbol(value) || isBoolean(value) || !isDefined(value) || isNull(value);
+    // we use typeof value === 'number' because of NaN
+    return isString(value) || isSymbol(value) || isBoolean(value) || !isDefined(value) || isNull(value) || typeof value === 'number';
 }
 
 /**
- * Typeof proxy function for realy array detection
+ * Typeof proxy function for real array detection
  * 
  * @function typeOf
  * @param  {any} value
@@ -190,6 +189,9 @@ export function isPrimitive(value: any): boolean {
 export function typeOf(value: any): string {
     if (isArray(value)) {
         return 'array';
+    }
+    if (isNull(value)) {
+        return 'null';
     }
     return typeof value;
 }
