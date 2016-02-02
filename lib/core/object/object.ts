@@ -33,7 +33,7 @@ export class CoreObject extends Observable {
     constructor(obj?: Object) {
 
         super();
-        
+        console.time('create CoreObject');
         // extend the CoreObject with a Meta hash
         Meta.extend(this);
         
@@ -41,6 +41,7 @@ export class CoreObject extends Observable {
         if (!!obj) {
             CoreObject.defineProperties(this, obj);
         }
+        console.timeEnd('create CoreObject');
     }
 
     /**
@@ -73,6 +74,42 @@ export class CoreObject extends Observable {
     static create(obj?: Object): CoreObject {
         return new CoreObject(obj);
     }
+
+    static defineProperty(sourceObject: Object, propertyName: string, value?: any): void {
+        assert(arguments.length === 2 || arguments.length === 3, 'defineProperty must be called with at least two arguments; a sourceObject, a propertyName and optional a value');
+        assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperty method must be an object', TypeError);
+        assert(typeof propertyName === 'string', 'The property propertyName to the defineProperty method must be a string', TypeError);
+        assert(!(value instanceof Meta), 'Defining a meta hash is not allowed');
+        
+        // create the property if it is not already defined
+        if (!CoreObject.hasDefinedProperty(sourceObject, propertyName)) {
+            Object.defineProperty(sourceObject, propertyName, {
+                get() {
+                    return Meta.peek(sourceObject).getProperty('values', propertyName);
+                },
+
+                set(value) {
+                    Meta.peek(sourceObject).setProperty('values', propertyName, value);
+                }
+            });
+        }
+        
+        // needed for enabled noImplicitAny
+        const source: any = sourceObject;
+        
+        // set the new value if provided
+        if (!!value) {
+            source[propertyName] = value;
+        }
+    }
+
+    static hasDefinedProperty(sourceObject: Object, propertyName: string): boolean {
+        assert(arguments.length === 2, 'hasDefinedProperty must be called with two arguments; a sourceObject and a propertyName');
+        assert(typeof sourceObject === 'object', 'The sourceObject provided to the hasDefinedProperty method must be an object', TypeError);
+        assert(typeof propertyName === 'string', 'The propertyName provided to the hasDefinedProperty method must be a string', TypeError);
+
+        return sourceObject.hasOwnProperty(propertyName) && Meta.peek(sourceObject).hasProperty('values', propertyName)
+    }
     
     /**
      * Defines all the properties provided in a propertyMap
@@ -89,32 +126,35 @@ export class CoreObject extends Observable {
      * @param  {Object} propertyMap
      * @returns CoreObject
      */
-    static defineProperties(sourceObject: Object, propertyMap: Object): CoreObject {
-        assert(arguments.length === 2, 'defineProperties must be called with two arguments; a sourceObject and a propertyMap');
+    static defineProperties(sourceObject: Object, propertyMap?: Object): Object {
+        assert(arguments.length === 1 || arguments.length === 2, 'defineProperties must be called with at least one arguments; a sourceObject and optional a propertyMap');
         assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperties method must be an object', TypeError);
-        assert(typeof propertyMap === 'object', 'The propertyMap provided to the defineProperties method must be an object', TypeError);
+        assert(typeof propertyMap === 'undefined' || typeof propertyMap === 'object', 'The propertyMap provided to the defineProperties method must be an object', TypeError);
+        
+        if (propertyMap) {
+            CoreObject.defineProperties(sourceObject);
+        }
         
         // needed for enabled noImplicitAny
-        const source: any = sourceObject;
-        const properties: any = propertyMap;
-
+        const properties: any = !!propertyMap ? propertyMap : sourceObject;
+        
         // replace every property with a defined one
         for (var key in properties) {
-            if (properties.hasOwnProperty(key) && !(properties[key] instanceof Meta) && !Meta.peek(source).hasProperty('values', key)) {
-                Object.defineProperty(source, key, {
-                    get() {
-                        return Meta.peek(source).getProperty('values', key);
-                    },
+            let value = properties[key];
 
-                    set(value) {
-                        Meta.peek(source).setProperty('values', key, value);
-                    }
-                });
-
-                source[key] = properties[key];
+            // defining Meta not allowed, skip it            
+            if (value instanceof Meta) {
+                continue;
             }
+            
+            // functions directly on the sourceObject object can't be defined
+            if (!propertyMap && typeof value === 'function') {
+                continue;
+            }
+
+            CoreObject.defineProperty(sourceObject, key, value);
         }
 
-        return source;
+        return sourceObject;
     }
 }
