@@ -1,4 +1,4 @@
-export * from './get/get';
-export * from './set/set';
-export * from './meta/meta';
-export * from './object/object';
+export { get } from './get/get';
+export { set } from './set/set';
+export { Meta } from './meta/meta';
+export { CoreObject } from './object/object';

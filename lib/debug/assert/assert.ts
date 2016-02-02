@@ -6,7 +6,7 @@
  * @param  {string} message
  * @returns void
  */
-export default function assert(assertion: boolean, message: string, ErrorType?: ErrorConstructor): void {
+export function assert(assertion: boolean, message: string, ErrorType?: ErrorConstructor): void {
     let CustomError = ErrorType ? ErrorType : Error;
     if (!assertion) {
         throw new CustomError('Assertion failed: ' + message);

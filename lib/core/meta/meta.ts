@@ -1,4 +1,4 @@
-import assert from './../../debug/assert/assert';
+import { assert } from './../../debug/assert/assert';
 
 const META_FIELD = '__mojito_meta__';
 
@@ -8,7 +8,7 @@ const META_FIELD = '__mojito_meta__';
  * 
  * @class Meta
  */
-export default class Meta {
+export class Meta {
     
     /**
      * Creates the member on a meta hash 
@@ -103,7 +103,6 @@ export default class Meta {
         assert(typeof propertyKey === 'string', 'The property key provided to the setProperty method on a meta hash must be a string', TypeError);
         assert(typeof value !== 'undefined', 'Cannot call setProperty on a meta hash with an `undefined` value ', TypeError);
 
-        const source: any = this;  // needed for enabled noImplicitAny
         let member: any = this.getMember(memberKey);
         if (!member) {
             member = this.createMember(memberKey);
@@ -198,7 +197,7 @@ export default class Meta {
      * @returns Meta
      */
     static peek(obj: Object): Meta {
-        const source: any = this;  // needed for enabled noImplicitAny
+        const source: any = obj;  // needed for enabled noImplicitAny
         let meta = source[META_FIELD];
 
         if (!meta) {

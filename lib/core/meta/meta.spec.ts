@@ -1,6 +1,6 @@
 /// <reference path="../../../typings/main.d.ts" />
 
-import Meta from './meta';
+import { Meta } from './meta';
 
 describe('Meta', () => {
     it('it exists and can be created', () => {

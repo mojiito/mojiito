@@ -1,6 +1,6 @@
 /// <reference path="../../../typings/main.d.ts" />
 
-import set from './set';
+import { set } from './set';
 
 describe('set', () => {
     it('should exist', () => {

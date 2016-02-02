@@ -1,10 +1,16 @@
+import { CoreObject, Meta } from '../core/core';
+
 export class Mojito {
-  constructor () {
-    console.log('Mojito init!');
-  }
-  
-  upperCaseTest (x: string) {
-    return x.toUpperCase();
-  }
+    public Meta: Function;
+    public Object: Function;
+    
+    constructor() {
+        this.Meta = Meta;
+        this.Object = CoreObject;
+    }
+
+    upperCaseTest(x: string) {
+        return x.toUpperCase();
+    }
 }
-new Mojito();
+window.Mojito = new Mojito();

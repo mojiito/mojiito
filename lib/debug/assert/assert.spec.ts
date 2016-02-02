@@ -1,6 +1,6 @@
 /// <reference path="../../../typings/main.d.ts" />
 
-import assert from './assert';
+import { assert } from './assert';
 
 describe('assert', () => {
     it('should exist', () => {

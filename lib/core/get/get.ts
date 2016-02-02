@@ -1,4 +1,4 @@
-import assert from './../../debug/assert/assert';
+import { assert } from './../../debug/assert/assert';
 
 /**
  * Gets the value of a property on an object. If the property is computed,
@@ -12,7 +12,7 @@ import assert from './../../debug/assert/assert';
  * @param  {string} key
  * @returns any
  */
-export default function get(obj: Object, propertyName: string): any {
+export function get(obj: Object, propertyName: string): any {
     assert(arguments.length === 2, 'Get must be called with two arguments; an object and a property name');
     assert(typeof obj !== 'undefined', 'Cannot call get on an undefined object', TypeError);
     assert(typeof obj === 'object', 'The first argument of the get method has be an object', TypeError);

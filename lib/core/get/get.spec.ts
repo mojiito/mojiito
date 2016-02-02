@@ -1,6 +1,6 @@
 /// <reference path="../../../typings/main.d.ts" />
 
-import get from './get';
+import { get } from './get';
 
 describe('get', () => {
     it('should exist', () => {
