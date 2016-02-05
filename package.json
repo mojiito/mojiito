@@ -6,13 +6,12 @@
     "url": "https://github.com/thomaspink/mojito.js"
   },
   "scripts": {
-    "start": "npm run tsc & npm run server",
-    "start:test": "npm test & npm run server & npm run server:test",
-    "server": "live-server --wait=1000 ",
-    "server:test": "live-server --wait=4000 --open=.results/mojito/index.html",
+    "start": "watch 'npm run tsc' lib & npm run server",
+    "start:test": "watch 'npm run tsc' lib & npm run karma & npm run server & npm run server:test",
+    "server": "live-server --wait=1000 --watch=.tmp",
+    "server:test": "live-server --watch=.results/mojito/index.html --open=.results/mojito/index.html",
     "test": "npm run tsc & npm run karma",
-    "tsc": "tsc --rootDir lib --outDir .tmp --module amd -w",
-    "tsc:single": "tsc --rootDir lib --outDir .tmp --module amd",
+    "tsc": "tsc --rootDir lib --outDir .tmp --module amd",
     "karma": "karma start karma.conf.js",
     "bundle": "browserify .tmp/mojito/mojito.js -o mojito.js"
   },
