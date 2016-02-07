@@ -33,6 +33,7 @@ const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
 export class CoreObject implements IObservable {
 
     constructor(obj?: Object) {
+        assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the constructor method must be an object', TypeError);
         
         // extend the CoreObject with a Meta hash
         Meta.extend(this);
@@ -52,6 +53,8 @@ export class CoreObject implements IObservable {
      * @returns any
      */
     get(propertyName: string): any {
+        assert(arguments.length === 1, 'get must be called with one argument; a propertyName');
+        assert(typeof propertyName === 'string', 'The property propertyName to the get method must be a string', TypeError);
         return get(this, propertyName);
     }
     
@@ -63,6 +66,8 @@ export class CoreObject implements IObservable {
      * @returns any
      */
     set(propertyName: string, value: any): any {
+        assert(arguments.length === 2, 'set must be called with two arguments; a propertyName and value');
+        assert(typeof propertyName === 'string', 'The property propertyName to the set method must be a string', TypeError);
         return set(this, propertyName, value);
     }
 
@@ -81,6 +86,7 @@ export class CoreObject implements IObservable {
      * @returns CoreObject
      */
     static create(obj?: Object): CoreObject {
+        assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the create method must be an object', TypeError);
         return new CoreObject(obj);
     }
     
@@ -213,6 +219,10 @@ export class CoreObject implements IObservable {
      * @returns void
      */
     static _addInstanceCallback(sourceObject: CoreObject, callback: Function): void {
+        assert(arguments.length === 2, '_addInstanceCallback must be called with two arguments; a sourceObject and a callback function');
+        assert(typeof sourceObject === 'object', 'The sourceObject provided to the _addInstanceCallback method must be an object', TypeError);
+        assert(typeof callback === 'function', 'The callback provided to the _addInstanceCallback method must be a function', TypeError);
+        
         // needed for enabled noImplicitAny
         const source: any = sourceObject;
         let callbacks: Function[] = source[INSTANCE_CALLBACKS_FIELD];
@@ -237,6 +247,9 @@ export class CoreObject implements IObservable {
      * @returns void
      */
     static _applyInstanceCallbacks(sourceObject: CoreObject): void {
+        assert(arguments.length === 1, '_applyInstanceCallbacks must be called with one argument; a sourceObject');
+        assert(sourceObject instanceof CoreObject, 'The sourceObject provided to the _applyInstanceCallbacks method must be a CoreObject', TypeError);
+        
         // needed for enabled noImplicitAny
         const source: any = sourceObject;
         let callbacks: Function[] = source[INSTANCE_CALLBACKS_FIELD];

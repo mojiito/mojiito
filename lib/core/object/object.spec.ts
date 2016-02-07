@@ -66,36 +66,36 @@ describe('CoreObject', () => {
             expect(typeof coreObject.get).toBe('function');
         });
         it('should create a new property if it does not exist', () => {
-            const coreObject:any = new CoreObject();
+            const coreObject: any = new CoreObject();
             coreObject.set('member', 24);
             expect(typeof coreObject['member']).toBe('number');
             expect(coreObject['member']).toBe(24);
         });
         it('should override the value of a property if it does exist', () => {
-            const coreObject:any = new CoreObject({ member: 24 });
+            const coreObject: any = new CoreObject({ member: 24 });
             coreObject.set('member', 25);
             expect(coreObject['member']).toBe(25);
         });
         it('should create a new property in a path if it does not exist', () => {
-            const coreObject:any = new CoreObject({ member: {} });
+            const coreObject: any = new CoreObject({ member: {} });
             coreObject.set('member.inner', 24);
             expect(typeof coreObject.member['inner']).toBe('number');
             expect(coreObject.member['inner']).toBe(24);
         });
         it('should override the value of a property in a path if it does exist', () => {
-            const coreObject:any = new CoreObject({ member: { inner: 24 } });
+            const coreObject: any = new CoreObject({ member: { inner: 24 } });
             coreObject.set('member.inner', 25);
             expect(coreObject.member.inner).toBe(25);
         });
         it('should create objects on path if not exist', () => {
-            const coreObject:any = new CoreObject();
+            const coreObject: any = new CoreObject();
             coreObject.set('member.inner', 24);
             expect(typeof coreObject['member']).toBe('object');
             expect(typeof coreObject['member']['inner']).toBe('number');
             expect(coreObject['member']['inner']).toBe(24);
         });
     });
-    
+
     describe('create', () => {
         it('should exist', () => {
             expect(typeof CoreObject.create).toBe('function');
@@ -104,13 +104,13 @@ describe('CoreObject', () => {
             expect(CoreObject.create() instanceof CoreObject);
         });
         it('shoult create a new CoreObject and define new properties when applied', () => {
-            const coreObject:any = CoreObject.create({ member: 'test' });
+            const coreObject: any = CoreObject.create({ member: 'test' });
             expect(coreObject instanceof CoreObject);
             expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values','member'));
+            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
         });
     });
-    
+
     describe('defineProperty', () => {
         it('should exist', () => {
             expect(typeof CoreObject.defineProperty).toBe('function');
@@ -119,24 +119,23 @@ describe('CoreObject', () => {
             const coreObject: any = new CoreObject();
             CoreObject.defineProperty(coreObject, 'member', 'test');
             expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values','member'));
+            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
         });
         it('should replace an existing non defined property with a defined one', () => {
             const coreObject: any = new CoreObject();
             coreObject.member = 'fail';
             CoreObject.defineProperty(coreObject, 'member', 'test');
             expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values','member'));
+            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
         });
         it('should override the value of an existing defined property', () => {
             const coreObject: any = new CoreObject({ member: 'old' });
             CoreObject.defineProperty(coreObject, 'member', 'test');
             expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values','member'));
+            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
         });
     });
-    
-    
+
     describe('isDefinedProperty', () => {
         it('should exist', () => {
             expect(typeof CoreObject.isDefinedProperty).toBe('function');
@@ -151,11 +150,64 @@ describe('CoreObject', () => {
             const coreObject: any = new CoreObject({ member1: 'value1' });
             coreObject.member2 = 'value2';
             Object.defineProperty(coreObject, 'member3', { writable: true, enumerable: false, configurable: true, value: 'value3' });
-            Object.defineProperty(coreObject, 'member4', { get: function() { return 'value4' }, set(value) {} });
+            Object.defineProperty(coreObject, 'member4', { get: function() { return 'value4' }, set(value) { } });
             expect(CoreObject.isDefinedProperty(coreObject, 'member1')).toBeTruthy();
             expect(CoreObject.isDefinedProperty(coreObject, 'member2')).toBeFalsy();
             expect(CoreObject.isDefinedProperty(coreObject, 'member3')).toBeFalsy();
             expect(CoreObject.isDefinedProperty(coreObject, 'member4')).toBeFalsy();
+        });
+    });
+
+    describe('defineProperties', () => {
+        it('should exist', () => {
+            expect(typeof CoreObject.defineProperties).toBe('function');
+        });
+        it('should define multiple properties with the defineProperty method', () => {
+            const coreObject: any = new CoreObject();
+            CoreObject.defineProperties(coreObject, { member1: 1, member2: 2 });
+            expect(coreObject['member1'] === 1);
+            expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
+            expect(coreObject['member2'] === 2);
+            expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
+        });
+        it('should define properties on a CoreObject which are not defined', () => {
+            const coreObject: any = new CoreObject();
+            coreObject.member1 = 1;
+            expect(coreObject['member1'] === 1);
+            expect(Meta.peek(coreObject).getProperty('values', 'member1')).toBeUndefined();
+            CoreObject.defineProperties(coreObject);
+            expect(coreObject['member1'] === 1);
+            expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
+        });
+        it('should do both, define new and existing properties', () => {
+            const coreObject: any = new CoreObject();
+            coreObject.member1 = 1;
+            expect(coreObject['member1'] === 1);
+            expect(Meta.peek(coreObject).getProperty('values', 'member1')).toBeUndefined();
+            CoreObject.defineProperties(coreObject, { member2: 2 });
+            expect(coreObject['member1'] === 1);
+            expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
+            expect(coreObject['member2'] === 2);
+            expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
+        });
+    });
+
+    describe('_addInstanceCallback', () => {
+        it('should exist', () => {
+            expect(typeof CoreObject._addInstanceCallback).toBe('function');
+        });
+        
+        it('should add a new callback function to the class', () => {
+            const coreObject: any = new CoreObject();
+            const fn: Function = function(source: CoreObject) {};
+            CoreObject._addInstanceCallback(coreObject, fn);
+            expect(coreObject['__mojito_instance_callbacks__'][0]).toBe(fn);
+        });
+    });
+
+    describe('_applyInstanceCallbacks', () => {
+        it('should exist', () => {
+            expect(typeof CoreObject._applyInstanceCallbacks).toBe('function');
         });
     });
 });
