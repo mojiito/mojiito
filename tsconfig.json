@@ -5,10 +5,12 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "rootDir": "lib",
-    "sourceMap": true
+    "sourceMap": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules",
-    "typings"
+    "typings",
+    "dist"
   ]
 }

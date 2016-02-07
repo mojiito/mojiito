@@ -26,9 +26,5 @@ export function get(obj: Object, propertyName: string): any {
         return properties.length === 1 ? source[property] : get(source[property], properties.slice(1).join('.'));
     }
 
-    if (properties.length === 1) {
-        // TODO: Invoke computed property function here
-    }
-
     return undefined;
 }

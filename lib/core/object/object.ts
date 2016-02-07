@@ -2,11 +2,13 @@ import { assert } from './../../debug/assert/assert';
 import { get } from '../get/get';
 import { set } from '../set/set';
 import { Meta } from '../meta/meta';
-import { Observable, Observer } from '../observer/observer';
+import { IObservable, Observer } from '../observer/observer';
+
+const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
 
 /**
- * Extends the native Object by observers, computed properties 
- * and many more mojito features.
+ * Extends the native Object by observers, computed properties, ...
+ * It's the default Object of Mojito
  * 
  * Usage:
  * ````
@@ -15,7 +17,7 @@ import { Observable, Observer } from '../observer/observer';
  * let b = Mojito.Object.create();
  * ````
  * 
- * It's also possible to provide an object to the constructer.
+ * It's also possible to provide an object to the constructor.
  * The CoreObject will then be created with the properies, of
  * that provided object, predefined.
  * 
@@ -28,20 +30,19 @@ import { Observable, Observer } from '../observer/observer';
  * 
  * @class CoreObject
  */
-export class CoreObject extends Observable {
+export class CoreObject implements IObservable {
 
     constructor(obj?: Object) {
-
-        super();
-        console.time('create CoreObject');
+        
         // extend the CoreObject with a Meta hash
         Meta.extend(this);
         
+        // apply all instance callbacks added by decorators
+        CoreObject._applyInstanceCallbacks(this);
+
         // defineProperties if an obj is provided
-        if (!!obj) {
-            CoreObject.defineProperties(this, obj);
-        }
-        console.timeEnd('create CoreObject');
+        CoreObject.defineProperties(this, obj);
+
     }
 
     /**
@@ -51,7 +52,7 @@ export class CoreObject extends Observable {
      * @returns any
      */
     get(propertyName: string): any {
-        get(this, propertyName);
+        return get(this, propertyName);
     }
     
     /**
@@ -62,7 +63,15 @@ export class CoreObject extends Observable {
      * @returns any
      */
     set(propertyName: string, value: any): any {
-        set(this, propertyName, value);
+        return set(this, propertyName, value);
+    }
+
+    subscribe(key: string, callback: Function): Observer {
+        return Observer.observe(this, key, callback);
+    }
+
+    dispose(observer: Observer): boolean {
+        return true;
     }
     
     /**
@@ -74,22 +83,43 @@ export class CoreObject extends Observable {
     static create(obj?: Object): CoreObject {
         return new CoreObject(obj);
     }
-
-    static defineProperty(sourceObject: Object, propertyName: string, value?: any): void {
+    
+    /**
+     * Custom defineProperty method for handling observers, 
+     * computed propertiese, ...
+     * 
+     * @method defineProperty
+     * @param  {CoreObject} sourceObject
+     * @param  {string} propertyName
+     * @param  {any} value?
+     * @returns void
+     */
+    static defineProperty(sourceObject: CoreObject, propertyName: string, value?: any): void {
         assert(arguments.length === 2 || arguments.length === 3, 'defineProperty must be called with at least two arguments; a sourceObject, a propertyName and optional a value');
         assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperty method must be an object', TypeError);
         assert(typeof propertyName === 'string', 'The property propertyName to the defineProperty method must be a string', TypeError);
         assert(!(value instanceof Meta), 'Defining a meta hash is not allowed');
         
         // create the property if it is not already defined
-        if (!CoreObject.hasDefinedProperty(sourceObject, propertyName)) {
+        if (!CoreObject.isDefinedProperty(sourceObject, propertyName)) {
             Object.defineProperty(sourceObject, propertyName, {
                 get() {
                     return Meta.peek(sourceObject).getProperty('values', propertyName);
                 },
 
-                set(value) {
-                    Meta.peek(sourceObject).setProperty('values', propertyName, value);
+                set(newValue) {
+                    const meta: Meta = Meta.peek(sourceObject);
+                    const oldValue: any = meta.getProperty('values', propertyName);
+                    const observers: Observer[] = meta.getProperty('observers', propertyName);
+                    meta.setProperty('values', propertyName, newValue);
+                    if (Array.isArray(observers)) {
+                        observers.forEach(function(observer: Observer) {
+                            // only notify observer if value has changed
+                            if (newValue !== oldValue) {
+                                observer.notify(newValue, oldValue);
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -98,15 +128,24 @@ export class CoreObject extends Observable {
         const source: any = sourceObject;
         
         // set the new value if provided
-        if (!!value) {
+        if (typeof value !== 'undefined') {
             source[propertyName] = value;
         }
     }
-
-    static hasDefinedProperty(sourceObject: Object, propertyName: string): boolean {
-        assert(arguments.length === 2, 'hasDefinedProperty must be called with two arguments; a sourceObject and a propertyName');
-        assert(typeof sourceObject === 'object', 'The sourceObject provided to the hasDefinedProperty method must be an object', TypeError);
-        assert(typeof propertyName === 'string', 'The propertyName provided to the hasDefinedProperty method must be a string', TypeError);
+    
+    /**
+     * Checks if property is already defined by mojito's 
+     * defineProperty method.
+     * 
+     * @method isDefinedProperty
+     * @param  {CoreObject} sourceObject
+     * @param  {string} propertyName
+     * @returns boolean
+     */
+    static isDefinedProperty(sourceObject: CoreObject, propertyName: string): boolean {
+        assert(arguments.length === 2, 'isDefinedProperty must be called with two arguments; a sourceObject and a propertyName');
+        assert(typeof sourceObject === 'object', 'The sourceObject provided to the isDefinedProperty method must be an object', TypeError);
+        assert(typeof propertyName === 'string', 'The propertyName provided to the isDefinedProperty method must be a string', TypeError);
 
         return sourceObject.hasOwnProperty(propertyName) && Meta.peek(sourceObject).hasProperty('values', propertyName)
     }
@@ -114,6 +153,7 @@ export class CoreObject extends Observable {
     /**
      * Defines all the properties provided in a propertyMap
      * on the sourceObject.
+     * 
      * Usage:
      * `````
      * let sourceObject = {};
@@ -126,7 +166,7 @@ export class CoreObject extends Observable {
      * @param  {Object} propertyMap
      * @returns CoreObject
      */
-    static defineProperties(sourceObject: Object, propertyMap?: Object): Object {
+    static defineProperties(sourceObject: CoreObject, propertyMap?: Object): CoreObject {
         assert(arguments.length === 1 || arguments.length === 2, 'defineProperties must be called with at least one arguments; a sourceObject and optional a propertyMap');
         assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperties method must be an object', TypeError);
         assert(typeof propertyMap === 'undefined' || typeof propertyMap === 'object', 'The propertyMap provided to the defineProperties method must be an object', TypeError);
@@ -147,14 +187,64 @@ export class CoreObject extends Observable {
                 continue;
             }
             
+            // skip instance callbacks          
+            if (key === INSTANCE_CALLBACKS_FIELD) {
+                continue;
+            }
+            
             // functions directly on the sourceObject object can't be defined
             if (!propertyMap && typeof value === 'function') {
                 continue;
             }
-
+            
             CoreObject.defineProperty(sourceObject, key, value);
         }
-
+        
         return sourceObject;
+    }
+    
+    /**
+     * Adds an instance callback to class.
+     * Only for internal usage. Mostly needed for decorators.
+     * 
+     * @method _addInstanceCallback
+     * @param  {CoreObject} sourceObject
+     * @param  {Function} callback
+     * @returns void
+     */
+    static _addInstanceCallback(sourceObject: CoreObject, callback: Function): void {
+        // needed for enabled noImplicitAny
+        const source: any = sourceObject;
+        let callbacks: Function[] = source[INSTANCE_CALLBACKS_FIELD];
+        if (!Array.isArray(callbacks)) {
+            callbacks = [];
+            Object.defineProperty(source, INSTANCE_CALLBACKS_FIELD, {
+                writable: true,
+                enumerable: true,
+                configurable: false,
+                value: callbacks
+            });
+        }
+        callbacks.push(callback);
+    }
+    
+    /**
+     * Calls every instance callback on a class.
+     * Only for internal usage. Mostly needed for decorators.
+     * 
+     * @method _applyInstanceCallbacks
+     * @param  {CoreObject} sourceObject
+     * @returns void
+     */
+    static _applyInstanceCallbacks(sourceObject: CoreObject): void {
+        // needed for enabled noImplicitAny
+        const source: any = sourceObject;
+        let callbacks: Function[] = source[INSTANCE_CALLBACKS_FIELD];
+        if (Array.isArray(callbacks)) {
+            //delete Object.getPrototypeOf(this)['_callbacks'];
+            callbacks.forEach(function(callback: Function) {
+                callback(source);
+            });
+        }
     }
 }

@@ -1,4 +1,32 @@
-import { CoreObject, Meta } from '../core/core';
+import { CoreObject, Meta, observes } from '../core/core';
+
+class MyClass extends CoreObject {
+    var1: string;
+    
+    constructor() {
+        super();
+        this.var1 = 'asdf';
+    }
+    
+    @observes('var1')
+    var1Changed(newValue: String, oldValue?: String) {
+        console.log("var1 changed", newValue, oldValue);
+    }
+}
+
+class MyClassExtended extends MyClass {
+    var2: string;
+    
+    constructor() {
+        super();
+        this.var2 = 'asdf';
+    }
+    
+    @observes('var2')
+    var2Changed(newValue: String, oldValue?: String) {
+        console.log("var2 changed", newValue, oldValue);
+    }
+}
 
 export class Mojito {
     public Meta: Function;
@@ -7,10 +35,8 @@ export class Mojito {
     constructor() {
         this.Meta = Meta;
         this.Object = CoreObject;
-    }
 
-    upperCaseTest(x: string) {
-        return x.toUpperCase();
     }
 }
-window.Mojito = new Mojito();
+//console.log(new MyClass());
+console.log(new CoreObject({ member: false }));

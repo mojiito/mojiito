@@ -1,4 +1,5 @@
 import { assert } from './../../debug/assert/assert';
+import { CoreObject } from '../object/object';
 
 /**
  * Sets the value of a property on an object, respecting computed properties
@@ -22,16 +23,23 @@ export function set(obj: Object, propertyName: string, value: any): any {
     const source: any = obj; // needed for enabled noImplicitAny    
     const properties = propertyName.split('.');
     const property = properties.slice(0, 1)[0];
+    
+    if (obj instanceof CoreObject) {
+        CoreObject.defineProperties(obj);
+    }
 
     if (properties.length === 1) {
-        source[property] = value;
-        // TODO: Notify observer and listeners
+        if (obj instanceof CoreObject) {
+            CoreObject.defineProperty(obj, property, value);
+        } else {
+            source[property] = value;
+        }
         return value;
     }
 
     if (!(property in obj)) {
         // if property is `undefined` create an object to fullfil the path
-        source[property] = {};
+        source[property] = CoreObject.create();
     } else if (typeof source[property] !== 'object') {
         throw new TypeError('The property in the path has to be an object ');
     }

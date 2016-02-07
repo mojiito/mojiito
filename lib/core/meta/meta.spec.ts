@@ -19,10 +19,28 @@ describe('Meta', () => {
             expect(typeof values).toBe('object');
             expect(meta['_values']).toBe(values);
         });
+        it('should return `undefined` if it already exists', () => {
+            const meta: Meta = new Meta();
+            let values = meta.createMember('values');
+            expect(meta.createMember('values')).toBeUndefined();
+        });
+    });
+
+    describe('peekMember', () => {
+        it('should exist', () => {
+            const meta: Meta = new Meta();
+            expect(typeof meta['peekMember']).toBe('function');
+        });
+        it('should create a new member if it does not exist', () => {
+            const meta: any = new Meta();
+            let values = meta.peekMember('values');
+            expect(typeof values).toBe('object');
+            expect(meta['_values']).toBe(values);
+        });
         it('should return the member if it already exists', () => {
             const meta: Meta = new Meta();
             let values = meta.createMember('values');
-            expect(meta.createMember('values')).toBe(values);
+            expect(meta.peekMember('values')).toBe(values);
         });
     });
 
@@ -69,7 +87,6 @@ describe('Meta', () => {
             expect(meta['_values']['myValue']).toBe(1);
             meta.clearMember('values');
             expect(meta['_values']['myValue']).toBeUndefined();
-            //
         });
     });
 

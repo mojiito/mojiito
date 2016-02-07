@@ -20,7 +20,7 @@ export class Meta {
     createMember(memberKey: string): Object {
         assert(arguments.length === 1, 'createMember on an meta hash must be called with one arguments: a member key');
         assert(typeof memberKey === 'string', 'The member key provided to the createMember method on a meta hash must be a string', TypeError);
-
+        
         if (!this.hasMember(memberKey)) {
             Object.defineProperty(this, '_' + memberKey, {
                 writable: true,
@@ -28,8 +28,26 @@ export class Meta {
                 enumerable: true,
                 value: {}
             });
+            return this.getMember(memberKey);
         }
-        return this.getMember(memberKey);
+        return undefined;
+    }
+    
+    /**
+     * Checks if the member is already there, otherwise 
+     * it will create it. The member gets returned.
+     * 
+     * @method peekMember
+     * @param  {string} memberKey
+     * @returns Object
+     */
+    peekMember(memberKey: string): Object {
+        assert(arguments.length === 1, 'peekMember on an meta hash must be called with one arguments: a member key');
+        assert(typeof memberKey === 'string', 'The member key provided to the peekMember method on a meta hash must be a string', TypeError);
+
+        const member = this.createMember(memberKey);
+        return member ? member : this.getMember(memberKey);
+        
     }
     
     /**
@@ -101,7 +119,7 @@ export class Meta {
         assert(arguments.length === 3, 'setProperty on an meta hash must be called with three arguments; a member key, a property key and a value');
         assert(typeof memberKey === 'string', 'The member key provided to the setProperty method on a meta hash must be a string', TypeError);
         assert(typeof propertyKey === 'string', 'The property key provided to the setProperty method on a meta hash must be a string', TypeError);
-        assert(typeof value !== 'undefined', 'Cannot call setProperty on a meta hash with an `undefined` value ', TypeError);
+        //assert(typeof value !== 'undefined', 'Cannot call setProperty on a meta hash with an `undefined` value ', TypeError);
 
         let member: any = this.getMember(memberKey);
         if (!member) {
@@ -125,8 +143,8 @@ export class Meta {
         assert(typeof memberKey === 'string', 'The member key provided to the getProperty method on a meta hash must be a string', TypeError);
         assert(typeof propertyKey === 'string', 'The property key provided to the getProperty method on a meta hash must be a string', TypeError);
 
-        const member: any = this.getMember(memberKey);
-        return !!member ? member[propertyKey] : undefined;
+        const member: any = this.peekMember(memberKey);
+        return member[propertyKey];
     }
     
     /**
