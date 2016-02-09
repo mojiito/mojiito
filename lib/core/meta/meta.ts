@@ -1,4 +1,6 @@
-import { assert } from './../../debug/assert/assert';
+import { assert } from './../../debug/debug';
+import { CoreObject } from '../object/object';
+import { CoreArray } from '../array/array';
 
 const META_FIELD = '__mojito_meta__';
 
@@ -6,6 +8,7 @@ const META_FIELD = '__mojito_meta__';
  * The meta object contains information about computed property descriptors,
  * values of defined properties as well as any watched properties and other information.
  * 
+ * @export
  * @class Meta
  */
 export class Meta {
@@ -13,9 +16,8 @@ export class Meta {
     /**
      * Creates the member on a meta hash 
      * 
-     * @method createMember
-     * @param  {string} memberKey
-     * @returns Object
+     * @param  {string} memberKey The name(key) of the member to be created
+     * @returns {Object} The created member object
      */
     createMember(memberKey: string): Object {
         assert(arguments.length === 1, 'createMember on an meta hash must be called with one arguments: a member key');
@@ -37,9 +39,8 @@ export class Meta {
      * Checks if the member is already there, otherwise 
      * it will create it. The member gets returned.
      * 
-     * @method peekMember
-     * @param  {string} memberKey
-     * @returns Object
+     * @param  {string} memberKey The name(key) of the member to be peeked
+     * @returns {Object} The peeked member object
      */
     peekMember(memberKey: string): Object {
         assert(arguments.length === 1, 'peekMember on an meta hash must be called with one arguments: a member key');
@@ -54,9 +55,8 @@ export class Meta {
      * Returns the member of the meta hash 
      * or `undefined` it does not exist 
      * 
-     * @method getMember
-     * @param  {string} memberKey
-     * @returns Object
+     * @param  {string} memberKey The name(key) of the member to be returned
+     * @returns {Object} The member object or `undefined`
      */
     getMember(memberKey: string): Object {
         assert(arguments.length === 1, 'getMember on an meta hash must be called with one arguments: a member key');
@@ -70,11 +70,10 @@ export class Meta {
     /**
      * Checks if the meta hash has a specific member
      * 
-     * @method hasMember
-     * @param  {string} memberKey
-     * @returns Object
+     * @param  {string} memberKey The name(key) of the member to be checked
+     * @returns {boolean} true if member exists, false if not
      */
-    hasMember(memberKey: string): Object {
+    hasMember(memberKey: string): boolean {
         assert(arguments.length === 1, 'hasMember on an meta hash must be called with one arguments: a member key');
         assert(typeof memberKey === 'string', 'The member key provided to the hasMember method on a meta hash must be a string', TypeError);
 
@@ -84,9 +83,8 @@ export class Meta {
     /**
      * Deletes all the properties of a member in the meta hash.
      * 
-     * @method clearMember
-     * @param  {string} memberKey
-     * @returns boolean
+     * @param  {string} memberKey The name(key) of the member to be cleared
+     * @returns {boolean} true if clear was successful, false if not
      */
     clearMember(memberKey: string): boolean {
         assert(arguments.length === 1, 'clearMember on an meta hash must be called with one arguments: a member key');
@@ -94,11 +92,11 @@ export class Meta {
 
         let member = this.getMember(memberKey);
         if (member) {
-            let result = true;
+            let status = true;
             for (let propertyKey in member) {
-                result = this.deleteProperty(memberKey, propertyKey) ? result : false;
+                status = this.deleteProperty(memberKey, propertyKey) ? status : false;
             }
-            return result;
+            return status;
         }
         // No member to be cleared found -> false
         return false;
@@ -109,11 +107,10 @@ export class Meta {
      * If the property does not exist, it will be created.
      * If the property does exist, the value will be overwritten
      * 
-     * @method setProperty
-     * @param  {string} memberKey
-     * @param  {string} propertyKey
-     * @param  {any} value
-     * @returns any
+     * @param  {string} memberKey The name(key) of the member where the property will be set
+     * @param  {string} propertyKey The name(key) of the property to be set
+     * @param  {*} value The value which will be set on the property
+     * @returns {*} The applied value
      */
     setProperty(memberKey: string, propertyKey: string, value: any): any {
         assert(arguments.length === 3, 'setProperty on an meta hash must be called with three arguments; a member key, a property key and a value');
@@ -133,10 +130,9 @@ export class Meta {
      * Returns the property of a member in the meta hash
      * or `undefined` if the property or the member do not exist.
      * 
-     * @method getProperty
-     * @param  {string} memberKey
-     * @param  {string} propertyKey
-     * @returns any
+     * @param  {string} memberKey The name(key) of the member where to look for the property
+     * @param  {string} propertyKey The name(key) of the requeste property
+     * @returns {*} The requested property
      */
     getProperty(memberKey: string, propertyKey: string): any {
         assert(arguments.length === 2, 'getProperty on an meta hash must be called with two arguments; a member key and a property key');
@@ -150,10 +146,9 @@ export class Meta {
     /**
      * Checks if the member of the meta hash has a specific property
      * 
-     * @method hasProperty
-     * @param  {string} memberKey
-     * @param  {string} propertyKey
-     * @returns boolean
+     * @param  {string} memberKey The name(key) of the member where to look for the property
+     * @param  {string} propertyKey The name(key) of the property to be checked
+     * @returns {boolean} true if the property was found, false if not
      */
     hasProperty(memberKey: string, propertyKey: string): boolean {
         assert(arguments.length === 2, 'hasProperty on an meta hash must be called with two arguments; a member key and a property key');
@@ -166,10 +161,9 @@ export class Meta {
     /**
      * Deletes a property of a member in the meta hash
      * 
-     * @method deleteProperty
-     * @param  {string} memberKey
-     * @param  {string} propertyKey
-     * @returns boolean
+     * @param  {string} memberKey The name(key) of the member where to delete the property
+     * @param  {string} propertyKey The name(key) of the property to be deleted
+     * @returns {boolean} true if deletion was successful, false if not
      */
     deleteProperty(memberKey: string, propertyKey: string): boolean {
         assert(arguments.length === 2, 'deleteProperty on an meta hash must be called with two arguments; a member key and a property key');
@@ -189,11 +183,20 @@ export class Meta {
     /**
      * Creates a new Meta instance and extends an object with it.
      * 
-     * @method extend
-     * @param  {Object} obj
-     * @returns Meta
+     * @static
+     * @param  {CoreObject} obj The CoreObject where the meta will be created on
+     * @returns {Meta} The created meta object
      */
-    static extend(obj: Object): Meta {
+    static extend(obj: CoreObject): Meta;
+    /**
+     * Creates a new Meta instance and extends an object with it.
+     * 
+     * @static
+     * @param  {CoreArray} obj The CoreArray where the meta will be created on
+     * @returns {Meta} The created meta object
+     */
+    static extend(obj: CoreArray): Meta;
+    static extend(obj: any): Meta {
         var meta = new Meta();
 
         Object.defineProperty(obj, META_FIELD, {
@@ -210,11 +213,21 @@ export class Meta {
      * Retrieves the meta hash for an object.
      * If the object has no meta yet, a new one will be created
      * 
-     * @method peek
-     * @param  {Object} obj
-     * @returns Meta
+     * @static
+     * @param  {CoreObject} obj The CoreObject where to peek for a meta hash
+     * @returns {Meta} The peeked or created meta object
      */
-    static peek(obj: Object): Meta {
+    static peek(obj: CoreObject): Meta;
+    /**
+     * Retrieves the meta hash for an object.
+     * If the object has no meta yet, a new one will be created
+     * 
+     * @static
+     * @param  {CoreArray} obj The CoreArray where to peek for a meta hash
+     * @returns {Meta} The peeked or created meta object
+     */
+    static peek(obj: CoreArray): Meta;
+    static peek(obj: any): Meta {
         const source: any = obj;  // needed for enabled noImplicitAny
         let meta = source[META_FIELD];
 

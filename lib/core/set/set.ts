@@ -1,4 +1,4 @@
-import { assert } from './../../debug/assert/assert';
+import { assert } from './../../debug/debug';
 import { CoreObject } from '../object/object';
 
 /**
@@ -7,11 +7,11 @@ import { CoreObject } from '../object/object';
  * If the object itself is `undefined`, this method will throw an error.
  * The propertyName can also be a path (e.g. `y.m.c.a`)
  * 
- * @function meta
- * @param  {Object} obj
- * @param  {string} key
- * @param  {any} value
- * @returns any
+ * @export
+ * @param {Object} obj The object where to set a property value
+ * @param {string} propertyName The name(key) of the property to be set
+ * @param {*} value (description) The value to be set on the property
+ * @returns {*} (description) The value which has been set on the property
  */
 export function set(obj: Object, propertyName: string, value: any): any {
     assert(arguments.length === 3, 'Get must be called with three arguments; an object, a property name and a value');

@@ -1,4 +1,4 @@
-import { CoreObject, Meta, observes } from '../core/core';
+import { CoreObject, CoreArray, Meta, observes } from '../core/core';
 
 class MyClass extends CoreObject {
     var1: string;
@@ -16,27 +16,37 @@ class MyClass extends CoreObject {
 
 class MyClassExtended extends MyClass {
     var2: string;
+    var3: Object;
     
-    constructor() {
+    constructor(obj) {
         super();
         this.var2 = 'asdf';
+        this.var3 = obj;
     }
     
     @observes('var2')
     var2Changed(newValue: String, oldValue?: String) {
         console.log("var2 changed", newValue, oldValue);
     }
+    
+    @observes('var3.a')
+    aChanged()  {
+        
+    }
 }
 
 export class Mojito {
     public Meta: Function;
     public Object: Function;
+    public Array: Function;
     
     constructor() {
         this.Meta = Meta;
         this.Object = CoreObject;
-
+        this.Array = CoreArray;
     }
 }
 //console.log(new MyClass());
-console.log(new CoreObject({ member: false }));
+window.Mojito = new Mojito;
+window.my = new MyClassExtended();
+window.a = new window.Mojito.Array([1, 2, 3]);

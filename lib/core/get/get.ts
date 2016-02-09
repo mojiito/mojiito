@@ -1,4 +1,4 @@
-import { assert } from './../../debug/assert/assert';
+import { assert } from './../../debug/debug';
 
 /**
  * Gets the value of a property on an object. If the property is computed,
@@ -7,10 +7,10 @@ import { assert } from './../../debug/assert/assert';
  * If the object itself is `undefined`, this method will throw an error.
  * The propertyName can also be a path (e.g. `y.m.c.a`)
  * 
- * @function meta
- * @param  {Object} obj
- * @param  {string} key
- * @returns any
+ * @export
+ * @param {Object} obj The object where to look for a property value
+ * @param {string} propertyName The name(key) of the property to be looked for
+ * @returns {*} The value of the found property or `undefined`
  */
 export function get(obj: Object, propertyName: string): any {
     assert(arguments.length === 2, 'Get must be called with two arguments; an object and a property name');

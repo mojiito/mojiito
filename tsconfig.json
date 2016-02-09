@@ -1,16 +1,17 @@
 {
-  "compilerOptions": {
-    "module": "amd",
-    "noImplicitAny": true,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "rootDir": "lib",
-    "sourceMap": true,
-    "experimentalDecorators": true
-  },
-  "exclude": [
-    "node_modules",
-    "typings",
-    "dist"
-  ]
+    "compilerOptions": {
+        "target": "es5",
+        "module": "amd",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "rootDir": "lib",
+        "sourceMap": true,
+        "experimentalDecorators": true
+    },
+    "exclude": [
+        "node_modules",
+        "typings",
+        "dist"
+    ]
 }
