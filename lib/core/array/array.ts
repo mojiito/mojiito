@@ -95,7 +95,7 @@ export class CoreArray {
      * @param {*} [thisArg] Value to use as this when executing callback.
      * @returns {boolean} true if every element passes the test, false if not
      */
-    every(callback: Function, thisArg?: any): boolean {
+    every(callback: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean {
         return this.source.every.apply(this.source, arguments);
     }
 
@@ -107,7 +107,7 @@ export class CoreArray {
      * @param {*} [thisArg] Value to use as this when executing callback
      * @returns {CoreArray} New CoreArray with all elements that pass
      */
-    filter(callback: Function, thisArg?: any): CoreArray {
+    filter(callback: (value: any, index: number, array: any[]) => boolean, thisArg?: any): CoreArray {
         const result: Array<any> = this.source.filter.apply(this.source, arguments);
         return new CoreArray(result);
     }
@@ -140,7 +140,7 @@ export class CoreArray {
      * @param {*} [thisArg] Object to use as this when executing callback.
      * @returns {*} value of the found element or `undefined`
      */
-    find(predicate: Function, thisArg?: any): any {
+    find(predicate: (element: any, index: number, array: any[]) => boolean, thisArg?: any): any {
         const source: any = this.source;
         const fn = source['find'];
         if (typeof fn === 'function') {
@@ -187,7 +187,7 @@ export class CoreArray {
      * @param {*} [thisArg] Object to use as this when executing callback.
      * @returns {number} index of the found element or -1
      */
-    findIndex(predicate: Function, thisArg?: any): number {
+    findIndex(predicate: (element: any, index: number, array: any[]) => boolean, thisArg?: any): number {
         const source: any = this.source;
         const fn = source['findIndex'];
         if (typeof fn === 'function') {
@@ -211,7 +211,7 @@ export class CoreArray {
      * @param {*} [thisArg] Value to use as this when executing callback.
      * @returns {void}
      */
-    forEach(callback: Function, thisArg?: any): void {
+    forEach(callback: (currentValue: any, index: number, array: any[]) => void, thisArg?: any): void {
         const source: any = this.source;
         const fn = source['forEach'];
         if (typeof fn === 'function') {
@@ -286,7 +286,7 @@ export class CoreArray {
      * @param {*} [thisArg] Value to use as this when executing callback.
      * @returns {CoreArray} Created array
      */
-    map(callback: Function, thisArg?: any): CoreArray {
+    map(callback: (currentValue: any, index: number, array: any[]) => any, thisArg?: any): CoreArray {
         const result: Array<any> = this.source.concat.apply(this.source, arguments);
         return new CoreArray(result);
     }
@@ -324,7 +324,7 @@ export class CoreArray {
      * @param {*} initialValue Value to use as the first argument to the first call of the callback.
      * @returns {*} The value returned would be that of the last callback invocation.
      */
-    reduce(callback: Function, initialValue: any): any {
+    reduce(callback: (previousValue: any, currentValue: any, currentIndex: any, array: any[]) => any, initialValue: any): any {
         return this.source.reduce.apply(this.source, arguments);
     }
 
@@ -336,7 +336,7 @@ export class CoreArray {
      * @param {*} initialValue Object to use as the first argument to the first call of the callback.
      * @returns {*} The value returned would be that of the last callback invocation.
      */
-    reduceRight(callback: Function, initialValue: any): any {
+    reduceRight(callback: (previousValue: any, currentValue: any, currentIndex: any, array: any[]) => any, initialValue: any): any {
         return this.source.reduceRight.apply(this.source, arguments);
     }
 
@@ -379,7 +379,7 @@ export class CoreArray {
      * @param {Function} callback Function to test for each element.
      * @param {*} [thisArg] Value to use as this when executing callback.
      */
-    some(callback: Function, thisArg?: any): boolean {
+    some(callback: (currentValue: any, index: number, array: any[]) => boolean, thisArg?: any): boolean {
         return this.source.some.apply(this.source, arguments);
     }
 
@@ -390,7 +390,7 @@ export class CoreArray {
      * @param {Function} [compareFunction] Specifies a function that defines the sort order.
      * @returns {CoreArray} Returns the sorted CoreArray
      */
-    sort(compareFunction?: Function): CoreArray {
+    sort(compareFunction?: (valueA: any, valueB: any) => number): CoreArray {
         this.source.sort.apply(this.source, arguments);
         return this;
     }
