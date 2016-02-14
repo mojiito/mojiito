@@ -110,19 +110,30 @@ export class Meta {
      * @param  {string} memberKey The name(key) of the member where the property will be set
      * @param  {string} propertyKey The name(key) of the property to be set
      * @param  {*} value The value which will be set on the property
+     * @param  {PropertyDescriptor} [descriptor] The descriptor for defining the property
      * @returns {*} The applied value
      */
-    setProperty(memberKey: string, propertyKey: string, value: any): any {
-        assert(arguments.length === 3, 'setProperty on an meta hash must be called with three arguments; a member key, a property key and a value');
+    setProperty(memberKey: string, propertyKey: string, value: any, descriptor?: PropertyDescriptor): any {
+        assert(arguments.length === 3 || arguments.length === 4, 'setProperty on an meta hash must be called with three arguments; a member key, a property key and a value; optional you can add a descriptor');
         assert(typeof memberKey === 'string', 'The member key provided to the setProperty method on a meta hash must be a string', TypeError);
         assert(typeof propertyKey === 'string', 'The property key provided to the setProperty method on a meta hash must be a string', TypeError);
-        //assert(typeof value !== 'undefined', 'Cannot call setProperty on a meta hash with an `undefined` value ', TypeError);
+        assert(typeof descriptor === 'undefined' || typeof descriptor === 'object', 'The descriptor provided to the setProperty method on a meta hash must be a PropertyDescriptor', TypeError);
 
         let member: any = this.getMember(memberKey);
+        let isValueSet = false;
         if (!member) {
             member = this.createMember(memberKey);
         }
-        member[propertyKey] = value;
+        if (descriptor) {
+            if (!descriptor.get && !descriptor.set) {
+                descriptor.value = value;
+                isValueSet = true;
+            }
+            Object.defineProperty(member, propertyKey, descriptor);
+        }
+        if (!isValueSet) {
+            member[propertyKey] = value;
+        }
         return value;
     }
     

@@ -114,6 +114,17 @@ describe('Meta', () => {
             meta.setProperty('values', 'myValue', 2);
             expect(meta['_values']['myValue']).toBe(2);
         });
+        it('should define a new property on and an existing member if a descriptor is provided', () => {
+            const meta: any = new Meta();
+            meta.createMember('values');
+            meta.setProperty('values', 'myValue', 1, {
+                configurable: true,
+                writeable: false
+            });
+            expect(meta['_values']['myValue']).toBe(1);
+            meta.setProperty('values', 'myValue', 2);
+            expect(meta['_values']['myValue']).toBe(1);
+        });
     });
 
     describe('getProperty', () => {

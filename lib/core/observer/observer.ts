@@ -41,7 +41,7 @@ export class Observer {
 export function observes(...keys: string[]): MethodDecorator {
     assert(arguments.length === 1, 'The observes decorator must be called with one argument; an array of propertyKeys');
 
-    return function(target: CoreObject, propertyKey: string, descriptor: TypedPropertyDescriptor<Function>): void {
+    return function(target: CoreObject, propertyKey: string, descriptor: TypedPropertyDescriptor<Function>): TypedPropertyDescriptor<Function> {
         assert(arguments.length === 3, 'The observe decorator callback must be called with two arguments; a target, a propertyKey and a descriptor');
         assert(target instanceof CoreObject, 'The target provided to the observe decorator callback must be an object and an instace of `Observable`', TypeError);
         assert(typeof propertyKey === 'string', 'The property key provided to the observe decorator callback must be a string', TypeError);
@@ -60,5 +60,6 @@ export function observes(...keys: string[]): MethodDecorator {
                 });
             })(key, callback);
         }
+        return descriptor;
     }
 }

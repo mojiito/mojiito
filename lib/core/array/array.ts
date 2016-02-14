@@ -37,9 +37,7 @@ export class CoreArray {
      * Source of the CoreArray
      */
     set source(value: Array<any>) {
-        assert(!this.source, 'Redefining the source of a CoreArray is not allowed');
-        Meta.peek(this).setProperty('values', 'source', value);
-        CoreArray.defineElements(this, value);
+        throw new Error('Setting the source of a CoreArray is not allowed');
     }
 
     /**
@@ -48,12 +46,21 @@ export class CoreArray {
      * @param {Array<any>} [array] Array to create CoreArray from
      */
     constructor(array?: Array<any>) {
-        // extend the CoreObject with a Meta hash
-        Meta.extend(this);
 
-        // needed for enabled noImplicitAny
-        const instance: any = this;
-        instance['source'] = Array.isArray(array) ? array : [];
+        let source: Array<any> = [];
+
+        if (Array.isArray(array)) {
+            for (let i = 0, max = array.length; i < max; i++) {
+                source.push(array[i]);
+            }
+        }
+        
+        // extend the CoreObject with a Meta hash
+        Meta.peek(this).setProperty('values', 'source', source, {
+            writable: false,
+            enumerable: true,
+            configurable: false
+        });
     }
 
 
@@ -92,9 +99,36 @@ export class CoreArray {
         return this.source.every.apply(this.source, arguments);
     }
 
+    /**
+     * Creates a new array with all elements that pass the test 
+     * implemented by the provided function.
+     * 
+     * @param {Function} callback Function to test each element of the CoreArray
+     * @param {*} [thisArg] Value to use as this when executing callback
+     * @returns {CoreArray} New CoreArray with all elements that pass
+     */
     filter(callback: Function, thisArg?: any): CoreArray {
         const result: Array<any> = this.source.filter.apply(this.source, arguments);
         return new CoreArray(result);
+    }
+
+    /**
+     * Returns an array with just the items with the matched property. 
+     * You can pass an optional second argument with the target value. 
+     * Otherwise this will match any property that evaluates to true.
+     * 
+     * @param {string} key The property to test
+     * @param {string} [value] Optional value to test against.
+     * @param {*} [thisArg] Value to use as this when executing callback
+     * @returns {CoreArray} New CoreArray with all elements that pass
+     */
+    filterBy(key: string, value?: string, thisArg?: any): CoreArray {
+
+        return this.filter(function(elementValue: any) {
+            return typeof elementValue === 'object' && elementValue[key]
+                && (typeof value === 'undefined' && !!elementValue[key]
+                    || typeof value !== 'undefined' && elementValue[key] === value);
+        }, thisArg);
     }
 
     /**
@@ -216,7 +250,7 @@ export class CoreArray {
      * 
      * @param {*} searchElement Element to locate in the array.
      * @param {number} [fromIndex] The index to start the search at.
-     * @returns {number} position of the found element, -1 if not found
+     * @returns {number} Position of the found element, -1 if not found
      */
     indexOf(searchElement: any, fromIndex?: number): number {
         return this.source.indexOf.apply(this.source, arguments);
@@ -226,45 +260,187 @@ export class CoreArray {
      * Joins all elements of an array into a string.
      * 
      * @param {string} [separator] Specifies a string to separate each element of the array.
-     * @returns {string} string of the joined elements
+     * @returns {string} String of the joined elements
      */
     join(separator?: string): string {
         return this.source.join.apply(this.source, arguments);
     }
 
-    keys() { }
+    /**
+     * returns the last index at which a given element can be 
+     * found in the array, or -1 if it is not present. 
+     * The array is searched backwards, starting at fromIndex.
+     * 
+     * @param {*} searchElement Element to locate in the array.
+     * @param {number} [fromIndex] The index at which to start searching backwards.
+     * @returns {number} Position of the found element, -1 if not found
+     */
+    lastIndexOf(searchElement: any, fromIndex?: number): number {
+        return this.source.lastIndexOf.apply(this.source, arguments);
+    }
 
-    lastIndexOf() { }
+    /**
+     * Creates a new array with the results of calling a provided function on every element in this array.
+     * 
+     * @param {Function} callback Function that produces an element of the new Array
+     * @param {*} [thisArg] Value to use as this when executing callback.
+     * @returns {CoreArray} Created array
+     */
+    map(callback: Function, thisArg?: any): CoreArray {
+        const result: Array<any> = this.source.concat.apply(this.source, arguments);
+        return new CoreArray(result);
+    }
 
-    map() { }
+    /**
+     * Removes the last element from an array and returns that element.
+     * 
+     * @returns {*} Removed element
+     */
+    pop(): any {
+        return this.source.pop.apply(this.source, arguments);
+    }
 
-    pop() { }
+    /**
+     * adds one element to the end of an array and returns the new length of the array.
+     * 
+     * @param {*} element The element to add to the end of the array.
+     */
+    push(element: any): number;
+    /**
+     * adds elements to the end of an array and returns the new length of the array.
+     * 
+     * @param {...any[]} elements The elements to add to the end of the array.
+     */
+    push(...elements: any[]): number;
+    push(...elements: any[]): number {
+        return this.source.push.apply(this.source, arguments);
+    }
 
-    push() { }
+    /**
+     * Applies a function against an accumulator and each value 
+     * of the array (from left-to-right) to reduce it to a single value.
+     * 
+     * @param {Function} callback Function to execute on each value in the array.
+     * @param {*} initialValue Value to use as the first argument to the first call of the callback.
+     * @returns {*} The value returned would be that of the last callback invocation.
+     */
+    reduce(callback: Function, initialValue: any): any {
+        return this.source.reduce.apply(this.source, arguments);
+    }
 
-    reduce() { }
+    /**
+     * Applies a function against an accumulator and each value 
+     * of the array (from right-to-left) has to reduce it to a single value.
+     * 
+     * @param {Function} callback Function to execute on each value in the array.
+     * @param {*} initialValue Object to use as the first argument to the first call of the callback.
+     * @returns {*} The value returned would be that of the last callback invocation.
+     */
+    reduceRight(callback: Function, initialValue: any): any {
+        return this.source.reduceRight.apply(this.source, arguments);
+    }
 
-    reduceRight() { }
+    /**
+     * Reverses an array in place. 
+     * The first array element becomes the last and the last becomes the first.
+     * 
+     * @returns {CoreArray} The reversed array
+     */
+    reverse(): CoreArray {
+        return this.source.reverse.apply(this.source, arguments);
+    }
 
-    reverse() { }
+    /**
+     * Removes the first element from an array and returns that element. 
+     * This method changes the length of the array.
+     * 
+     * @returns {*} The first element of the array
+     */
+    shift(): any {
+        return this.source.shift.apply(this.source, arguments);
+    }
 
-    shift() { }
+    /**
+     * Returns a shallow copy of a portion of an array into a new array object.
+     * 
+     * @param {number} [begin] Zero-based index at which to begin extraction.
+     * @param {number} [end] Zero-based index at which to end extraction.
+     * @returns {CoreArray} New sliced array
+     */
+    slice(begin?: number, end?: number): CoreArray {
+        const result: Array<any> = this.source.slice.apply(this.source, arguments);
+        return new CoreArray(result);
+    }
 
-    slice() { }
+    /**
+     * Tests whether some element in the array passes the test 
+     * implemented by the provided function.
+     * 
+     * @param {Function} callback Function to test for each element.
+     * @param {*} [thisArg] Value to use as this when executing callback.
+     */
+    some(callback: Function, thisArg?: any): boolean {
+        return this.source.some.apply(this.source, arguments);
+    }
 
-    some() { }
+    /**
+     * Sorts the elements of an array in place and returns the array. 
+     * The default sort order is according to string Unicode code points.
+     * 
+     * @param {Function} [compareFunction] Specifies a function that defines the sort order.
+     * @returns {CoreArray} Returns the sorted CoreArray
+     */
+    sort(compareFunction?: Function): CoreArray {
+        this.source.sort.apply(this.source, arguments);
+        return this;
+    }
 
-    sort() { }
+    /**
+     * Changes the content of an array by removing existing elements.
+     * 
+     * @param {number} start Index at which to start changing the array.
+     * @param {number} deleteCount An integer indicating the number of old array elements to remove.
+     */
+    splice(start: number, deleteCount: number): CoreArray;
+    /**
+     * Changes the content of an array by removing existing elements and/or adding new elements.
+     * 
+     * @param {number} start Index at which to start changing the array.
+     * @param {number} deleteCount An integer indicating the number of old array elements to remove.
+     * @param {...any[]} elements The elements to add to the array, beginning at the start index.
+     */
+    splice(start: number, deleteCount: number, ...elements: any[]): CoreArray;
+    splice(start: number, deleteCount: number, ...elements: any[]): CoreArray {
+        const result: Array<any> = this.source.splice.apply(this.source, arguments);
+        return new CoreArray(result);
+    }
 
-    splice() { }
+    /**
+     * Converts the CoreArray to a native Array
+     * 
+     * @returns {Array<any>} The converted native Array
+     */
+    toArray(): Array<any> {
+        return this.source;
+    }
 
-    toLocaleString() { }
-
-    toSource() { }
-
-    unshift() { }
-
-    values() { }
+    /**
+     * Adds one element to the beginning of an array and returns the new length of the array.
+     * 
+     * @param {*} element The element to add to the front of the array.
+     * @return {number} The new length of the array.
+     */
+    unshift(element: any): number;
+    /**
+     * Adds elements to the beginning of an array and returns the new length of the array.
+     * 
+     * @param {...any[]} elements The elements to add to the front of the array.
+     * @return {number} The new length of the array.
+     */
+    unshift(...elements: any[]): number;
+    unshift(...elements: any[]): number {
+        return this.source.unshift.apply(this.source, arguments);
+    }
 
     static defineElements(sourceArray: CoreArray, elementsArray?: Array<any>): CoreArray {
 
@@ -317,6 +493,7 @@ export class CoreArray {
                         Meta.peek(sourceArray).getProperty('values', 'source')[index] = newValue;
                     }
                 });
+                //sourceArray[index + ''] = value;
             })(sourceArray, index);
         }
 
