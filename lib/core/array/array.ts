@@ -5,6 +5,30 @@ import { CoreObject } from '../object/object';
 
 const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
 
+/**
+ * Extends the native Array by observers, computed properties, ...
+ * 
+ * Usage:
+ * ````
+ * let a = new Mojito.Array();
+ * // or
+ * let b = Mojito.Array.create();
+ * ````
+ * 
+ * It's also possible to provide a native array to the constructor.
+ * The CoreArray will then be created with the elements, of
+ * that provided array.
+ * 
+ * Usage:
+ * ````
+ * let a = new Mojito.Object([1,2,3]);
+ * // or
+ * let b = Mojito.Object.create([1,2,3]);
+ * ````
+ * 
+ * @export
+ * @class CoreArray
+ */
 export class CoreArray {
 
     /**
@@ -440,6 +464,18 @@ export class CoreArray {
     unshift(...elements: any[]): number;
     unshift(...elements: any[]): number {
         return this.source.unshift.apply(this.source, arguments);
+    }
+    
+    /**
+     * Static method to provide functionality for `CoreArray.create()`
+     * 
+     * @static
+     * @param {Array<any>} [array] Elements to insert initially
+     * @returns {CoreArray} Newly created CoreArray
+     */
+    static create(array?: Array<any>): CoreArray {
+        assert(Array.isArray(array) || typeof array === 'undefined', 'The Array provided to the create method must be an array', TypeError);
+        return new CoreArray(array);
     }
 
     static defineElements(sourceArray: CoreArray, elementsArray?: Array<any>): CoreArray {
