@@ -12,6 +12,8 @@
     "exclude": [
         "node_modules",
         "typings",
-        "dist"
+        "dist",
+        ".tmp",
+        ".results"
     ]
 }

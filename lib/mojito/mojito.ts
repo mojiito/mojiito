@@ -48,14 +48,18 @@ export class Mojito {
 }
 //console.log(new MyClass());
 window.Mojito = new Mojito;
-/*let array = [];
-for (let i = 0; i < 1000; i++) {
-    array.push(i);
-}
-console.time('test');
+let array = [];
+for (let i = 0; i < 10000; i++) {
+    array.push({
+        a: 1,
+        c: new Date()
+    });
+}/*
+
 for (let i = 0; i < 100; i++) {
     new window.Mojito.Array(array)
 }
 console.timeEnd('test');*/
-
-window.a = new window.Mojito.Array([1, 2, 3]);
+console.time('test');
+window.a = new window.Mojito.Array(array);
+console.timeEnd('test');
