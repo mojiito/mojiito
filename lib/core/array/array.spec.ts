@@ -16,33 +16,6 @@ describe('CoreArray', () => {
         expect(array[1] === 2);
         expect(array[1] === Meta.peek(coreArray).getProperty('values', 'source')[1]);
     });
-    
-    describe('[] accessor', () => {
-        it('should support accessing elements by [index]', () => {
-            const coreArray: CoreArray = new CoreArray([1, 2]);
-            const array: any = coreArray;
-            expect(array[0] === 1);
-            expect(array[0] === Meta.peek(coreArray).getProperty('values', 'source')[0]);
-            expect(array.length === 2);
-        });
-        it('should support setting element values with [index]', () => {
-            const coreArray: CoreArray = new CoreArray([1, 2]);
-            const array: any = coreArray;
-            array[0] = 100;
-            expect(array.length === 2);
-            expect(array[0] === 100);
-            expect(Meta.peek(coreArray).getProperty('values', 'source')[0]).toBe(100);
-        });
-        it('should support adding element values with [index]', () => {
-            const coreArray: CoreArray = new CoreArray([1, 2]);
-            const array: any = coreArray;
-            expect(array.length === 2);
-            array[2] = 100;
-            expect(array[2] === 100);
-            expect(array.length === 3);
-            expect(Meta.peek(coreArray).getProperty('values', 'source')[2]).toBe(100);
-        });
-    });
 
     describe('concat', () => {
         it('should exist', () => {

@@ -1,5 +1,5 @@
 import { CoreObject, CoreArray, Meta, observes } from './../core';
-import { Service, injectable, inject } from './../runtime/runtime';
+import { Service, injectable, inject } from './../runtime';
 
 export class Mojito {
     public Meta: Function;
@@ -14,10 +14,3 @@ export class Mojito {
         this.Service = Service;
     }
 }
-let w: any = window;
-let array:Array<any> = [];
-for (var index = 0; index < 10; index++) {
-    array.push(index);
-    
-}
-w['array'] = new CoreArray(array);
