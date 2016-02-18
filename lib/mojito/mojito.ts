@@ -1,4 +1,4 @@
-import { CoreObject, CoreArray, Meta, observes } from './../core';
+import { CoreObject, CoreArray, CoreView, Meta, observes } from './../core';
 import { Service, injectable, inject } from './../runtime';
 
 export class Mojito {
@@ -14,3 +14,5 @@ export class Mojito {
         this.Service = Service;
     }
 }
+
+window.view = CoreView;

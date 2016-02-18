@@ -117,7 +117,6 @@ export class CoreObject {
                         observers.forEach(function(observer: Observer) {
                             // only notify observer if value has changed
                             if (newValue !== oldValue) {
-                                observer.notify(newValue, oldValue);
                             }
                         });
                     }
