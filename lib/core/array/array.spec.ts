@@ -103,9 +103,9 @@ describe('CoreArray', () => {
                 return value > 10;
             });
             expect(result.length).toBe(3);
-            expect(result[0]).toBe(12);
-            expect(result[1]).toBe(130);
-            expect(result[2]).toBe(44);
+            expect(result.elementAt(0)).toBe(12);
+            expect(result.elementAt(1)).toBe(130);
+            expect(result.elementAt(2)).toBe(44);
         });
     });
 
@@ -118,7 +118,7 @@ describe('CoreArray', () => {
             const coreArray: CoreArray = new CoreArray([{id: 1, isSelected: false},{id: 2, isSelected: true},{id: 3, isSelected: false}]);
             const result:any = coreArray.filterBy('isSelected');
             expect(result.length).toBe(1);
-            expect(result[0].id).toBe(2);
+            expect(result.elementAt(0).id).toBe(2);
         });
     });
 
@@ -160,10 +160,10 @@ describe('CoreArray', () => {
         it('shoult create a new prefilled CoreArray', () => {
             const coreArray: any = CoreArray.create([1, 2]);
             expect(coreArray instanceof CoreArray);
-            expect(coreArray[0] === 1);
-            expect(coreArray[0] === Meta.peek(coreArray).getProperty('values', 'source')[0]);
-            expect(coreArray[1] === 2);
-            expect(coreArray[1] === Meta.peek(coreArray).getProperty('values', 'source')[1]);
+            expect(coreArray.elementAt(0) === 1);
+            expect(coreArray.elementAt(0) === Meta.peek(coreArray).getProperty('values', 'source')[0]);
+            expect(coreArray.elementAt(1) === 2);
+            expect(coreArray.elementAt(1) === Meta.peek(coreArray).getProperty('values', 'source')[1]);
         });
     });
 });

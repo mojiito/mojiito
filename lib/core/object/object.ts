@@ -48,9 +48,6 @@ export class CoreObject {
 
         // defineProperties if an obj is provided
         CoreObject.defineProperties(this, obj);
-        
-        // apply all instance callbacks added by decorators
-        CoreObject._applyInstanceCallbacks(this);
     }
     
     /**
