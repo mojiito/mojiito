@@ -1,8 +1,8 @@
 import { CoreObject, CoreArray, Meta, observes } from './../core';
-import { Service, injectable, inject } from './../runtime/runtime';
+import { Service, injectable, inject } from './../runtime';
 
 @injectable
-class MyService extends Service {
+class MyService {
     private url: string = 'asdf';
     
     testFn() {
