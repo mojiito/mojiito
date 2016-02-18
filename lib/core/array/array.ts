@@ -1,6 +1,6 @@
 import { assert } from './../../debug/debug';
 import { Meta } from '../meta/meta';
-import { IObservable, Observer } from '../observer/observer';
+import { Observer } from '../observer/observer';
 import { CoreObject } from '../object/object';
 
 const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
@@ -37,7 +37,6 @@ export class CoreArray {
      * @type {number}
      */
     get length(): number {
-        this._diff();
         const source = Meta.peek(this).getProperty('values', 'source');
         return source.length >>> 0;
     }
@@ -55,7 +54,6 @@ export class CoreArray {
      * @type {Array<any>}
      */
     get source(): Array<any> {
-        this._diff();
         return Meta.peek(this).getProperty('values', 'source');
     }
 
@@ -71,20 +69,17 @@ export class CoreArray {
      * 
      * @param {Array<any>} [array] Array to create CoreArray from
      */
-    constructor(array?: Array<any>) {
-        assert(this instanceof CoreArray, 'A class can only be instantiated with `new`');
-        
-        let source: Array<any> = [];
-        let self: any = this;
+    constructor(array?: Array<any>, deepObservation: boolean = true) {
+        assert(this instanceof CoreArray, 'A CoreArray can only be instantiated with `new` or `CoreArray.create()`');
+
+        const source: Array<any> = [];
 
         if (Array.isArray(array)) {
             for (let i = 0, max = array.length; i < max; i++) {
                 source.push(array[i]);
-                self[i] = source[i];
             }
         }
         
-        // extend the CoreObject with a Meta hash
         Meta.peek(this).setProperty('values', 'source', source, {
             writable: false,
             enumerable: true,
@@ -111,7 +106,6 @@ export class CoreArray {
      */
     concat(...values: any[]): CoreArray;
     concat(...values: any[]): CoreArray {
-        this._diff();
         for (var index = 0, max = values.length; index < max; index++) {
             var element:CoreArray | any = values[index];
             if (element instanceof CoreArray) {
@@ -129,7 +123,6 @@ export class CoreArray {
      * @returns {*} The found element
      */
     elementAt(index: number): any {
-        this._diff();
         return this.source[index];
     }
 
@@ -142,7 +135,6 @@ export class CoreArray {
      * @returns {boolean} true if every element passes the test, false if not
      */
     every(callback: (value: any, index: number, array: CoreArray) => boolean, thisArg?: any): boolean {
-        this._diff();
         return this.source.every.call(this.source, (value: any, index: number, array: Array<any>) => {
             return callback.call(thisArg ? thisArg : this, value, index, this);
         }, thisArg);
@@ -157,7 +149,6 @@ export class CoreArray {
      * @returns {CoreArray} New CoreArray with all elements that pass
      */
     filter(callback: (value: any, index: number, array: any[]) => boolean, thisArg?: any): CoreArray {
-        this._diff();
         const result: Array<any> = this.source.filter.call(this.source, (value: any, index: number, array: Array<any>) => {
             return callback.call(thisArg ? thisArg : this, value, index, this);
         }, thisArg);
@@ -175,7 +166,6 @@ export class CoreArray {
      * @returns {CoreArray} New CoreArray with all elements that pass
      */
     filterBy(key: string, value?: string, thisArg?: any): CoreArray {
-        this._diff();
         return this.filter(function(elementValue: any) {
             return typeof elementValue === 'object' && elementValue[key]
                 && (typeof value === 'undefined' && !!elementValue[key]
@@ -193,7 +183,6 @@ export class CoreArray {
      * @returns {*} value of the found element or `undefined`
      */
     find(predicate: (element: any, index: number, array: any[]) => boolean, thisArg?: any): any {
-        this._diff();
         const source: any = this.source;
         const fn = source['find'];
         if (typeof fn === 'function') {
@@ -221,7 +210,6 @@ export class CoreArray {
      * @returns {*} found object or `undefined`
      */
     findBy(propertyName: string, value: any): any {
-        this._diff();
         const source: any = this.source;
         const fn = source['find'];
         let obj: any;
@@ -244,7 +232,6 @@ export class CoreArray {
      * @returns {number} index of the found element or -1
      */
     findIndex(predicate: (element: any, index: number, array: any[]) => boolean, thisArg?: any): number {
-        this._diff();
         const source: any = this.source;
         const fn = source['findIndex'];
         if (typeof fn === 'function') {
@@ -271,7 +258,6 @@ export class CoreArray {
      * @returns {void}
      */
     forEach(callback: (currentValue: any, index: number, array: any[]) => void, thisArg?: any): void {
-        this._diff();
         const source: any = this.source;
         const fn = source['forEach'];
         if (typeof fn === 'function') {
@@ -293,7 +279,6 @@ export class CoreArray {
      * @returns {boolean} true if searchElement is found, false if not
      */
     includes(searchElement: any, fromIndex?: number): boolean {
-        this._diff();
         const source: any = this.source;
         const fn = source['includes'];
         if (typeof fn === 'function') {
@@ -316,7 +301,6 @@ export class CoreArray {
      * @returns {number} Position of the found element, -1 if not found
      */
     indexOf(searchElement: any, fromIndex?: number): number {
-        this._diff();
         return this.source.indexOf.apply(this.source, arguments);
     }
 
@@ -340,7 +324,6 @@ export class CoreArray {
      * @returns {number} Position of the found element, -1 if not found
      */
     lastIndexOf(searchElement: any, fromIndex?: number): number {
-        this._diff();
         return this.source.lastIndexOf.apply(this.source, arguments);
     }
 
@@ -352,7 +335,6 @@ export class CoreArray {
      * @returns {CoreArray} Created array
      */
     map(callback: (currentValue: any, index: number, array: any[]) => any, thisArg?: any): CoreArray {
-        this._diff();
         const result: Array<any> = this.source.concat.call(this.source, (currentValue: any, index: number, array: Array<any>) => {
             callback.call(thisArg ? thisArg : this, currentValue, index, this);
         }, thisArg);
@@ -365,7 +347,6 @@ export class CoreArray {
      * @returns {*} Removed element
      */
     pop(): any {
-        this._diff();
         return this.source.pop.apply(this.source, arguments);
     }
 
@@ -373,17 +354,19 @@ export class CoreArray {
      * adds one element to the end of an array and returns the new length of the array.
      * 
      * @param {*} element The element to add to the end of the array.
+     * @return {number} The new length property of the array.
      */
     push(element: any): number;
     /**
      * adds elements to the end of an array and returns the new length of the array.
      * 
      * @param {...any[]} elements The elements to add to the end of the array.
+     * @return {number} The new length property of the array.
      */
     push(...elements: any[]): number;
     push(...elements: any[]): number {
-        this._diff();
-        return this.source.push.apply(this.source, arguments);
+        let length = this.source.push.apply(this.source, arguments);
+        return length;
     }
 
     /**
@@ -395,7 +378,6 @@ export class CoreArray {
      * @returns {*} The value returned would be that of the last callback invocation.
      */
     reduce(callback: (previousValue: any, currentValue: any, currentIndex: any, array: any[]) => any, initialValue: any): any {
-        this._diff();
         return this.source.reduce.call(this.source, (previousValue: any, currentValue: any, currentIndex: any, array: Array<any>) => {
             callback.call(this, previousValue, currentValue, currentIndex, this);
         });
@@ -410,7 +392,6 @@ export class CoreArray {
      * @returns {*} The value returned would be that of the last callback invocation.
      */
     reduceRight(callback: (previousValue: any, currentValue: any, currentIndex: any, array: any[]) => any, initialValue: any): any {
-        this._diff();
         return this.source.reduceRight.call(this.source, (previousValue: any, currentValue: any, currentIndex: any, array: Array<any>) => {
             callback.call(this, previousValue, currentValue, currentIndex, this);
         });
@@ -423,7 +404,6 @@ export class CoreArray {
      * @returns {CoreArray} The reversed array
      */
     reverse(): CoreArray {
-        this._diff();
         return this.source.reverse.apply(this.source, arguments);
     }
 
@@ -434,7 +414,6 @@ export class CoreArray {
      * @returns {*} The first element of the array
      */
     shift(): any {
-        this._diff();
         return this.source.shift.apply(this.source, arguments);
     }
 
@@ -446,7 +425,6 @@ export class CoreArray {
      * @returns {CoreArray} New sliced array
      */
     slice(begin?: number, end?: number): CoreArray {
-        this._diff();
         const result: Array<any> = this.source.slice.apply(this.source, arguments);
         return new CoreArray(result);
     }
@@ -459,7 +437,6 @@ export class CoreArray {
      * @param {*} [thisArg] Value to use as this when executing callback.
      */
     some(callback: (currentValue: any, index: number, array: any[]) => boolean, thisArg?: any): boolean {
-        this._diff();
         return this.source.some.call(this.source, (currentValue: any, index: number, array: Array<any>) => {
             callback.call(thisArg ? thisArg : this, currentValue, index, this);
         }, thisArg);
@@ -473,7 +450,6 @@ export class CoreArray {
      * @returns {CoreArray} Returns the sorted CoreArray
      */
     sort(compareFunction?: (valueA: any, valueB: any) => number): CoreArray {
-        this._diff();
         this.source.sort.apply(this, arguments);
         return this;
     }
@@ -494,7 +470,6 @@ export class CoreArray {
      */
     splice(start: number, deleteCount: number, ...elements: any[]): CoreArray;
     splice(start: number, deleteCount: number, ...elements: any[]): CoreArray {
-        this._diff();
         const result: Array<any> = this.source.splice.apply(this.source, arguments);
         return new CoreArray(result);
     }
@@ -505,7 +480,6 @@ export class CoreArray {
      * @returns {Array<any>} The converted native Array
      */
     toArray(): Array<any> {
-        this._diff();
         return this.source;
     }
 
@@ -524,7 +498,6 @@ export class CoreArray {
      */
     unshift(...elements: any[]): number;
     unshift(...elements: any[]): number {
-        this._diff();
         return this.source.unshift.apply(this.source, arguments);
     }
     
@@ -538,80 +511,5 @@ export class CoreArray {
     static create(array?: Array<any>): CoreArray {
         assert(Array.isArray(array) || typeof array === 'undefined', 'The Array provided to the create method must be an array', TypeError);
         return new CoreArray(array);
-    }
-    
-    /**
-     * Adds an instance callback to class.
-     * Only for internal usage. Mostly needed for decorators.
-     * 
-     * @static
-     * @param {CoreObject} sourceObject The object where to add a callback
-     * @param {Function} callback The callback which will be added
-     */
-    static _addInstanceCallback(sourceObject: CoreObject, callback: Function): void {
-        assert(arguments.length === 2, '_addInstanceCallback must be called with two arguments; a sourceObject and a callback function');
-        assert(typeof sourceObject === 'object', 'The sourceObject provided to the _addInstanceCallback method must be an object', TypeError);
-        assert(typeof callback === 'function', 'The callback provided to the _addInstanceCallback method must be a function', TypeError);
-        
-        // needed for enabled noImplicitAny
-        const source: any = sourceObject;
-        let callbacks: Function[] = source[INSTANCE_CALLBACKS_FIELD];
-        if (!Array.isArray(callbacks)) {
-            callbacks = [];
-            Object.defineProperty(source, INSTANCE_CALLBACKS_FIELD, {
-                writable: true,
-                enumerable: true,
-                configurable: false,
-                value: callbacks
-            });
-        }
-        callbacks.push(callback);
-    }
-    
-    /**
-     * Calls every instance callback on a class.
-     * Only for internal usage. Mostly needed for decorators.
-     * 
-     * @static
-     * @param {CoreObject} sourceObject The object where to call all the callbacks
-     */
-    static _applyInstanceCallbacks(sourceObject: CoreObject): void {
-        assert(arguments.length === 1, '_applyInstanceCallbacks must be called with one argument; a sourceObject');
-        assert(sourceObject instanceof CoreObject, 'The sourceObject provided to the _applyInstanceCallbacks method must be a CoreObject', TypeError);
-        
-        // needed for enabled noImplicitAny
-        const source: any = sourceObject;
-        let callbacks: Function[] = source[INSTANCE_CALLBACKS_FIELD];
-        if (Array.isArray(callbacks)) {
-            //delete Object.getPrototypeOf(this)['_callbacks'];
-            callbacks.forEach(function(callback: Function) {
-                callback(source);
-            });
-        }
-    }
-    
-    /**
-     * ATTENTION: Do not call directly
-     * Does a diff between the CoreArray instance and the source array.
-     * Overrides source array elements with instance elements if they differ.
-     * Basically enabless []-accessor for this array proxy.
-     * 
-     * @private
-     * @returns {void} (description)
-     */
-    private _diff(): void {
-        const source: any = Meta.peek(this).getProperty('values', 'source');
-        const that: any = this;
-        let keys = Object.getOwnPropertyNames(this).filter(function(value: string) {
-            return !isNaN(parseInt(value, 10))
-        });
-        for (var i = 0, max = keys.length; i < max; i++) {
-            let index = parseInt(keys[i], 10);
-            let sourceElement = source[index];
-            let element = that[index];
-            if (element !== sourceElement) {
-                source[index] = element;
-            }
-        }
     }
 }

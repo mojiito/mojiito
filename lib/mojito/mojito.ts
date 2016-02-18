@@ -1,25 +1,6 @@
 import { CoreObject, CoreArray, Meta, observes } from './../core';
 import { Service, injectable, inject } from './../runtime/runtime';
 
-@injectable
-class MyService extends Service {
-    private url: string = 'asdf';
-    
-    testFn() {
-        return this.url;
-    }
-}
-
-class MyClass {
-    
-    @inject(MyService)
-    private myService: MyService;
-    
-    constructor() {
-        console.log(this.myService.testFn());
-    }
-}
-
 export class Mojito {
     public Meta: Function;
     public Object: Function;
@@ -34,5 +15,9 @@ export class Mojito {
     }
 }
 let w: any = window;
-w['Mojito'] = new Mojito();
-w['myClass'] = new MyClass();
+let array:Array<any> = [];
+for (var index = 0; index < 10; index++) {
+    array.push(index);
+    
+}
+w['array'] = new CoreArray(array);
