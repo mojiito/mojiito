@@ -166,23 +166,4 @@ describe('CoreArray', () => {
             expect(coreArray[1] === Meta.peek(coreArray).getProperty('values', 'source')[1]);
         });
     });
-
-    describe('_addInstanceCallback', () => {
-        it('should exist', () => {
-            expect(typeof CoreArray._addInstanceCallback).toBe('function');
-        });
-
-        it('should add a new callback function to the class', () => {
-            const coreArray: any = new CoreArray();
-            const fn: Function = function(source: CoreArray) { };
-            CoreArray._addInstanceCallback(coreArray, fn);
-            expect(coreArray['__mojito_instance_callbacks__'][0]).toBe(fn);
-        });
-    });
-
-    describe('_applyInstanceCallbacks', () => {
-        it('should exist', () => {
-            expect(typeof CoreArray._applyInstanceCallbacks).toBe('function');
-        });
-    });
 });

@@ -191,23 +191,4 @@ describe('CoreObject', () => {
             expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
         });
     });
-
-    describe('_addInstanceCallback', () => {
-        it('should exist', () => {
-            expect(typeof CoreObject._addInstanceCallback).toBe('function');
-        });
-        
-        it('should add a new callback function to the class', () => {
-            const coreObject: any = new CoreObject();
-            const fn: Function = function(source: CoreObject) {};
-            CoreObject._addInstanceCallback(coreObject, fn);
-            expect(coreObject['__mojito_instance_callbacks__'][0]).toBe(fn);
-        });
-    });
-
-    describe('_applyInstanceCallbacks', () => {
-        it('should exist', () => {
-            expect(typeof CoreObject._applyInstanceCallbacks).toBe('function');
-        });
-    });
 });
