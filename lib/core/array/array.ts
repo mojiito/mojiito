@@ -37,8 +37,9 @@ export class CoreArray {
      * @type {number}
      */
     get length(): number {
+        this._diff();
         const source = Meta.peek(this).getProperty('values', 'source');
-        return source.length >>> 0
+        return source.length >>> 0;
     }
 
     /**
@@ -71,7 +72,8 @@ export class CoreArray {
      * @param {Array<any>} [array] Array to create CoreArray from
      */
     constructor(array?: Array<any>) {
-
+        assert(this instanceof CoreArray, 'A class can only be instantiated with `new`');
+        
         let source: Array<any> = [];
         let self: any = this;
 
@@ -90,7 +92,6 @@ export class CoreArray {
         });
     }
 
-
     /**
      * creates a new array consisting of the elements in the object 
      * on which it is called, followed in order by, for each argument, 
@@ -101,7 +102,7 @@ export class CoreArray {
      */
     concat(...values: Array<any>[]): CoreArray;
     /**
-     * creates a new array consisting of the elements in the object 
+     * Creates a new array consisting of the elements in the object 
      * on which it is called, followed in order by, for each argument, 
      * the elements of that argument (if the argument is an array) 
      * or the argument itself (if the argument is not an array)
@@ -111,11 +112,23 @@ export class CoreArray {
     concat(...values: any[]): CoreArray;
     concat(...values: any[]): CoreArray {
         this._diff();
-        const result: Array<any> = this.source.concat.apply(this.source, arguments);
+        for (var index = 0, max = values.length; index < max; index++) {
+            var element:CoreArray | any = values[index];
+            if (element instanceof CoreArray) {
+                values[index] = element.toArray();
+            }
+        }
+        const result: Array<any> = this.source.concat.apply(this.source, values);
         return new CoreArray(result);
     }
 
-    elementAt(index: number): any  {
+    /**
+     * Returns the element at a specific position.
+     * 
+     * @param {number} index Position of the element
+     * @returns {*} The found element
+     */
+    elementAt(index: number): any {
         this._diff();
         return this.source[index];
     }
@@ -128,9 +141,11 @@ export class CoreArray {
      * @param {*} [thisArg] Value to use as this when executing callback.
      * @returns {boolean} true if every element passes the test, false if not
      */
-    every(callback: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean {
+    every(callback: (value: any, index: number, array: CoreArray) => boolean, thisArg?: any): boolean {
         this._diff();
-        return this.source.every.apply(this.source, arguments);
+        return this.source.every.call(this.source, (value: any, index: number, array: Array<any>) => {
+            return callback.call(thisArg ? thisArg : this, value, index, this);
+        }, thisArg);
     }
 
     /**
@@ -143,7 +158,9 @@ export class CoreArray {
      */
     filter(callback: (value: any, index: number, array: any[]) => boolean, thisArg?: any): CoreArray {
         this._diff();
-        const result: Array<any> = this.source.filter.apply(this.source, arguments);
+        const result: Array<any> = this.source.filter.call(this.source, (value: any, index: number, array: Array<any>) => {
+            return callback.call(thisArg ? thisArg : this, value, index, this);
+        }, thisArg);
         return new CoreArray(result);
     }
 
@@ -180,12 +197,14 @@ export class CoreArray {
         const source: any = this.source;
         const fn = source['find'];
         if (typeof fn === 'function') {
-            return fn.apply(source, arguments);
+            return fn.call(source, (element: any, index: number, array: Array<any>) => {
+                return predicate.call(thisArg ? thisArg : this, element, index, this);
+            }, thisArg);
         } else {
             let value: any;
             for (var i = 0, max = source.length >>> 0; i < max; i++) {
                 value = source[i];
-                if (predicate.call(thisArg, value, i, this)) {
+                if (predicate.call(thisArg ? thisArg : this, value, i, this)) {
                     return value;
                 }
             }
@@ -229,12 +248,14 @@ export class CoreArray {
         const source: any = this.source;
         const fn = source['findIndex'];
         if (typeof fn === 'function') {
-            return fn.apply(source, arguments);
+            return fn.call(source, (element: any, index: number, array: Array<any>) => {
+                return predicate.call(thisArg ? thisArg : this, element, index, this);
+            }, thisArg);
         } else {
             let value: any;
             for (var i = 0, max = source.length >>> 0; i < max; i++) {
                 value = source[i];
-                if (predicate.call(thisArg, value, i, this)) {
+                if (predicate.call(thisArg ? thisArg : this, value, i, this)) {
                     return i;
                 }
             }
@@ -254,7 +275,9 @@ export class CoreArray {
         const source: any = this.source;
         const fn = source['forEach'];
         if (typeof fn === 'function') {
-            return fn.apply(source, arguments);
+            return fn.call(source, (currentValue: any, index: number, array: Array<any>) => {
+                callback.call(thisArg ? thisArg : this, currentValue, index, this);
+            }, thisArg);
         } else {
             for (var i = 0, max = source.length >>> 0; i < max; i++) {
                 callback.call(thisArg, source[i], i, this);
@@ -330,7 +353,9 @@ export class CoreArray {
      */
     map(callback: (currentValue: any, index: number, array: any[]) => any, thisArg?: any): CoreArray {
         this._diff();
-        const result: Array<any> = this.source.concat.apply(this.source, arguments);
+        const result: Array<any> = this.source.concat.call(this.source, (currentValue: any, index: number, array: Array<any>) => {
+            callback.call(thisArg ? thisArg : this, currentValue, index, this);
+        }, thisArg);
         return new CoreArray(result);
     }
 
@@ -371,7 +396,9 @@ export class CoreArray {
      */
     reduce(callback: (previousValue: any, currentValue: any, currentIndex: any, array: any[]) => any, initialValue: any): any {
         this._diff();
-        return this.source.reduce.apply(this.source, arguments);
+        return this.source.reduce.call(this.source, (previousValue: any, currentValue: any, currentIndex: any, array: Array<any>) => {
+            callback.call(this, previousValue, currentValue, currentIndex, this);
+        });
     }
 
     /**
@@ -384,7 +411,9 @@ export class CoreArray {
      */
     reduceRight(callback: (previousValue: any, currentValue: any, currentIndex: any, array: any[]) => any, initialValue: any): any {
         this._diff();
-        return this.source.reduceRight.apply(this.source, arguments);
+        return this.source.reduceRight.call(this.source, (previousValue: any, currentValue: any, currentIndex: any, array: Array<any>) => {
+            callback.call(this, previousValue, currentValue, currentIndex, this);
+        });
     }
 
     /**
@@ -431,7 +460,9 @@ export class CoreArray {
      */
     some(callback: (currentValue: any, index: number, array: any[]) => boolean, thisArg?: any): boolean {
         this._diff();
-        return this.source.some.apply(this.source, arguments);
+        return this.source.some.call(this.source, (currentValue: any, index: number, array: Array<any>) => {
+            callback.call(thisArg ? thisArg : this, currentValue, index, this);
+        }, thisArg);
     }
 
     /**
@@ -443,7 +474,7 @@ export class CoreArray {
      */
     sort(compareFunction?: (valueA: any, valueB: any) => number): CoreArray {
         this._diff();
-        this.source.sort.apply(this.source, arguments);
+        this.source.sort.apply(this, arguments);
         return this;
     }
 
@@ -570,19 +601,16 @@ export class CoreArray {
      */
     private _diff(): void {
         const source: any = Meta.peek(this).getProperty('values', 'source');
-        const sourceLength = source.length >>> 0;
+        const that: any = this;
         let keys = Object.getOwnPropertyNames(this).filter(function(value: string) {
-            return !!parseInt(value, 10)
+            return !isNaN(parseInt(value, 10))
         });
-        if (keys.length === sourceLength) {
-            return;
-        }
         for (var i = 0, max = keys.length; i < max; i++) {
             let index = parseInt(keys[i], 10);
             let sourceElement = source[index];
-            let element = sourceElement;
+            let element = that[index];
             if (element !== sourceElement) {
-                sourceElement = element;
+                source[index] = element;
             }
         }
     }

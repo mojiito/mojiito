@@ -25,7 +25,7 @@ export class Meta {
         
         if (!this.hasMember(memberKey)) {
             Object.defineProperty(this, '_' + memberKey, {
-                writable: true,
+                writable: false,
                 configurable: false,
                 enumerable: true,
                 value: {}
@@ -211,8 +211,8 @@ export class Meta {
         var meta = new Meta();
 
         Object.defineProperty(obj, META_FIELD, {
-            writable: true,
-            configurable: true,
+            writable: false,
+            configurable: false,
             enumerable: false,
             value: meta
         });

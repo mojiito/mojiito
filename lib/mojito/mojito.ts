@@ -1,37 +1,22 @@
-import { CoreObject, CoreArray, Meta, observes } from '../core/core';
+import { CoreObject, CoreArray, Meta, observes } from './../core';
+import { Service, injectable, inject } from './../runtime/runtime';
 
-class MyClass extends CoreObject {
-    var1: string;
+@injectable
+class MyService extends Service {
+    private url: string = 'asdf';
     
-    constructor() {
-        super();
-        this.var1 = 'asdf';
-    }
-    
-    @observes('var1')
-    var1Changed(newValue: String, oldValue?: String) {
-        console.log("var1 changed", newValue, oldValue);
+    testFn() {
+        return this.url;
     }
 }
 
-class MyClassExtended extends MyClass {
-    var2: string;
-    var3: Object;
+class MyClass {
     
-    constructor(obj) {
-        super();
-        this.var2 = 'asdf';
-        this.var3 = obj;
-    }
+    @inject(MyService)
+    private myService: MyService;
     
-    @observes('var2')
-    var2Changed(newValue: String, oldValue?: String) {
-        console.log("var2 changed", newValue, oldValue);
-    }
-    
-    @observes('var3.a')
-    aChanged()  {
-        
+    constructor() {
+        console.log(this.myService.testFn());
     }
 }
 
@@ -39,27 +24,15 @@ export class Mojito {
     public Meta: Function;
     public Object: Function;
     public Array: Function;
+    public Service: Function;
     
     constructor() {
         this.Meta = Meta;
         this.Object = CoreObject;
         this.Array = CoreArray;
+        this.Service = Service;
     }
 }
-//console.log(new MyClass());
-window.Mojito = new Mojito;
-let array = [];
-for (let i = 0; i < 10000; i++) {
-    array.push({
-        a: 1,
-        c: new Date()
-    });
-}/*
-
-for (let i = 0; i < 100; i++) {
-    new window.Mojito.Array(array)
-}
-console.timeEnd('test');*/
-console.time('test');
-window.a = new window.Mojito.Array(array);
-console.timeEnd('test');
+let w: any = window;
+w['Mojito'] = new Mojito();
+w['myClass'] = new MyClass();

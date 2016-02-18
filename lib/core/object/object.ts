@@ -2,7 +2,7 @@ import { assert } from './../../debug/debug';
 import { get } from '../get/get';
 import { set } from '../set/set';
 import { Meta } from '../meta/meta';
-import { IObservable, Observer } from '../observer/observer';
+import { Observable, Observer } from '../observer/observer';
 
 const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
 
@@ -30,7 +30,7 @@ const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
  * 
  * @export
  * @class CoreObject
- * @implements {IObservable}
+ * @extends {Observable}
  */
 export class CoreObject {
 
@@ -40,16 +40,17 @@ export class CoreObject {
      * @param {Object} [obj] Object or property map to define properties
      */
     constructor(obj?: Object) {
+        assert(this instanceof CoreObject, 'A class can only be instantiated with `new`');
         assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the constructor method must be an object', TypeError);
         
         // extend the CoreObject with a Meta hash
         Meta.extend(this);
-        
-        // apply all instance callbacks added by decorators
-        CoreObject._applyInstanceCallbacks(this);
 
         // defineProperties if an obj is provided
         CoreObject.defineProperties(this, obj);
+        
+        // apply all instance callbacks added by decorators
+        CoreObject._applyInstanceCallbacks(this);
     }
     
     /**

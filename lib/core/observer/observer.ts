@@ -3,47 +3,39 @@ import { CoreObject } from '../object/object';
 import { CoreArray } from '../array/array';
 import { Meta } from '../meta/meta';
 
-export interface IObservable {
-    subscribe(key: string, callback: Function): Observer;
-    dispose(observer: Observer): boolean;
+export class Observable {
+    
+    constructor(subject: CoreObject, key: string);
+    constructor(subject: CoreArray, key: string);
+    constructor(subject: any, key: string) {
+        
+    }
+    
+    subscribe(callback: (newValue: any, oldValue: any) => void) {
+    }
 }
 
 export class Observer {
-
-    constructor(private subject: CoreObject, private key: string, private callback: Function) {
+    private onNext: Function;
+    private onError: Function;
+    private onComplete: Function;
+    
+    constructor(onNext: (newValue: any) => void, onError?: (error: Object) => void, onComplete?: () => void) {
+        this.onNext = onNext
+        this.onError = onError
+        this.onComplete = onComplete
     }
-
-    notify(newValue: any, oldValue: any) {
-        this.callback.call(this.subject, newValue, oldValue);
-    }
-
-    static observe(subject: CoreObject, key: string, callback: Function): Observer;
-    static observe(subject: CoreArray, key: string, callback: Function): Observer;
-    static observe(subject: any, key: string, callback: Function) {
-        let meta = Meta.peek(subject);
-        let observers = meta.getProperty('observers', key);
-
-        if (!subject.get(key)) {
-            let propertyMap: any = {};
-            propertyMap[key] = undefined;
-            CoreObject.defineProperties(subject, propertyMap);
-        }
-
-        let observer = new Observer(subject, key, callback);
-        if (!observers) {
-            observers = meta.setProperty('observers', key, []);
-        }
-        observers.push(observer);
-        return observer;
-    }
+    next() { }
+    error() { }
+    complete() { }
 }
 
 export function observes(...keys: string[]): MethodDecorator {
     assert(arguments.length === 1, 'The observes decorator must be called with one argument; an array of propertyKeys');
 
     return function(target: CoreObject, propertyKey: string, descriptor: TypedPropertyDescriptor<Function>): TypedPropertyDescriptor<Function> {
-        assert(arguments.length === 3, 'The observe decorator callback must be called with two arguments; a target, a propertyKey and a descriptor');
-        assert(target instanceof CoreObject, 'The target provided to the observe decorator callback must be an object and an instace of `Observable`', TypeError);
+        assert(arguments.length === 3, 'The observe decorator callback must be called with three arguments; a target, a propertyKey and a descriptor');
+        assert(target instanceof CoreObject, 'The target provided to the observe decorator callback must be an object and an instace of `CoreObject`', TypeError);
         assert(typeof propertyKey === 'string', 'The property key provided to the observe decorator callback must be a string', TypeError);
 
         //const source: any = target;  // needed for enabled noImplicitAny
@@ -56,7 +48,8 @@ export function observes(...keys: string[]): MethodDecorator {
 
             ((key: string, callback: Function) => {
                 CoreObject._addInstanceCallback(target, function(subject: CoreObject) {
-                    Observer.observe(subject, key, callback);
+                    
+                    //Observer.observe(subject, key, callback);
                 });
             })(key, callback);
         }
