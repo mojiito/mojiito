@@ -13,7 +13,8 @@
     "test": "npm run tsc & npm run karma",
     "tsc": "tsc --rootDir lib --outDir .tmp --module amd",
     "karma": "karma start karma.conf.js",
-    "bundle": "browserify .tmp/mojito/mojito.js -o mojito.js"
+    "bundle": "browserify .tmp/mojito/mojito.js -o mojito.js",
+    "doc": "typedoc --out doc/ lib/ --module commonjs --experimentalDecorators --target es5 --mode file"
   },
   "devDependencies": {
     "browserify": "^13.0.0",
@@ -27,6 +28,7 @@
     "requirejs": "^2.1.22",
     "systemjs": "^0.19.17",
     "tsd": "^0.6.5",
+    "typedoc": "^0.3.12",
     "typescript": "^1.7.5",
     "watch": "^0.17.1"
   }
