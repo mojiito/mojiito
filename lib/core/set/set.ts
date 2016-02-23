@@ -16,7 +16,7 @@ import { CoreObject } from '../object/object';
 export function set(obj: Object, propertyName: string, value: any): any {
     assert(arguments.length === 3, 'Get must be called with three arguments; an object, a property name and a value');
     assert(typeof obj !== 'undefined', 'Cannot call set on an undefined object', TypeError);
-    assert(typeof obj === 'object', 'The first argument of the get method has be an object', TypeError);
+    assert(typeof obj === 'object' || typeof obj === 'function', 'The first argument of the get method has be an object or a function', TypeError);
     assert(typeof propertyName === 'string', 'The key provided to get method must be a string', TypeError);
     assert(typeof value !== 'undefined', 'Cannot call set with an `undefined` value ', TypeError);
 

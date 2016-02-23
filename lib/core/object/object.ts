@@ -4,8 +4,6 @@ import { set } from '../set/set';
 import { Meta } from '../meta/meta';
 import { Observable, Observer } from '../observer/observer';
 
-const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
-
 /**
  * Extends the native Object by observers, computed properties, ...
  * It's the default Object of Mojito
@@ -183,11 +181,6 @@ export class CoreObject {
 
             // defining Meta not allowed, skip it            
             if (value instanceof Meta) {
-                continue;
-            }
-            
-            // skip instance callbacks          
-            if (key === INSTANCE_CALLBACKS_FIELD) {
                 continue;
             }
             

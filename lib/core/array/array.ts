@@ -3,8 +3,6 @@ import { Meta } from '../meta/meta';
 import { Observer } from '../observer/observer';
 import { CoreObject } from '../object/object';
 
-const INSTANCE_CALLBACKS_FIELD = '__mojito_instance_callbacks__';
-
 /**
  * Extends the native Array by observers, computed properties, ...
  * 
@@ -92,8 +90,10 @@ export class CoreArray {
      * on which it is called, followed in order by, for each argument, 
      * the elements of that argument (if the argument is an array) 
      * or the argument itself (if the argument is not an array)
+     * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat}
      * 
      * @param {...Array<any>[]} values Arrays to concatenate into a new array
+     * @returns {CoreArray} new array consisting of the elements in the object on which it is called
      */
     concat(...values: Array<any>[]): CoreArray;
     /**
@@ -101,8 +101,10 @@ export class CoreArray {
      * on which it is called, followed in order by, for each argument, 
      * the elements of that argument (if the argument is an array) 
      * or the argument itself (if the argument is not an array)
+     * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat}
      * 
      * @param {...any[]} values Values to concatenate into a new array
+     * @returns {CoreArray} new array consisting of the elements in the object on which it is called
      */
     concat(...values: any[]): CoreArray;
     concat(...values: any[]): CoreArray {

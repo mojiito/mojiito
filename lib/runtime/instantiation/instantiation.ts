@@ -8,6 +8,9 @@ export function onAfterInstantiation(TargetClass: any, callback: Function) {
     return instantiation(TargetClass, null, callback);
 }
 
+/**
+ * @memberOf test
+ */
 export function instantiation(TargetClass: any, onBeforeInstantiation?: Function, onAfterInstantiation?: Function): any {
     assert(typeof TargetClass === 'function', 'TargetClass has to be a class!', TypeError);
     
@@ -25,7 +28,7 @@ export function instantiation(TargetClass: any, onBeforeInstantiation?: Function
     TargetClass['_hasInstantiationHooks'] = true;
     
     let OriginalClass: any = TargetClass;
-    
+
     // a utility function to generate instances of a class
     function construct(constructor: any, args: Array<any>) {
         const C: any = function() {
@@ -44,6 +47,18 @@ export function instantiation(TargetClass: any, onBeforeInstantiation?: Function
     
     // copy prototype so intanceof operator still works
     TargetClass.prototype = OriginalClass.prototype;
+    
+    // copy static methods
+    let keys = Object.getOwnPropertyNames(OriginalClass);
+    for (let i = 0, max = keys.length; i < max; i++) {
+        let key = keys[i];
+        if (typeof TargetClass[key] === 'undefined') {
+            TargetClass[key] = OriginalClass[key];
+        }
+    }
+    
+    // copy name
+    TargetClass['name'] = OriginalClass['name'];
     
     return TargetClass;
 }

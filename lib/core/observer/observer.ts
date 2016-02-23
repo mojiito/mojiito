@@ -47,10 +47,6 @@ export function observes(...keys: string[]): MethodDecorator {
             assert(typeof key === 'string', 'The keys provided to the observe decorator callback must be strings', TypeError);
 
             ((key: string, callback: Function) => {
-                CoreObject._addInstanceCallback(target, function(subject: CoreObject) {
-                    
-                    //Observer.observe(subject, key, callback);
-                });
             })(key, callback);
         }
         return descriptor;

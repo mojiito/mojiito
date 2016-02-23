@@ -2,8 +2,6 @@ import { assert } from './../../debug/debug';
 import { CoreObject } from '../object/object';
 import { CoreArray } from '../array/array';
 
-const META_FIELD = '__mojito_meta__';
-
 /**
  * The meta object contains information about computed property descriptors,
  * values of defined properties as well as any watched properties and other information.
@@ -12,6 +10,8 @@ const META_FIELD = '__mojito_meta__';
  * @class Meta
  */
 export class Meta {
+    
+    private static META_FIELD: string = '__mojito_meta__';
     
     /**
      * Creates the member on a meta hash 
@@ -192,7 +192,7 @@ export class Meta {
     }
     
     /**
-     * Creates a new Meta instance and extends an object with it.
+     * Creates a new Meta instance and extends a CoreObject with it.
      * 
      * @static
      * @param  {CoreObject} obj The CoreObject where the meta will be created on
@@ -200,17 +200,25 @@ export class Meta {
      */
     static extend(obj: CoreObject): Meta;
     /**
-     * Creates a new Meta instance and extends an object with it.
+     * Creates a new Meta instance and extends a CoreArray with it.
      * 
      * @static
-     * @param  {CoreArray} obj The CoreArray where the meta will be created on
+     * @param  {CoreArray} array The CoreArray where the meta will be created on
      * @returns {Meta} The created meta object
      */
-    static extend(obj: CoreArray): Meta;
+    static extend(array: CoreArray): Meta;
+    /**
+     * Creates a new Meta instance and extends an Object with it.
+     * 
+     * @static
+     * @param {Object} obj The Object where the meta will be created on
+     * @returns {Meta} The created meta object
+     */
+    static extend(obj: Object): Meta;
     static extend(obj: any): Meta {
         var meta = new Meta();
 
-        Object.defineProperty(obj, META_FIELD, {
+        Object.defineProperty(obj, Meta.META_FIELD, {
             writable: false,
             configurable: false,
             enumerable: false,
@@ -221,7 +229,7 @@ export class Meta {
     }
     
     /**
-     * Retrieves the meta hash for an object.
+     * Retrieves the meta hash for a CoreObject.
      * If the object has no meta yet, a new one will be created
      * 
      * @static
@@ -230,7 +238,7 @@ export class Meta {
      */
     static peek(obj: CoreObject): Meta;
     /**
-     * Retrieves the meta hash for an object.
+     * Retrieves the meta hash for a CoreArray.
      * If the object has no meta yet, a new one will be created
      * 
      * @static
@@ -238,9 +246,18 @@ export class Meta {
      * @returns {Meta} The peeked or created meta object
      */
     static peek(obj: CoreArray): Meta;
+    /**
+     * Retrieves the meta hash for an Object.
+     * If the object has no meta yet, a new one will be created
+     * 
+     * @static
+     * @param {Object} obj The Object where to peek for a meta hash
+     * @returns {Meta} The peeked or created meta object
+     */
+    static peek(obj: Object): Meta;
     static peek(obj: any): Meta {
         const source: any = obj;  // needed for enabled noImplicitAny
-        let meta = source[META_FIELD];
+        let meta = source[Meta.META_FIELD];
 
         if (!meta) {
             meta = Meta.extend(obj);
