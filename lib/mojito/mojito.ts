@@ -66,5 +66,8 @@ const app = Application.create('app');
     selector: 'my-controller'
 })
 class MyController extends Controller {
-    
+    constructor() {
+        super();
+    }
 }
+

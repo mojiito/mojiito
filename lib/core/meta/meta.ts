@@ -137,6 +137,18 @@ export class Meta {
         return value;
     }
     
+    setProperties(memberKey: string, propertyMap: Object, descriptor?: PropertyDescriptor): void {
+        assert(arguments.length === 2 || arguments.length === 3, 'setProperties on an meta hash must be called with two arguments; a member key, and a  property map; optional you can add a descriptor');
+        assert(typeof memberKey === 'string', 'The member key provided to the setProperty method on a meta hash must be a string', TypeError);
+        assert(typeof propertyMap === 'object', 'The propertyMap provided to the setProperties method on a meta hash must be an object', TypeError);
+        assert(typeof descriptor === 'undefined' || typeof descriptor === 'object', 'The descriptor provided to the setProperties method on a meta hash must be a PropertyDescriptor', TypeError);
+        
+        const map: any = propertyMap;
+        for (let propertyName in propertyMap) {
+            this.setProperty(memberKey, propertyName, map[propertyName], descriptor);
+        }
+    }
+    
     /**
      * Returns the property of a member in the meta hash
      * or `undefined` if the property or the member do not exist.

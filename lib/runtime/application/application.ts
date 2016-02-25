@@ -1,7 +1,7 @@
 import { Mojito } from './../../mojito/mojito';
 import { assert } from './../../debug';
 import { CoreClass, Meta } from './../../core';
-import { Controller } from './../controller/controller';
+import { Controller, IController, IControllerMeta } from './../controller/controller';
 
 export class Application extends CoreClass {
     
@@ -10,7 +10,15 @@ export class Application extends CoreClass {
     }
     
     set name(value: string) {
-        throw new Error('Setting a application name directly is not allowed. The name has to be provided on the constructor');
+        throw new Error('Setting an application name directly is not allowed. The name has to be provided on the constructor');
+    }
+    
+    get root(): Element {
+        return Meta.peek(this).getProperty('values', 'root');
+    }
+    
+    set root(value: Element) {
+        throw new Error('Setting the application root directly is not allowed.');
     }
     
     constructor(name: string) {
@@ -21,8 +29,14 @@ export class Application extends CoreClass {
         super();
         
         const meta = Meta.peek(this);
+        const root = document.querySelector('[data-application="' + name + '"]'); // TODO: Use template engine when implemented
         
-        meta.setProperty('values', 'name', name, {
+        assert(root instanceof Element, 'No application root was found!');
+        
+        meta.setProperties('values', {
+            name: name,
+            root: root
+        }, {
             writable: false,
             configurable: false,
             enumerable: false
@@ -30,17 +44,31 @@ export class Application extends CoreClass {
         
         meta.createMember('controllers');
         meta.createMember('components');
-        console.dir(Mojito);
+        
         Mojito.getInstance().registerApplication(this);
     }
     
-    registerController(ControllerClass: Function): Controller {
-        assert(arguments.length === 1, 'registerController must be called with on argument: a controller class');
-        const controllerInstance = new (ControllerClass.constructor());
+    registerController(ControllerClass: IController, meta: IControllerMeta): Array<Controller> {
+        assert(arguments.length === 2, 'registerController must be called with on argument: a controller class');
         
-        debugger;
+        const controllers: Array<Controller> = Controller.register(ControllerClass, meta);
         
-        return controllerInstance;
+        let controllersList:Array<Controller> = Meta.peek(this).getProperty('controllers', ControllerClass.name);
+        if (!Array.isArray(controllersList)) {
+            Meta.peek(this).setProperty('controllers', ControllerClass.name, controllersList = []);
+        }
+        Array.prototype.push.apply(controllersList, controllers);
+        
+        return controllersList;
+    }
+    
+    getControllers(): Object {
+        return Meta.peek(this).getMember('controllers');
+    }
+    
+    getControllersByClassName(className: string): Object {
+        let controllersList: Array<Controller> = Meta.peek(this).getProperty('controllers', className);
+        return Array.isArray(controllersList) ? controllersList : [];
     }
     
     static create(name: string) {

@@ -1,20 +1,34 @@
 import { CoreClass } from './../class/class';
 import { Meta } from './../meta/meta';
 import { assert } from './../../debug/debug';
+import { Application } from './../../runtime';
+
+export interface onDidAttachView {
+    onDidAttachView(element: Element): void;
+}
+
+export interface onDidRenderView {
+    onDidRenderView(element: Element): void;
+}
 
 export abstract class CoreView extends CoreClass {
-    
+
+    private _isAttached: boolean = false;
+    private _isRendered: boolean = false;
+    private _isDestroyed: boolean = false;
+
     get $(): Function {
-        return function(selector: string): Element | NodeListOf<Element>{
-            assert(typeof selector === 'string' || typeof selector === 'undefined', 'The CoreView has to be created with an Element', TypeError);
-            const element: Element = Meta.peek(this).getProperty('values', 'element');
+        return function(selector: string): Element | NodeListOf<Element> {
+            const element: Element = Meta.peek(this).getProperty('view', 'element');
+            assert(this._isAttached, 'The views element is available after it got created. Use the `onDidCreateView` hook to detect when the view is ready.');
+            assert(typeof selector === 'string' || typeof selector === 'undefined', 'The selector provided to $ has to be a string', TypeError);
 
             if (typeof selector === 'string') {
                 assert(!!element.querySelectorAll, 'The element does not support querySelectorAll', TypeError);
                 const elements = element.querySelectorAll(selector);
                 return elements.length === 1 ? elements.item(0) : elements;
             }
-            
+
             return element;
         }
     }
@@ -22,17 +36,20 @@ export abstract class CoreView extends CoreClass {
     set $(value) {
         throw new Error('Setting $ on a view is not allowed');
     }
-    
-    constructor(element: Element) {
-        assert(element instanceof Element, 'The CoreView can only be created with an Element (HTMLElement)', TypeError);
+
+    _attachView(element: Element): void {
+        assert(!this._isAttached, 'The views is already attached. It`s not allowed to attach it again!');
+
+        const self: any = this;
+        const onDidAttachView = self['onDidAttachView'];
         
-        super();
+        Meta.peek(this).setProperty('view', 'element', element);
+        this._isAttached = true;
         
-        // set the element
-        Meta.peek(this).setProperty('values', 'element', element, {
-            writable: false,
-            configurable: false,
-            enumerable: false
-        });
+        if (typeof onDidAttachView === 'function') {
+            onDidAttachView(element);
+        }
     }
+
+    _renderView(): void { }
 }
