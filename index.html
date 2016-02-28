@@ -9,7 +9,7 @@
     baseURL: '/.tmp',
     defaultJSExtensions: true
   });
-  System.import('mojito/mojito.js');
+  System.import('mint/mint.js');
   </script>
   <!--  
     <script src="bundle/mojito.js"></script>
@@ -20,8 +20,16 @@
   <h1>mojito.js</h1>
   <p>npm start</p>
   <p>npm run start:test</p>
-  <my-controller></my-controller>
+  <my-controller (click)="fn1()"></my-controller>
+  <div class="btn [isDisabled:disabled:enabled] btn-aaa"><a href="">aaaaa</a></div>
+  <ul>
+      <li>safdasf</li>
+      <li>asdfsadf</li>
+  </ul>
+  <input [disabled]="var" type="text" [value]="var1">
+  <input type="text" [(value)]="var2">
   <a href=".results/mojito/index.html" target="_blank">Test Results</a>
+  
 </body>
 
 </html>
