@@ -1,3 +1,4 @@
+export { Mojito } from './runtime/mojito/mojito';
 export { Application } from './runtime/application/application';
 //export { Component } from './runtime/component/component';
 export { Controller } from './runtime/controller/controller';

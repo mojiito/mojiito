@@ -16,7 +16,26 @@ import { DOMParser } from './dom-parser/dom-parser';
 const parser = new DOMParser();
 
 // action hook
-parser.registerAttributeHook((attribute: Attr) => {
+parser.registerAttributeHook({
+    predicate: function(attribute: Attr) {
+        return !!attribute.name.match(/^\[{2}\w+\]{2}|data-\w+$/);
+    },
+    onBeforeParse: function(element: Element, attribute: Attr, context: Array<any>){
+        return [{test: 'a'}];
+    } 
+});
+
+// action hook
+parser.registerAttributeHook({
+    predicate: function(attribute: Attr) {
+        return !!attribute.name.match(/^\(\w+\)|data-on-\w+$/) && !!attribute.value.match(/\w+\(.*\)/);
+    },
+    onParse: function(element: Element, attribute: Attr, context: Array<any>){
+        console.log(element, attribute, context);
+    } 
+});
+/*
+    (attribute: Attr) => {
     return !!attribute.name.match(/^\(\w+\)|data-on-\w+$/) && !!attribute.value.match(/\w+\(.*\)/);
 }, (element: Element, attribute: Attr, context: Array<any>) => {
     console.log(attribute);
@@ -38,7 +57,7 @@ parser.registerAttributeHook((attribute: Attr) => {
     return !!attribute.name.match(/^\[{2}\w+\]{2}|data-\w+$/);
 }, (element: Element, attribute: Attr, context: Array<any>) => {
     return [element];
-});
+});*/
 console.time('parse');
 parser.parseTree(document.body);
 console.timeEnd('parse');
