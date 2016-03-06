@@ -1,4 +1,4 @@
-import { Mojito } from './../../mojito/mojito';
+import { Mojito } from './../mojito/mojito';
 import { assert } from './../../debug';
 import { CoreClass, Meta } from './../../core';
 import { Controller, IController, IControllerMeta } from './../controller/controller';

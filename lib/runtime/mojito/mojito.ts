@@ -1,30 +1,12 @@
-import { CoreObject, CoreArray, CoreView, CoreClass, Meta, observes, get, set } from './../core';
-import { Application, Controller, Service, register, injectable, inject, singleton } from './../runtime';
+import { Meta, get, set } from './../core';
+import { Application, singleton } from './../runtime';
 import { assert } from './../debug';
+
 
 @singleton
 export class Mojito {
     
     private static GLOBAL_NAMESPACE = 'Mojito';
-        
-    // core            
-    public Meta: Function = Meta;
-    public Object: Function = CoreObject;
-    public Array: Function = CoreArray;
-    public get: Function = get;
-    public set: Function = set;
-    
-    // runtime
-    public Application: Function = Application;
-    public Controller: Function = Controller;
-    public Service: Function = Service;
-    public register: Function = register;
-    public injectable: Function = injectable;
-    public inject: Function = inject;
-    public singleton: Function = singleton; 
-    
-    // debug
-    public assert: Function = assert;
     
     constructor() {
         
@@ -58,16 +40,3 @@ export class Mojito {
         return get(Mojito, 'instance');
     }
 }
-
-const app = Application.create('app');
-
-@register({
-    application: 'app',
-    selector: 'my-controller'
-})
-class MyController extends Controller {
-    constructor() {
-        super();
-    }
-}
-
