@@ -15,6 +15,7 @@
         "typings",
         "dist",
         ".tmp",
-        ".results"
+        ".results",
+        "examples"
     ]
 }
