@@ -31,7 +31,7 @@ export class DOMParser {
         if (!Array.isArray(context)) {
             context = [];
         }
-
+        
         // Skip script and styles elements
         const tagName: string = element.tagName.toUpperCase();
         if (tagName.toUpperCase() === 'SCRIPT' || tagName.toUpperCase() === 'STYLES') {
@@ -42,16 +42,14 @@ export class DOMParser {
         const parseFunctions: any[] = [];
         const afterParseFunctions: any[] = [];
         let localContext: Array<Object> = [];
+        let filteredContext = context.filter((context: any) => !!context);
         for (let i = 0, max = elementHooks.length; i < max; i++) {
             var elementHook = elementHooks[i];
             if (elementHook.predicate(element)) {
                 if (elementHook.onBeforeParse) {
-                    localContext = localContext.concat(elementHook.onBeforeParse(element, context.filter((context: any) => {
-                        debugger;
-                        return !!context;
-                    })));
+                    localContext = localContext.concat(elementHook.onBeforeParse(element, filteredContext));
                 }
-                
+
                 (function(hook: IDOMParseElementHook, element: Element) {
                     if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, context); });
                     if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, context); });
@@ -62,7 +60,6 @@ export class DOMParser {
         const attributes: NamedNodeMap = element.attributes;
         const attributeHooks = this.attributeHooks;
         let diff: number = 0;
-        let filteredContext = context;//context.filter((context: any) => !!context);
         for (let i = 0, max = attributes.length; i < max; i++) {
             let attribute: Attr = attributes[i - diff];
             for (let j = 0, max = attributeHooks.length; j < max; j++) {
@@ -74,7 +71,7 @@ export class DOMParser {
                     }
                     element.removeAttributeNode(attribute);
                     diff++;
-                    
+
                     (function(hook: IDOMParseAttributeHook, element: Element, attribute: Attr) {
                         if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, attribute, context); });
                         if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, attribute, context); });
@@ -83,7 +80,7 @@ export class DOMParser {
             }
         }
         context.unshift(localContext.length ? localContext : null);
-        //filteredContext = context.filter((context: any) => !!context);
+        filteredContext = context.filter((context: any) => !!context);
 
         for (let i = 0, max = parseFunctions.length; i < max; i++) {
             parseFunctions[i](filteredContext);
@@ -109,11 +106,11 @@ export class DOMParser {
         for (let i = 0, max = afterParseFunctions.length; i < max; i++) {
             afterParseFunctions[i](filteredContext);
         }
-
+        
         context.shift();
     }
 
-    registerElementHook(hook: IDOMParseElementHook): void  {
+    registerElementHook(hook: IDOMParseElementHook): void {
         this.elementHooks.push(hook);
     }
 

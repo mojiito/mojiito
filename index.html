@@ -16,30 +16,30 @@
   -->
 </head>
 
-<body data-application="app">
-  <h1>mojito.js</h1>
-  <p>npm start</p>
-  <p>npm run start:test</p>
-  <my-controller (click)="fn1()" data-on-click="fn()"></my-controller>
-  <div class="btn [isDisabled:disabled:enabled] btn-aaa"><a href="">aaaaa</a></div>
-  <ul>
-      <li>safdasf</li>
-      <li>asdfsadf</li>
-  </ul>
-  <input [disabled]="var" type="text" [value]="var1" [test]="var1" [whatever]="var1">
-  <input type="text" [(value)]="var2" data-bind-value="var3" data-bind-test="(var3)">
-  <a href=".results/mojito/index.html" target="_blank">Test Results</a>
-  <my-component></my-component>
-  <div component="my-component"></div>
-  <div data-component="my-component"></div>
-  <div (click)="fn()" [[controller]]="MyController">
-      <p>
-          <div (click)="fn()" [[controller]]="MySecondController">
-              <p (click)="fn()"></p>
-          </div>
-      </p>
-  </div>
-  <div data-controller="MyController"></div>
+<body>
+    <h1>mojito.js</h1>
+    <p>npm start</p>
+    <p>npm run start:test</p>
+    <my-controller (click)="fn1()" data-on-click="fn()"></my-controller>
+    <div class="btn [isDisabled:disabled:enabled] btn-aaa"><a href="">aaaaa</a></div>
+    <ul>
+        <li>safdasf</li>
+        <li>asdfsadf</li>
+    </ul>
+    <input [disabled]="var" type="text" [value]="var1" [test]="var1" [whatever]="var1">
+    <input type="text" [(value)]="var2" data-bind-value="var3" data-bind-test="(var3)">
+    <a href=".results/mojito/index.html" target="_blank">Test Results</a>
+    <my-component></my-component>
+    <div component="my-component"></div>
+    <div data-component="my-component"></div>
+    <div (click)="fn()" [[controller]]="MyController">
+        <section>
+            <article (click)="fn()" [[controller]]="MySecondController">
+                <p (click)="fn()"></p>
+            </article>
+        </section>
+    </div>
+    <div data-controller="MyController"></div>
 </body>
 
 </html>
