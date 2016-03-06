@@ -1,12 +1,16 @@
 export interface IDOMParseElementHook {
     predicate: (element: Element) => boolean;
-    onResolvedPredicate: (element: Element, context: Array<any>) => void;
+    onBeforeParse?: (element: Element, context: Array<any>) => Object;
+    onParse?: (element: Element, context: Array<any>) => void;
+    onAfterParse?: (element: Element, context: Array<any>) => void;
     onDestroy?: (element: Element) => void;
 }
 
 export interface IDOMParseAttributeHook {
     predicate: (attribute: Attr) => boolean;
-    onResolvedPredicate: (element: Element, attribute: Attr, context: Array<any>) => Object;
+    onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => Object;
+    onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
+    onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
     onDestroy?: (element: Element, attribute: Attr) => void;
 }
 
@@ -23,7 +27,7 @@ export class DOMParser {
         if (!(element instanceof Element)) {
             throw new Error('The element element has to be an Element');
         }
-        
+
         if (!Array.isArray(context)) {
             context = [];
         }
@@ -35,32 +39,55 @@ export class DOMParser {
         }
 
         const elementHooks = this.elementHooks;
+        const parseFunctions: any[] = [];
+        const afterParseFunctions: any[] = [];
+        let localContext: Array<Object> = [];
         for (let i = 0, max = elementHooks.length; i < max; i++) {
-            let hook = elementHooks[i];
-            if (hook.predicate(element)) {
-                hook.onResolvedPredicate(element, context);
+            var elementHook = elementHooks[i];
+            if (elementHook.predicate(element)) {
+                if (elementHook.onBeforeParse) {
+                    localContext = localContext.concat(elementHook.onBeforeParse(element, context.filter((context: any) => {
+                        debugger;
+                        return !!context;
+                    })));
+                }
+                
+                (function(hook: IDOMParseElementHook, element: Element) {
+                    if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, context); });
+                    if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, context); });
+                })(elementHook, element);
             }
         }
 
         const attributes: NamedNodeMap = element.attributes;
         const attributeHooks = this.attributeHooks;
         let diff: number = 0;
-        let localContext: Array<Object> = [];
+        let filteredContext = context;//context.filter((context: any) => !!context);
         for (let i = 0, max = attributes.length; i < max; i++) {
             let attribute: Attr = attributes[i - diff];
             for (let j = 0, max = attributeHooks.length; j < max; j++) {
-                let hook = attributeHooks[j];
+                let attributeHook = attributeHooks[j];
 
-                if (hook.predicate(attribute)) {
-                    localContext = localContext.concat(hook.onResolvedPredicate(element, attribute, context.filter( (value: any) => {
-                        return !!value;
-                    })));
+                if (attributeHook.predicate(attribute)) {
+                    if (attributeHook.onBeforeParse) {
+                        localContext = localContext.concat(attributeHook.onBeforeParse(element, attribute, filteredContext));
+                    }
                     element.removeAttributeNode(attribute);
                     diff++;
+                    
+                    (function(hook: IDOMParseAttributeHook, element: Element, attribute: Attr) {
+                        if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, attribute, context); });
+                        if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, attribute, context); });
+                    })(attributeHook, element, attribute);
                 }
             }
         }
         context.unshift(localContext.length ? localContext : null);
+        //filteredContext = context.filter((context: any) => !!context);
+
+        for (let i = 0, max = parseFunctions.length; i < max; i++) {
+            parseFunctions[i](filteredContext);
+        }
 
         // loop through child nodes and recursively parse them       
         const nodes: NodeList = element.childNodes;
@@ -77,31 +104,21 @@ export class DOMParser {
             }
         }
 
+
+
+        for (let i = 0, max = afterParseFunctions.length; i < max; i++) {
+            afterParseFunctions[i](filteredContext);
+        }
+
         context.shift();
     }
 
-    registerElementHook(hook: IDOMParseElementHook): void;
-    registerElementHook(predicate: (element: Element) => boolean, onResolvedPredicate: (element: Element, context: Array<any>) => Object, onDestroy?: (element: Element) => void): void;
-    registerElementHook(...args: Array<any>) {
-        this.registerHook(this.elementHooks, ...args);
+    registerElementHook(hook: IDOMParseElementHook): void  {
+        this.elementHooks.push(hook);
     }
 
 
-    registerAttributeHook(hook: IDOMParseAttributeHook): void;
-    registerAttributeHook(predicate: (attribute: Attr) => boolean, onResolvedPredicate: (element: Element, attribute: Attr, context: Array<any>) => Object, onDestroy?: (element: Element, attribute: Attr) => void): void;
-    registerAttributeHook(...args: Array<any>) {
-        this.registerHook(this.attributeHooks, ...args);
-    }
-
-    private registerHook(hooksArray: Array<any>, ...args: Array<any>) {
-        if (args.length === 1) {
-            hooksArray.push(args[0]);
-        } else {
-            hooksArray.push({
-                predicate: args[0],
-                onResolvedPredicate: args[1],
-                onDestroy: args[2]
-            });
-        }
+    registerAttributeHook(hook: IDOMParseAttributeHook): void {
+        this.attributeHooks.push(hook);
     }
 }

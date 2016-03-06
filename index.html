@@ -34,8 +34,8 @@
   <div data-component="my-component"></div>
   <div (click)="fn()" [[controller]]="MyController">
       <p>
-          <div [[controller]]="MySecondController">
-              dig
+          <div (click)="fn()" [[controller]]="MySecondController">
+              <p (click)="fn()"></p>
           </div>
       </p>
   </div>
