@@ -16,7 +16,7 @@
     "test": "npm run tsc & npm run karma",
     "tsc": "tsc --rootDir lib --outDir .tmp --module amd",
     "karma": "karma start karma.conf.js",
-    "bundle": "browserify .tmp/mojito/mojito.js -o mojito.js",
+    "build": "tsc --out mojito.js ./lib/mojito.ts --experimentalDecorators --target es5 --module amd --declaration",
     "doc": "typedoc --out doc/ lib/ --module commonjs --experimentalDecorators --target es5 --mode file"
   },
   "devDependencies": {

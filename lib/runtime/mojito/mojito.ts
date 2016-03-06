@@ -1,6 +1,6 @@
-import { Meta, get, set } from './../core';
-import { Application, singleton } from './../runtime';
-import { assert } from './../debug';
+import { Meta, get, set } from '../../core';
+import { Application, singleton } from '../../runtime';
+import { assert } from '../../debug';
 
 
 @singleton

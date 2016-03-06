@@ -1,7 +1,7 @@
-import { Mojito } from './../../mojito/mojito';
-import { Application } from './../application/application';
-import { Controller, IController } from './../controller/controller';
-import { assert } from './../../debug/debug';
+import { Mojito } from '../mojito/mojito';
+import { Application } from '../application/application';
+import { Controller, IController } from '../controller/controller';
+import { assert } from '../../debug/debug';
 
 export function register(obj: { application: string, selector: string }): ClassDecorator {
     return function (TargetClass: IController) {
