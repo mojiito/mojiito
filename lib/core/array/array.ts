@@ -67,7 +67,7 @@ export class CoreArray {
      * 
      * @param {Array<any>} [array] Array to create CoreArray from
      */
-    constructor(array?: Array<any>, deepObservation: boolean = true) {
+    constructor(array?: Array<any>) {
         assert(this instanceof CoreArray, 'A CoreArray can only be instantiated with `new` or `CoreArray.create()`');
 
         const source: Array<any> = [];

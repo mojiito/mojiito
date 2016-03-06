@@ -7,7 +7,8 @@
         "preserveConstEnums": true,
         "rootDir": "lib",
         "sourceMap": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "declaration": true
     },
     "exclude": [
         "node_modules",
