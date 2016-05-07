@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "system",
+    "outFile": "../mojito.js",
+    "inlineSourceMap": true,
+    "target": "es5"
+  },
+  "files": [
+    "./mojito/core.ts",
+    "./mojito/debug.ts",
+    "./mojito/runtime.ts"
+  ]
+}
