@@ -1,0 +1,12 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "rootDir": ".",
+    "inlineSourceMap": true,
+    "sourceRoot": "/",
+    "target": "es5"
+  },
+  "files": [
+    "./typings.d.ts"
+  ]
+}

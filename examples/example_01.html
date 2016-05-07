@@ -3,7 +3,7 @@
 <head>
   <script src="../node_modules/systemjs/dist/system-polyfills.js"></script>
   <script src="../node_modules/systemjs/dist/system.js"></script>
-  
+  <script src="../mojito.js"></script>
   <script>
     // set our baseURL reference path
   System.config({
@@ -13,8 +13,8 @@
       'typescript': '../node_modules/typescript/lib/typescript.js'
     }
   });
-  System.import('../mojito.js');
-  System.import('./example_01.ts').catch(err => {console.error(err)});
+  
+  System.import('example_01.ts').catch(err => {console.error(err)});
   </script>
 </head>
 

@@ -1,13 +1,13 @@
-// import { assert } from 'mojito/debug';
-import {assert} from '../lib/debug';
+import { assert } from 'mojito/debug';
+//import {assert} from '../lib/debug';
 
-// import { CoreObject, set, get } from 'mojito/core';
-import { CoreObject, set, get } from '../lib/core';
+import { CoreObject, set, get } from 'mojito/core';
+//import { CoreObject, set, get } from '../lib/core';
 
-// import { Application } from 'mojito/runtime';
-import { Application } from '../lib/runtime';
+//import { Application } from 'mojito/runtime';
+//import { Application } from '../lib/runtime';
 
-assert(true, 'test');
+assert(false, 'test');
 
 //var app = new Application('xx'); 
 
