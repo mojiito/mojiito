@@ -1,7 +1,7 @@
 import { CoreClass } from './../class/class';
 import { Meta } from './../meta/meta';
 import { assert } from './../../debug/debug';
-import { Application } from './../../runtime';
+import { Application } from '../../runtime/runtime';
 
 export interface onDidAttachView {
     onDidAttachView(element: Element): void;

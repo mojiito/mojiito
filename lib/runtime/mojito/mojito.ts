@@ -1,6 +1,6 @@
-import { Meta, get, set } from '../../core';
-import { Application, singleton } from '../../runtime';
-import { assert } from '../../debug';
+import { Meta, get, set } from '../../core/core';
+import { Application, singleton } from '../../runtime/runtime';
+import { assert } from '../../debug/debug';
 
 export class Mojito {
     

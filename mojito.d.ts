@@ -610,11 +610,8 @@ declare module "core/class/class" {
         constructor(propertyMap?: Object);
     }
 }
-declare module "debug" {
-    export { assert } from "debug/assert/assert";
-}
 declare module "runtime/mojito/mojito" {
-    import { Application } from "runtime";
+    import { Application } from "runtime/runtime";
     export class Mojito {
         private static GLOBAL_NAMESPACE;
         constructor();
@@ -625,7 +622,7 @@ declare module "runtime/mojito/mojito" {
     }
 }
 declare module "runtime/controller/controller" {
-    import { CoreView } from "core";
+    import { CoreView } from "core/core";
     import { Application } from "runtime/application/application";
     export interface IControllerMeta {
         application: Application;
@@ -642,7 +639,7 @@ declare module "runtime/controller/controller" {
     }
 }
 declare module "runtime/application/application" {
-    import { CoreClass } from "core";
+    import { CoreClass } from "core/core";
     import { Controller, IController, IControllerMeta } from "runtime/controller/controller";
     export class Application extends CoreClass {
         name: string;
@@ -655,7 +652,7 @@ declare module "runtime/application/application" {
     }
 }
 declare module "runtime/service/service" {
-    import { CoreObject } from "core";
+    import { CoreObject } from "core/core";
     export abstract class Service extends CoreObject {
     }
 }
@@ -682,7 +679,7 @@ declare module "runtime/register/register" {
         selector: string;
     }): ClassDecorator;
 }
-declare module "runtime" {
+declare module "runtime/runtime" {
     export { Mojito } from "runtime/mojito/mojito";
     export { Application } from "runtime/application/application";
     export { Controller } from "runtime/controller/controller";
@@ -709,7 +706,7 @@ declare module "core/view/view" {
         _renderView(): void;
     }
 }
-declare module "core" {
+declare module "core/core" {
     export { get } from "core/get/get";
     export { set } from "core/set/set";
     export { Meta } from "core/meta/meta";
@@ -719,8 +716,12 @@ declare module "core" {
     export { CoreView, onDidAttachView, onDidRenderView } from "core/view/view";
     export { Observer, observes } from "core/observer/observer";
 }
-declare module "mojito" {
-    export { CoreObject, CoreArray, CoreClass, CoreView, Meta } from "core";
-    export { Mojito, Application, Controller, Service, singleton, inject, injectable, register } from "runtime";
-    export { assert } from "debug";
+declare module "mojito/core" {
+    export * from "core/core";
+}
+declare module "mojito/debug" {
+    export * from "debug/debug";
+}
+declare module "mojito/runtime" {
+    export * from "runtime/runtime";
 }

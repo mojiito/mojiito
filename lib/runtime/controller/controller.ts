@@ -1,4 +1,4 @@
-import { CoreView, onDidAttachView, onDidRenderView, Meta } from './../../core';
+import { CoreView, onDidAttachView, onDidRenderView, Meta } from './../../core/core';
 import { assert } from './../../debug/debug';
 import { Application } from './../application/application';
 

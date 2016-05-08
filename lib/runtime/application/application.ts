@@ -1,6 +1,6 @@
 import { Mojito } from './../mojito/mojito';
-import { assert } from './../../debug';
-import { CoreClass, Meta } from './../../core';
+import { assert } from './../../debug/debug';
+import { CoreClass, Meta } from './../../core/core';
 import { Controller, IController, IControllerMeta } from './../controller/controller';
 
 export class Application extends CoreClass {
