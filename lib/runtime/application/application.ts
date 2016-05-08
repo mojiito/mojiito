@@ -21,20 +21,15 @@ export class Application extends CoreClass {
         throw new Error('Setting the application root directly is not allowed.');
     }
     
-    constructor(name: string) {
-        assert(arguments.length === 1, 'Application must be created with on argument: a name');
-        assert(typeof name === 'string', 'The name provided to the Application must be a string', TypeError);
-        assert(!Mojito.getInstance().getApplication(name) , 'An Application with the provided name has already been created');
+    constructor(root: HTMLElement) {
+        // assert(arguments.length === 1, 'Application must be created with on argument: a name');
+        // assert(typeof name === 'string', 'The name provided to the Application must be a string', TypeError);
         
         super();
         
         const meta = Meta.peek(this);
-        const root = document.querySelector('[data-application="' + name + '"]'); // TODO: Use template engine when implemented
-        
-        assert(root instanceof Element, 'No application root was found!');
         
         meta.setProperties('values', {
-            name: name,
             root: root
         }, {
             writable: false,
@@ -44,8 +39,6 @@ export class Application extends CoreClass {
         
         meta.createMember('controllers');
         meta.createMember('components');
-        
-        Mojito.getInstance().registerApplication(this);
     }
     
     registerController(ControllerClass: IController, meta: IControllerMeta): Array<Controller> {
@@ -71,10 +64,10 @@ export class Application extends CoreClass {
         return Array.isArray(controllersList) ? controllersList : [];
     }
     
-    static create(name: string) {
-        assert(arguments.length === 1, 'Application must be created with on argument: a name');
-        assert(typeof name === 'string', 'The name provided to the create method must be a string', TypeError);
+    static create(root: HTMLElement) {
+        // assert(arguments.length === 1, 'Application must be created with on argument: a name');
+        // assert(typeof name === 'string', 'The name provided to the create method must be a string', TypeError);
         
-        return new Application(name)
+        return new Application(root)
     }
 }

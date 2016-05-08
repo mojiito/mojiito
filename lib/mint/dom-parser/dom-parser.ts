@@ -1,29 +1,43 @@
-export interface IDOMParseElementHook {
+export interface IDOMParserElementHook {
     predicate: (element: Element) => boolean;
-    onBeforeParse?: (element: Element, context: Array<any>) => Object;
+    onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
     onParse?: (element: Element, context: Array<any>) => void;
     onAfterParse?: (element: Element, context: Array<any>) => void;
     onDestroy?: (element: Element) => void;
 }
 
-export interface IDOMParseAttributeHook {
+export interface IDOMParserAttributeHook {
     predicate: (attribute: Attr) => boolean;
-    onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => Object;
+    onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
     onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
     onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
     onDestroy?: (element: Element, attribute: Attr) => void;
 }
 
+export interface IDOMParserContextObject {
+    type: string,
+    name: string,
+    context: IDOMParserContext
+}
+
+export interface IDOMParserContextList extends Array<IDOMParserContextObject> {
+    [index: number]: IDOMParserContextObject;
+};
+
+export interface IDOMParserContext extends Array<IDOMParserContextList> {
+    [index: number]: IDOMParserContextList;
+};
+
 export class DOMParser {
 
-    private elementHooks: Array<IDOMParseElementHook> = [];
-    private attributeHooks: Array<IDOMParseAttributeHook> = [];
+    private elementHooks: Array<IDOMParserElementHook> = [];
+    private attributeHooks: Array<IDOMParserAttributeHook> = [];
 
     parseTree(rootElement?: Element): void {
         this.parseNode(rootElement, []);
     }
 
-    private parseNode(element: Element, context?: Array<any>): void {
+    private parseNode(element: Element, context?: IDOMParserContext): void {
         if (!(element instanceof Element)) {
             throw new Error('The element element has to be an Element');
         }
@@ -41,16 +55,20 @@ export class DOMParser {
         const elementHooks = this.elementHooks;
         const parseFunctions: any[] = [];
         const afterParseFunctions: any[] = [];
-        let localContext: Array<Object> = [];
+        let localContext: IDOMParserContextList = [];
         let filteredContext = context.filter((context: any) => !!context);
         for (let i = 0, max = elementHooks.length; i < max; i++) {
             var elementHook = elementHooks[i];
             if (elementHook.predicate(element)) {
                 if (elementHook.onBeforeParse) {
-                    localContext = localContext.concat(elementHook.onBeforeParse(element, filteredContext));
+                    try {
+                        localContext = localContext.concat(elementHook.onBeforeParse(element, filteredContext));
+                    } catch (ex) {
+                        console.error(ex);
+                    }
                 }
 
-                (function(hook: IDOMParseElementHook, element: Element) {
+                (function(hook: IDOMParserElementHook, element: Element) {
                     if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, context); });
                     if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, context); });
                 })(elementHook, element);
@@ -67,12 +85,16 @@ export class DOMParser {
 
                 if (attributeHook.predicate(attribute)) {
                     if (attributeHook.onBeforeParse) {
-                        localContext = localContext.concat(attributeHook.onBeforeParse(element, attribute, filteredContext));
+                        try {
+                            localContext = localContext.concat(attributeHook.onBeforeParse(element, attribute, filteredContext));
+                        } catch (ex) {
+                            console.error(ex);
+                        }
                     }
                     element.removeAttributeNode(attribute);
                     diff++;
 
-                    (function(hook: IDOMParseAttributeHook, element: Element, attribute: Attr) {
+                    (function(hook: IDOMParserAttributeHook, element: Element, attribute: Attr) {
                         if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, attribute, context); });
                         if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, attribute, context); });
                     })(attributeHook, element, attribute);
@@ -110,12 +132,12 @@ export class DOMParser {
         context.shift();
     }
 
-    registerElementHook(hook: IDOMParseElementHook): void {
+    registerElementHook(hook: IDOMParserElementHook): void {
         this.elementHooks.push(hook);
     }
 
 
-    registerAttributeHook(hook: IDOMParseAttributeHook): void {
+    registerAttributeHook(hook: IDOMParserAttributeHook): void {
         this.attributeHooks.push(hook);
     }
 }

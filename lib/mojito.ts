@@ -1,3 +1,8 @@
-export { CoreObject, CoreArray, CoreClass, CoreView, Meta } from './core';
-export { Mojito, Application, Controller, Service, singleton, inject, injectable, register } from './runtime';
-export { assert } from './debug';
+import { CoreObject, CoreArray, CoreClass, CoreView, Meta } from './core';
+import { Mojito, Application, Controller, Service, singleton, inject, injectable, register } from './runtime';
+import { assert } from './debug';
+
+@register({})
+class App extends Application {
+    
+}

@@ -11,29 +11,19 @@ private REGEX_FIND_FUNCTION_PARAMS = /\(.+\)$/;
 private REGEX_FIND_NAME = /\w+/;
 */
 
-import { DOMParser } from './dom-parser/dom-parser';
+import { DOMParser, IDOMParserContextObject, IDOMParserContext } from './dom-parser/dom-parser';
 
 const parser = new DOMParser();
 
 // action hook
-parser.registerAttributeHook({
-    predicate: function(attribute: Attr) {
-        return !!attribute.name.match(/^\[{2}\w+\]{2}|data-\w+$/);
-    },
-    onBeforeParse: function(element: Element, attribute: Attr, context: Array<any>){
-        return [{test: 'a'}];
-    } 
-});
-
-// action hook
-parser.registerAttributeHook({
-    predicate: function(attribute: Attr) {
-        return !!attribute.name.match(/^\(\w+\)|data-on-\w+$/) && !!attribute.value.match(/\w+\(.*\)/);
-    },
-    onParse: function(element: Element, attribute: Attr, context: Array<any>){
-        console.log(element, attribute, context);
-    } 
-});
+// parser.registerAttributeHook({
+//     predicate: function(attribute: Attr) {
+//         return !!attribute.name.match(/^\[{2}\w+\]{2}|data-\w+$/);
+//     },
+//     onBeforeParse: function(element: Element, attribute: Attr, context: Array<any>){
+//         return [{test: 'a'}];
+//     } 
+// });
 /*
     (attribute: Attr) => {
     return !!attribute.name.match(/^\(\w+\)|data-on-\w+$/) && !!attribute.value.match(/\w+\(.*\)/);
@@ -51,13 +41,39 @@ parser.registerAttributeHook((attribute: Attr) => {
     console.log(attribute);
     return null;
 });
-
+*/
 // definition hook
-parser.registerAttributeHook((attribute: Attr) => {
-    return !!attribute.name.match(/^\[{2}\w+\]{2}|data-\w+$/);
-}, (element: Element, attribute: Attr, context: Array<any>) => {
-    return [element];
-});*/
+parser.registerAttributeHook({
+    predicate: function(attribute: Attr): boolean {
+        return !!attribute.name.match(/^\[{2}\w+\]{2}|data-\w+$/);
+    },
+    onBeforeParse: function (element: Element, attribute: Attr, context: IDOMParserContext): IDOMParserContextObject {
+        let type = attribute.name.replace('data-', '').match(/\w+/)[0];
+        let name = attribute.value;
+        if (type !== 'application' && type !== 'controller' && type !== 'component') {
+            throw new Error('Unknown attribute definition found: ' + attribute.name);
+        }
+        if (type !== 'application') {
+            let applicationContext: IDOMParserContextObject = null;
+            for (let i = 0, imax = context.length; i < imax; i++) {
+                for (let j = 0, jmax = context[i].length; j < jmax; j++) {
+                    let contextObject = context[i][j];
+                    if (contextObject.type === 'application') {
+                        applicationContext = contextObject;
+                    }
+                }
+            }
+            if (!applicationContext) {
+                throw new Error(`Attribute definition "${attribute.name}=\"${attribute.value}\"" has no application context`);
+            }
+        }
+        return {
+            type: type,
+            name: name,
+            context: context
+        }
+    } 
+});
 console.time('parse');
 parser.parseTree(document.body);
 console.timeEnd('parse');

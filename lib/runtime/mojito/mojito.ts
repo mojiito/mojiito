@@ -15,8 +15,9 @@ export class Mojito {
     }
 
     registerApplication(application: Application): Application {
-        assert(arguments.length === 1, 'registerApplication must be called with one argument: an application instance');
-        assert(application instanceof Application, 'The argument provided to the registerApplication method must be an application instance', TypeError);
+        assert(arguments.length === 1, 'registerApplication must be called with one argument: an application class');
+
+
 
         return Meta.peek(this).setProperty('applications', application.name, application);
     }
@@ -33,7 +34,6 @@ export class Mojito {
     }
 
     static getInstance(): Mojito {
-        debugger;
         if (!get(Mojito, '_instance')) {
             
             let instance = new Mojito();
