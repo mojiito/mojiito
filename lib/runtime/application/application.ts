@@ -6,7 +6,7 @@ import { Controller, IController, IControllerMeta } from './../controller/contro
 
 export interface IApplicationClass {
     new (): Application;
-    register(ApplicationClass: IApplicationClass);
+    register(ApplicationClass: IApplicationClass): void;
 }
 
 export interface IApplicationMeta {
