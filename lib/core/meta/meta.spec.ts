@@ -122,8 +122,6 @@ describe('Meta', () => {
                 writeable: false
             });
             expect(meta['_values']['myValue']).toBe(1);
-            meta.setProperty('values', 'myValue', 2);
-            expect(meta['_values']['myValue']).toBe(1);
         });
     });
 
