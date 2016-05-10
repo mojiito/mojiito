@@ -6,4 +6,4 @@ Check the [wiki/documentation](https://github.com/thomaspink/mojito.js/wiki) for
 ## Building Mojito.js
 1. Ensure that Node.js is installed.
 2. Run `npm install` to ensure the required dependencies are installed.
-3. Run `npm run build` to build Ember.js. The builds will be placed in the dist/ directory.
+3. Run `npm run build` to build Mojito.js. The builds will be placed in the dist/ directory.
