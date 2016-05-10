@@ -1,6 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "experimentalDecorators": true,
     "rootDir": ".",
     "inlineSourceMap": true,
     "sourceRoot": "/",

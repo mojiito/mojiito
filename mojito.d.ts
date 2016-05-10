@@ -604,6 +604,90 @@ declare module "core/set/set" {
      */
     export function set(obj: Object, propertyName: string, value: any): any;
 }
+declare module "core/iterator/iterator" {
+    export interface IIteratorItem {
+        value?: any;
+        done: boolean;
+    }
+    export interface IIterator {
+        next(): IIteratorItem;
+    }
+    export interface IIterable {
+        length: number;
+    }
+    export class CoreIterator implements IIterator {
+        protected _nextIndex: number;
+        protected _source: IIterable;
+        constructor(source: IIterable);
+        next(): IIteratorItem;
+    }
+}
+declare module "core/map/map" {
+    import { CoreIterator, IIteratorItem, IIterable } from "core/iterator/iterator";
+    export class CoreMapIterator extends CoreIterator {
+        private _field;
+        constructor(source: IIterable, field?: number);
+        next(): IIteratorItem;
+    }
+    export class CoreMap {
+        private _source;
+        size: number;
+        length: number;
+        /**
+         * Removes all key/value pairs from the Map object.
+         */
+        clear(): void;
+        /**
+         * Removes any value associated to the key and returns the value that Map.has(key) would have previously returned.
+         * Map.prototype.has(key) will return false afterwards.
+         */
+        delete(key: any): void;
+        /**
+         * Currently not supported!
+         * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
+         */
+        entries(): CoreIterator;
+        /**
+         * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
+         * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
+         *
+         * @param {(value: any, key: any, map: CoreMap) => void} callbackFn Function to execute for each element.
+         * @param {(Object | Function)} [thisArg] Value to use as this when executing callback.
+         */
+        forEach(callbackFn: (value: any, key: any, map: CoreMap) => any, thisArg?: Object | Function): any;
+        /**
+         * Returns the value associated to the key, or undefined if there is none.
+         *
+         * @param {*} key The key of the element to return from the Map object.
+         * @returns {*} Value associated to the key, or undefined
+         */
+        get(key: any): any;
+        /**
+         * eturns a boolean asserting whether a value has been associated to the key in the Map object or not.
+         *
+         * @param {*} key The key of the element to test for presence in the Map object.
+         * @returns {boolean} Value associated to the key
+         */
+        has(key: any): boolean;
+        /**
+         * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
+         */
+        keys(): CoreMapIterator;
+        /**
+         * Sets the value for the key in the Map object. Returns the Map object.
+         *
+         * @param {*} key The key of the element to add to the Map object.
+         * @param {*} value The value of the element to add to the Map object.
+         * @returns {CoreMap} The Map object
+         */
+        set(key: any, value: any): CoreMap;
+        /**
+         * Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
+         */
+        values(): CoreMapIterator;
+        static create(): CoreMap;
+    }
+}
 declare module "core/class/class" {
     import { CoreObject } from "core/object/object";
     export abstract class CoreClass extends CoreObject {
@@ -611,15 +695,19 @@ declare module "core/class/class" {
     }
 }
 declare module "runtime/mojito/mojito" {
-    import { Application } from "runtime/runtime";
+    import { ITargetClass } from "runtime/runtime";
     export class Mojito {
         private static GLOBAL_NAMESPACE;
         constructor();
-        registerApplication(application: Application): Application;
-        getApplication(applicationName: string): Application;
-        getApplications(): Object;
+        register(TargetClass: ITargetClass, meta?: Object): void;
         static getInstance(): Mojito;
     }
+}
+declare module "utils/class/class" {
+    export function getClassName(Klass: Function): any;
+}
+declare module "utils/utils" {
+    export { getClassName } from "utils/class/class";
 }
 declare module "runtime/controller/controller" {
     import { CoreView } from "core/core";
@@ -634,21 +722,23 @@ declare module "runtime/controller/controller" {
     }
     export abstract class Controller extends CoreView {
         constructor();
-        _attachController(element: Element): void;
-        static register(ControllerClass: IController, meta: IControllerMeta): Array<Controller>;
+        static register(ControllerClass: IController, meta: IControllerMeta): void;
     }
 }
 declare module "runtime/application/application" {
-    import { CoreClass } from "core/core";
-    import { Controller, IController, IControllerMeta } from "runtime/controller/controller";
-    export class Application extends CoreClass {
-        name: string;
+    import { CoreClass, CoreMap } from "core/core";
+    export interface IApplicationClass {
+        new (): Application;
+        register(ApplicationClass: IApplicationClass): any;
+    }
+    export interface IApplicationMeta {
+        name?: string;
+    }
+    export abstract class Application extends CoreClass {
+        static applicationClassList: CoreMap;
         root: Element;
-        constructor(name: string);
-        registerController(ControllerClass: IController, meta: IControllerMeta): Array<Controller>;
-        getControllers(): Object;
-        getControllersByClassName(className: string): Object;
-        static create(name: string): Application;
+        constructor(root: HTMLElement);
+        static register(ApplicationClass: IApplicationClass, meta?: IApplicationMeta): void;
     }
 }
 declare module "runtime/service/service" {
@@ -674,10 +764,12 @@ declare module "runtime/inject/inject" {
     export function inject(InjectableClass: any): PropertyDecorator;
 }
 declare module "runtime/register/register" {
-    export function register(obj: {
-        application: string;
-        selector: string;
-    }): ClassDecorator;
+    export interface ITargetClass {
+        new (): Function;
+        register(TargetClass: ITargetClass, meta?: Object): void;
+    }
+    export function register(meta?: Object): ClassDecorator;
+    export function registerClass(TargetClass: ITargetClass, meta?: Object): void;
 }
 declare module "runtime/runtime" {
     export { Mojito } from "runtime/mojito/mojito";
@@ -687,7 +779,7 @@ declare module "runtime/runtime" {
     export { injectable } from "runtime/injectable/injectable";
     export { inject } from "runtime/inject/inject";
     export { singleton } from "runtime/singleton/singleton";
-    export { register } from "runtime/register/register";
+    export { register, registerClass, ITargetClass } from "runtime/register/register";
 }
 declare module "core/view/view" {
     import { CoreClass } from "core/class/class";
@@ -712,6 +804,7 @@ declare module "core/core" {
     export { Meta } from "core/meta/meta";
     export { CoreObject } from "core/object/object";
     export { CoreArray } from "core/array/array";
+    export { CoreMap } from "core/map/map";
     export { CoreClass } from "core/class/class";
     export { CoreView, onDidAttachView, onDidRenderView } from "core/view/view";
     export { Observer, observes } from "core/observer/observer";

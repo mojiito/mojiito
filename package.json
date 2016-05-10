@@ -14,9 +14,9 @@
     "server": "live-server --wait=1000 --watch=.tmp",
     "server:test": "live-server --watch=.results/mojito/index.html --open=.results/mojito/index.html",
     "test": "npm run tsc & npm run karma",
-    "tsc": "tsc --rootDir lib --outDir .tmp --module amd",
+    "tsc": "tsc -p lib/",
     "karma": "karma start karma.conf.js",
-    "build": "tsc --out mojito.js ./lib/mojito.ts --experimentalDecorators --target es5 --module amd --declaration",
+    "build": "npm run tsc",
     "doc": "typedoc --out doc/ lib/ --module commonjs --experimentalDecorators --target es5 --mode file"
   },
   "devDependencies": {

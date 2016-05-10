@@ -18,27 +18,27 @@ export abstract class Controller extends CoreView {
         super();
     }
     
-    _attachController(element: Element) {
-        super._attachView(element);
-    }
+    // _attachController(element: Element) {
+    //     super._attachView(element);
+    // }
     
-    static register(ControllerClass: IController, meta: IControllerMeta): Array<Controller> {
-        const elements = meta.application.root.querySelectorAll(meta.selector);
-        let instances: Array<Controller> = [];
-        for (let i = 0, max = elements.length; i < max; i++) {
-            let element = elements[i];
-            let controllerInstance = new ControllerClass();
+    static register(ControllerClass: IController, meta: IControllerMeta) {
+        // const elements = meta.application.root.querySelectorAll(meta.selector);
+        // let instances: Array<Controller> = [];
+        // for (let i = 0, max = elements.length; i < max; i++) {
+        //     let element = elements[i];
+        //     let controllerInstance = new ControllerClass();
             
-            Meta.peek(controllerInstance).setProperties('controller', meta, {
-                writable: false,
-                configurable: false,
-                enumerable: true
-            });
+        //     Meta.peek(controllerInstance).setProperties('controller', meta, {
+        //         writable: false,
+        //         configurable: false,
+        //         enumerable: true
+        //     });
             
-            instances.push(controllerInstance);
-            controllerInstance._attachController(element);
-        }
+        //     instances.push(controllerInstance);
+        //     controllerInstance._attachController(element);
+        // }
 
-        return instances;
+        // return instances;
     }
 }

@@ -1,0 +1,1 @@
+export { getClassName } from './class/class';

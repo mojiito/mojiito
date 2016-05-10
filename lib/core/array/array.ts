@@ -108,8 +108,8 @@ export class CoreArray {
      */
     concat(...values: any[]): CoreArray;
     concat(...values: any[]): CoreArray {
-        for (var index = 0, max = values.length; index < max; index++) {
-            var element:CoreArray | any = values[index];
+        for (let index = 0, max = values.length; index < max; index++) {
+            let element:CoreArray | any = values[index];
             if (element instanceof CoreArray) {
                 values[index] = element.toArray();
             }
@@ -193,7 +193,7 @@ export class CoreArray {
             }, thisArg);
         } else {
             let value: any;
-            for (var i = 0, max = source.length >>> 0; i < max; i++) {
+            for (let i = 0, max = source.length >>> 0; i < max; i++) {
                 value = source[i];
                 if (predicate.call(thisArg ? thisArg : this, value, i, this)) {
                     return value;
@@ -215,7 +215,7 @@ export class CoreArray {
         const source: any = this.source;
         const fn = source['find'];
         let obj: any;
-        for (var i = 0, max = source.length >>> 0; i < max; i++) {
+        for (let i = 0, max = source.length >>> 0; i < max; i++) {
             obj = source[i];
             if (typeof obj === 'object' && obj[propertyName] === value) {
                 return obj;
@@ -242,7 +242,7 @@ export class CoreArray {
             }, thisArg);
         } else {
             let value: any;
-            for (var i = 0, max = source.length >>> 0; i < max; i++) {
+            for (let i = 0, max = source.length >>> 0; i < max; i++) {
                 value = source[i];
                 if (predicate.call(thisArg ? thisArg : this, value, i, this)) {
                     return i;
@@ -267,7 +267,7 @@ export class CoreArray {
                 callback.call(thisArg ? thisArg : this, currentValue, index, this);
             }, thisArg);
         } else {
-            for (var i = 0, max = source.length >>> 0; i < max; i++) {
+            for (let i = 0, max = source.length >>> 0; i < max; i++) {
                 callback.call(thisArg, source[i], i, this);
             }
         }
@@ -286,7 +286,7 @@ export class CoreArray {
         if (typeof fn === 'function') {
             return fn.apply(this.source, arguments);
         } else {
-            for (var i = fromIndex >>> 0, max = source.length >>> 0; i < max; i++) {
+            for (let i = fromIndex >>> 0, max = source.length >>> 0; i < max; i++) {
                 if (source[i] === searchElement) {
                     return true;
                 }

@@ -1,5 +1,5 @@
 import { Meta, get, set } from '../../core/core';
-import { Application, singleton } from '../../runtime/runtime';
+import { Application, singleton, registerClass, ITargetClass } from '../../runtime/runtime';
 import { assert } from '../../debug/debug';
 
 export class Mojito {
@@ -14,23 +14,8 @@ export class Mojito {
         }
     }
 
-    registerApplication(application: Application): Application {
-        assert(arguments.length === 1, 'registerApplication must be called with one argument: an application class');
-
-
-
-        return Meta.peek(this).setProperty('applications', application.name, application);
-    }
-
-    getApplication(applicationName: string): Application {
-        assert(arguments.length === 1, 'getApplication must be called with one argument: an application name');
-        assert(typeof applicationName === 'string', 'The applicationName provided to the getApplication method must be a string', TypeError);
-
-        return Meta.peek(this).getProperty('applications', applicationName);
-    }
-
-    getApplications() {
-        return Meta.peek(this).getMember('applications');
+    register(TargetClass: ITargetClass, meta?: Object) {
+        registerClass(TargetClass, meta);
     }
 
     static getInstance(): Mojito {

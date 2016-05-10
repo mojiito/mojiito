@@ -1,45 +1,16 @@
 <html>
 
 <head>
-  <script src="node_modules/systemjs/dist/system-polyfills.js"></script>
-  <script src="node_modules/systemjs/dist/system.js"></script>
-  <script>
-    // set our baseURL reference path
-  System.config({
-    baseURL: '/.tmp',
-    defaultJSExtensions: true
-  });
-  System.import('mojito.js');
-  </script>
-  <!--  
-    <script src="bundle/mojito.js"></script>
-  -->
+    <title>Mojito.js</title>
 </head>
 
-<body [[application]]="asdf">
-    <h1>mojito.js</h1>
-    <p>npm start</p>
-    <p>npm run start:test</p>
-    <my-controller (click)="fn1()" data-on-click="fn()"></my-controller>
-    <div class="btn [isDisabled:disabled:enabled] btn-aaa"><a href="">aaaaa</a></div>
+<body>
+    <h2>Examples</h2>
     <ul>
-        <li>safdasf</li>
-        <li>asdfsadf</li>
+        <li>
+            <a href="examples/example_01.html">Example 01</a>
+        </li>
     </ul>
-    <input [disabled]="var" type="text" [value]="var1" [test]="var1" [whatever]="var1">
-    <input type="text" [(value)]="var2" data-bind-value="var3" data-bind-test="(var3)">
-    <a href=".results/mojito/index.html" target="_blank">Test Results</a>
-    <my-component></my-component>
-    <div component="my-component"></div>
-    <div data-component="my-component"></div>
-    <div (click)="fn()" [[controller]]="MyController">
-        <section>
-            <article (click)="fn()" [[controller]]="MySecondController">
-                <p (click)="fn()"></p>
-            </article>
-        </section>
-    </div>
-    <div data-controller="MyController"></div>
 </body>
 
 </html>

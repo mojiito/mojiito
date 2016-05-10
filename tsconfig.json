@@ -1,13 +1,14 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "amd",
+        "module": "system",
         "noImplicitAny": true,
         "removeComments": false,
         "preserveConstEnums": true,
         "rootDir": "lib",
         "sourceMap": true,
         "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
         "declaration": true
     },
     "exclude": [
