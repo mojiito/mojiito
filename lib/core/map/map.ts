@@ -6,9 +6,9 @@ import { assert } from './../../debug/debug';
  * 
  * @export
  * @class CoreMapIterator
- * @extends {CoreIterator}
+ * @extends {CoreIterator<any>}
  */
-export class CoreMapIterator extends CoreIterator {
+export class CoreMapIterator extends CoreIterator<any> {
 
     /**
      * Store if the value of the iterator item should be:
@@ -24,10 +24,10 @@ export class CoreMapIterator extends CoreIterator {
     /**
      * Creates an instance of CoreMapIterator.
      * 
-     * @param {IIterable} source Iterable object
+     * @param {IIterable<any>} source Iterable object
      * @param {number} [field] Set to 0 or 1 to modify the value of the iterator item
      */
-    constructor(source: IIterable, field?: number) {
+    constructor(source: IIterable<any>, field?: number) {
         super(source);
         this._field = field;
     }
@@ -42,9 +42,9 @@ export class CoreMapIterator extends CoreIterator {
      * value
      * any JavaScript value returned by the iterator. Can be omitted when done is true.
      * 
-     * @returns {IIteratorItem} The next item in the CoreMap
+     * @returns {IIteratorItem<any>} The next item in the CoreMap
      */
-    next(): IIteratorItem {
+    next(): IIteratorItem<any> {
         let item = super.next();
         if (item.value) {
             if (typeof this._field === 'number') {
@@ -62,16 +62,17 @@ export class CoreMapIterator extends CoreIterator {
  * 
  * @export
  * @class CoreMap
+ * @implements {IIterable<any>}
  */
-export class CoreMap {
+export class CoreMap implements IIterable<any>{
 
     /**
      * Internal Array where all thoses keys and values are stored.
      * 
      * @private
-     * @type {Array<Array<any>>}
+     * @type {IIterable<any>}
      */
-    private _source: Array<Array<any>> = [];
+    private _source: IIterable<any> = [];
 
     /**
      * Returns the number of key/value pairs in the Map object.
@@ -108,7 +109,7 @@ export class CoreMap {
      * @param {*} key The key of the element to remove from the Map object.
      */
     delete(key: any): void {
-        let source = this._source;
+        let source = <Array<any>>this._source;
         for (let i = 0, max = source.length >>> 0; i < max; i++) {
             if (source[i][0] === key) {
                 source.splice(i, 1);
@@ -120,9 +121,9 @@ export class CoreMap {
     /**
      * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
      * 
-     * @returns {CoreIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+     * @returns {CoreMapIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
      */
-    entries(): CoreIterator {
+    entries(): CoreMapIterator {
         return new CoreMapIterator(this._source);
     }
 
@@ -151,7 +152,7 @@ export class CoreMap {
         let source = this._source;
         for (let i = 0, max = source.length >>> 0; i < max; i++) {
             if (key === source[i][0]) {
-                return source[i];
+                return source[i][1];
             }
         }
         return undefined;
@@ -184,14 +185,14 @@ export class CoreMap {
      * @returns {CoreMap} The Map object
      */
     set(key: any, value: any): CoreMap {
-        let source = this._source;
+        let source = <Array<any>>this._source;
         for (let i = 0, max = source.length >>> 0; i < max; i++) {
             if (key === source[i][0]) {
                 source[i][1] = value;
                 return this;
             }
         }
-        this._source.push([key, value]);
+        source.push([key, value]);
         return this;
     }
 
