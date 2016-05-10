@@ -1,15 +1,49 @@
 import { CoreIterator, IIteratorItem, IIterable } from '../iterator/iterator';
 import { assert } from './../../debug/debug';
 
+/**
+ * Iterator for the methods of the CoreMap that return iterators (e.g. CoreMap.entries, CoreMap.keys and CoreMap.values)
+ * 
+ * @export
+ * @class CoreMapIterator
+ * @extends {CoreIterator}
+ */
 export class CoreMapIterator extends CoreIterator {
 
+    /**
+     * Store if the value of the iterator item should be:
+     * undefined: [key, value]
+     * 0: key
+     * 1: value
+     * 
+     * @private
+     * @type {number}
+     */
     private _field: number;
 
+    /**
+     * Creates an instance of CoreMapIterator.
+     * 
+     * @param {IIterable} source Iterable object
+     * @param {number} [field] Set to 0 or 1 to modify the value of the iterator item
+     */
     constructor(source: IIterable, field?: number) {
         super(source);
         this._field = field;
-    }    
+    }
 
+    /**
+     * Returns the next item in the CoreMap.
+     * A zero arguments function that returns an object with two properties:
+     * done (boolean)
+     * Has the value true if the iterator is past the end of the iterated sequence. In this case value optionally specifies the return value of the iterator. The return values are explained here.
+     * Has the value false if the iterator was able to produce the next value in the sequence. This is equivalent of not specifying the done property altogether.
+     *
+     * value
+     * any JavaScript value returned by the iterator. Can be omitted when done is true.
+     * 
+     * @returns {IIteratorItem} The next item in the CoreMap
+     */
     next(): IIteratorItem {
         let item = super.next();
         if (item.value) {
@@ -21,16 +55,43 @@ export class CoreMapIterator extends CoreIterator {
     }
 }
 
+/**
+ * Implementation of the ES6 Map.
+ * The Map object is a simple key/value map.
+ * Any value (both objects and primitive values) may be used as either a key or a value.
+ * 
+ * @export
+ * @class CoreMap
+ */
 export class CoreMap {
-    
+
+    /**
+     * Internal Array where all thoses keys and values are stored.
+     * 
+     * @private
+     * @type {Array<Array<any>>}
+     */
     private _source: Array<Array<any>> = [];
-    
+
+    /**
+     * Returns the number of key/value pairs in the Map object.
+     * 
+     * @readonly
+     * @type {number}
+     */
     get size(): number {
         return this._source.length;
     }
 
+    /**
+     * The value of the length property is 0.
+     * 
+     * @readonly
+     * @type {number}
+     */
     get length(): number {
-        return this.size;
+        !!console && !!console.warn && (console.warn("Don't use length property on CoreMaps!!"));
+        return 0;
     }
 
     /**
@@ -43,6 +104,8 @@ export class CoreMap {
     /**
      * Removes any value associated to the key and returns the value that Map.has(key) would have previously returned.
      * Map.prototype.has(key) will return false afterwards.
+     * 
+     * @param {*} key The key of the element to remove from the Map object.
      */
     delete(key: any): void {
         let source = this._source;
@@ -55,8 +118,9 @@ export class CoreMap {
     }
 
     /**
-     * Currently not supported!
      * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
+     * 
+     * @returns {CoreIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
      */
     entries(): CoreIterator {
         return new CoreMapIterator(this._source);
@@ -69,7 +133,7 @@ export class CoreMap {
      * @param {(value: any, key: any, map: CoreMap) => void} callbackFn Function to execute for each element.
      * @param {(Object | Function)} [thisArg] Value to use as this when executing callback.
      */
-    forEach(callbackFn: (value: any, key: any, map: CoreMap) => any, thisArg?: Object | Function): any {
+    forEach(callbackFn: (value: any, key: any, map: CoreMap) => any, thisArg?: Object | Function): void {
         let source = this._source;
         for (let i = 0, max = source.length >>> 0; i < max; i++) {
             let entry = source[i];
@@ -94,7 +158,7 @@ export class CoreMap {
     }
 
     /**
-     * eturns a boolean asserting whether a value has been associated to the key in the Map object or not.
+     * Returns a boolean asserting whether a value has been associated to the key in the Map object or not.
      * 
      * @param {*} key The key of the element to test for presence in the Map object.
      * @returns {boolean} Value associated to the key
@@ -105,6 +169,8 @@ export class CoreMap {
 
     /**
      * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
+     * 
+     * @returns {CoreMapIterator} Iterator object that contains the keys for each element in the Map object in insertion order
      */
     keys(): CoreMapIterator {
         return new CoreMapIterator(this._source, 0);
@@ -131,12 +197,20 @@ export class CoreMap {
 
     /**
      * Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
+     * 
+     * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
      */
     values(): CoreMapIterator {
         return new CoreMapIterator(this._source, 1);
     }
 
 
+    /**
+     * (description)
+     * 
+     * @static
+     * @returns {CoreMap} (description)
+     */
     static create(): CoreMap {
         return new CoreMap();
     }
