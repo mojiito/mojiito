@@ -1,12 +1,16 @@
 import { assert } from '../../debug/debug';
 
-export function getClassName(Klass: Function) {
+export interface IClass {
+    [propertyName: string]: any;
+    name?: string;
+}
+
+export function getClassName(klass: IClass) {
     assert(arguments.length === 1, 'getClassName must be called with one arguments; a class');
-    assert(typeof Klass === 'function', 'The class provided to the getClassName function must be a function', TypeError);
-    
-    if (Klass['name']) {
-        return Klass['name'];
+    assert(typeof klass === 'function', 'The class provided to the getClassName function must be a function', TypeError);
+    if (klass.name) {
+        return klass.name;
     } else {
-        return /^function\s+([\w\$]+)\s*\(/.exec(Klass.toString())[1];
+        return /^function\s+([\w\$]+)\s*\(/.exec(klass.toString())[1];
     }
 }
