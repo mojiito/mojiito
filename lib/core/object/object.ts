@@ -2,7 +2,8 @@ import { assert } from './../../debug/debug';
 import { get } from '../get/get';
 import { set } from '../set/set';
 import { Meta } from '../meta/meta';
-import { Observable, Observer } from '../observer/observer';
+import { Observer } from '../observer/observer';
+import { IIterableObject } from '../iterator/iterator';
 
 /**
  * Extends the native Object by observers, computed properties, ...
@@ -28,9 +29,8 @@ import { Observable, Observer } from '../observer/observer';
  * 
  * @export
  * @class CoreObject
- * @extends {Observable}
  */
-export class CoreObject {
+export class CoreObject implements IIterableObject {
 
     /**
      * Creates an instance of CoreObject.
@@ -40,12 +40,9 @@ export class CoreObject {
     constructor(obj?: Object) {
         assert(this instanceof CoreObject, 'A class can only be instantiated with `new`');
         assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the constructor method must be an object', TypeError);
-        
-        // extend the CoreObject with a Meta hash
-        Meta.extend(this);
 
-        // defineProperties if an obj is provided
         CoreObject.defineProperties(this, obj);
+        
     }
     
     /**
@@ -72,6 +69,15 @@ export class CoreObject {
         assert(typeof propertyName === 'string', 'The propertyName to the set method must be a string', TypeError);
         return set(this, propertyName, value);
     }
+
+    /**
+     * Returns the Meta hash of this CoreObject
+     * 
+     * @returns {Meta} The Meta hash/map
+     */
+    getMeta(): Meta {
+        return Meta.peek(this);
+    }
     
     /**
      * Static method to provide functionality for `CoreObject.create()`
@@ -80,9 +86,9 @@ export class CoreObject {
      * @param {Object} [obj] Object or property map to define properties
      * @returns {CoreObject} Newly created CoreObject
      */
-    static create(obj?: Object): CoreObject {
+    static create(obj?: Object): any {
         assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the create method must be an object', TypeError);
-        return new CoreObject(obj);
+        return new this(obj);
     }
     /**
      * Custom defineProperty method for handling observers, 
@@ -111,41 +117,21 @@ export class CoreObject {
                     const oldValue: any = meta.getProperty('values', propertyName);
                     const observers: Observer[] = meta.getProperty('observers', propertyName);
                     meta.setProperty('values', propertyName, newValue);
-                    if (Array.isArray(observers)) {
-                        observers.forEach(function(observer: Observer) {
-                            // only notify observer if value has changed
-                            if (newValue !== oldValue) {
-                            }
-                        });
-                    }
+                    // if (Array.isArray(observers)) {
+                    //     observers.forEach(function(observer: Observer) {
+                    //         // only notify observer if value has changed
+                    //         if (newValue !== oldValue) {
+                    //         }
+                    //     });
+                    // }
                 }
             });
         }
         
-        // needed for enabled noImplicitAny
-        const source: any = sourceObject;
-        
         // set the new value if provided
         if (typeof value !== 'undefined') {
-            source[propertyName] = value;
+            (<IIterableObject>sourceObject)[propertyName] = value;
         }
-    }
-    
-    /**
-     * Checks if property is already defined by mojito's 
-     * defineProperty method.
-     * 
-     * @static
-     * @param {CoreObject} sourceObject The object where to look for the property
-     * @param {string} propertyName The name(key) of the defined property
-     * @returns {boolean} true if property is defined, false if not
-     */
-    static isDefinedProperty(sourceObject: CoreObject, propertyName: string): boolean {
-        assert(arguments.length === 2, 'isDefinedProperty must be called with two arguments; a sourceObject and a propertyName');
-        assert(typeof sourceObject === 'object', 'The sourceObject provided to the isDefinedProperty method must be an object', TypeError);
-        assert(typeof propertyName === 'string', 'The propertyName provided to the isDefinedProperty method must be a string', TypeError);
-
-        return sourceObject.hasOwnProperty(propertyName) && Meta.peek(sourceObject).hasProperty('values', propertyName)
     }
     
     /**
@@ -193,5 +179,22 @@ export class CoreObject {
         }
         
         return sourceObject;
+    }
+    
+    /**
+     * Checks if property is already defined by mojito's 
+     * defineProperty method.
+     * 
+     * @static
+     * @param {CoreObject} sourceObject The object where to look for the property
+     * @param {string} propertyName The name(key) of the defined property
+     * @returns {boolean} true if property is defined, false if not
+     */
+    static isDefinedProperty(sourceObject: CoreObject, propertyName: string): boolean {
+        assert(arguments.length === 2, 'isDefinedProperty must be called with two arguments; a sourceObject and a propertyName');
+        assert(typeof sourceObject === 'object', 'The sourceObject provided to the isDefinedProperty method must be an object', TypeError);
+        assert(typeof propertyName === 'string', 'The propertyName provided to the isDefinedProperty method must be a string', TypeError);
+
+        return sourceObject.hasOwnProperty(propertyName) && Meta.peek(sourceObject).hasProperty('values', propertyName)
     }
 }
