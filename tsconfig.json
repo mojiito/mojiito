@@ -1,15 +1,15 @@
 {
     "compilerOptions": {
+        "declaration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
         "target": "es5",
         "module": "system",
         "noImplicitAny": true,
         "removeComments": false,
         "preserveConstEnums": true,
         "rootDir": "lib",
-        "sourceMap": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "declaration": true
+        "sourceMap": true
     },
     "exclude": [
         "node_modules",

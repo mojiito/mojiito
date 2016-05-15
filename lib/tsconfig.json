@@ -1,17 +1,18 @@
 {
-  "compilerOptions": {
-    "declaration": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "module": "system",
-    "outFile": "../mojito.js",
-    "inlineSourceMap": true,
-    "target": "es5",
-    "noImplicitAny": true
-  },
-  "files": [
-    "./mojito/core.ts",
-    "./mojito/debug.ts",
-    "./mojito/runtime.ts"
-  ]
+    "compilerOptions": {
+        "declaration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "target": "es5",
+        "module": "system",
+        "noImplicitAny": true,
+        "preserveConstEnums": true,
+        "outFile": "../mojito.js",
+        "inlineSourceMap": true
+    },
+    "files": [
+        "./mojito/core.ts",
+        "./mojito/debug.ts",
+        "./mojito/runtime.ts"
+    ]
 }
