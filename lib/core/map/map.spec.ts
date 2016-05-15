@@ -8,6 +8,37 @@ describe('CoreMap', () => {
         expect(map instanceof CoreMap).toBe(true);
     });
 
+    describe('new', () => {
+        it('it should create an empty map', () => {
+            const map: CoreMap = new CoreMap();
+            expect(map.size).toBe(0);
+            map.set('key1', 'value1');
+            expect(map.size).toBe(1);
+        });
+        it('it should create a map out of an array', () => {
+            const kvArray = [['key1', 'value1'], ['key2', 'value2']];
+            const map: CoreMap = new CoreMap(kvArray);
+            expect(map.size).toBe(2);
+            expect(map.get('key1')).toBe('value1');
+            expect(map.get('key2')).toBe('value2');
+
+            // make shure items are cloned
+            kvArray[0][0] = 'mykey';
+            expect(map.get('key1')).toBe('value1');
+        });
+        it('it should create a map out of an object', () => {
+            const obj = { key1: 'value1', key2: 'value2'};
+            const map: CoreMap = new CoreMap(obj);
+            expect(map.size).toBe(2);
+            expect(map.get('key1')).toBe('value1');
+            expect(map.get('key2')).toBe('value2');
+
+            // make shure items are cloned
+            obj.key1 = 'myvalue';
+            expect(map.get('key1')).toBe('value1');
+        });
+    });
+
     describe('size', () => {
         it('it should exist', () => {
             const map: CoreMap = new CoreMap();

@@ -72,7 +72,7 @@ export class CoreMap implements IIterable<any>{
      * @private
      * @type {IIterable<any>}
      */
-    private _source: IIterable<any> = [];
+    private _source: Array<any> = [];
 
     /**
      * Returns the number of key/value pairs in the Map object.
@@ -93,6 +93,43 @@ export class CoreMap implements IIterable<any>{
     get length(): number {
         !!console && !!console.warn && (console.warn("Don't use length property on CoreMaps!!"));
         return 0;
+    }
+
+    /**
+     * Creates an instance of an empty CoreMap.
+     */
+    constructor();
+    /**
+     * Creates an instance of CoreMap with data provided by an object.
+     * The properties of the object will get stored as key/value paired arrays (eg: [key, value]).
+     * The key will be the property name
+     * The value will be the coresponding property value
+     * 
+     * @param {Object} source The provided source object
+     */
+    constructor(source: Object);
+    /**
+     * Creates an instance of CoreMap out of an array.
+     * Every item of the provided array must be an array with two items - a key and a value.
+     * 
+     * @param {Array<Array<any>>} source (description)
+     */
+    constructor(source: Array<Array<any>>);
+    constructor(source?: any) {
+        if (Array.isArray(source)) {
+            for (let i = 0, max = source.length; i < max; i++) {
+                let item = <Array<any>>source[i];
+                if (item.length === 2) {
+                    this._source.push([item[0], item[1]]);
+                } else {
+                    throw new TypeError('The items in the provided source array must have the following structure [key, value]');
+                }
+            }
+        } else if(typeof source === 'object') {
+            for (var key in source) {
+                this._source.push([key, source[key]]);
+            }
+        }
     }
 
     /**
@@ -212,7 +249,10 @@ export class CoreMap implements IIterable<any>{
      * @static
      * @returns {CoreMap} (description)
      */
-    static create(): CoreMap {
-        return new CoreMap();
+    static create(): CoreMap;
+    static create(source: Object): CoreMap;
+    static create(source: Array<Array<any>>): CoreMap;
+    static create(source?: any): CoreMap {
+        return new CoreMap(source);
     }
 }
