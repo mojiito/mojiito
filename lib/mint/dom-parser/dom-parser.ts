@@ -39,7 +39,7 @@ export class DOMParser {
 
     private parseNode(element: Element, context?: IDOMParserContext): void {
         if (!(element instanceof Element)) {
-            throw new Error('The element element has to be an Element');
+            throw new Error('The property element has to be an Element');
         }
 
         if (!Array.isArray(context)) {
