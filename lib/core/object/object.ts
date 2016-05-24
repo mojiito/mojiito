@@ -1,30 +1,30 @@
 import { assert } from './../../debug/debug';
 import { get } from '../get/get';
-import { set } from '../set/set';
+import { set, setProperties } from '../set/set';
+import { defineProperty, isDefinedProperty } from '../properties/properties';
 import { Meta } from '../meta/meta';
-import { Observer } from '../observer/observer';
 import { IIterableObject } from '../iterator/iterator';
 
 /**
- * Extends the native Object by observers, computed properties, ...
+ * Extends the native Object.
  * It's the default Object of Mojito
  * 
  * Usage:
  * ````
- * let a = new Mojito.Object();
+ * let a = new CoreObject();
  * // or
- * let b = Mojito.Object.create();
+ * let b = CoreObject.create();
  * ````
  * 
  * It's also possible to provide an object to the constructor.
  * The CoreObject will then be created with the properies, of
- * that provided object, predefined.
+ * that provided object.
  * 
  * Usage:
  * ````
- * let a = new Mojito.Object({a: 1});
+ * let a = new CoreObject({a: 1});
  * // or
- * let b = Mojito.Object.create({a: 1});
+ * let b = CoreObject.create({a: 1});
  * ````
  * 
  * @export
@@ -41,8 +41,7 @@ export class CoreObject implements IIterableObject {
         assert(this instanceof CoreObject, 'A class can only be instantiated with `new`');
         assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the constructor method must be an object', TypeError);
 
-        CoreObject.defineProperties(this, obj);
-        
+        setProperties(this, obj);
     }
     
     /**
@@ -90,9 +89,9 @@ export class CoreObject implements IIterableObject {
         assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the create method must be an object', TypeError);
         return new this(obj);
     }
+
     /**
-     * Custom defineProperty method for handling observers, 
-     * computed propertiese, ...
+     * Custom defineProperty method for change detection
      * 
      * @static
      * @param {CoreObject} sourceObject The object where to define the property
@@ -102,36 +101,10 @@ export class CoreObject implements IIterableObject {
     static defineProperty(sourceObject: CoreObject, propertyName: string, value?: any): void {
         assert(arguments.length === 2 || arguments.length === 3, 'defineProperty must be called with at least two arguments; a sourceObject, a propertyName and optional a value');
         assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperty method must be an object', TypeError);
-        assert(typeof propertyName === 'string', 'The property propertyName to the defineProperty method must be a string', TypeError);
+        assert(typeof propertyName === 'string', 'The propertyName provided to the defineProperty method must be a string', TypeError);
         assert(!(value instanceof Meta), 'Defining a meta hash is not allowed');
-        
-        // create the property if it is not already defined
-        if (!CoreObject.isDefinedProperty(sourceObject, propertyName)) {
-            Object.defineProperty(sourceObject, propertyName, {
-                get() {
-                    return Meta.peek(sourceObject).getProperty('values', propertyName);
-                },
 
-                set(newValue: any) {
-                    const meta: Meta = Meta.peek(sourceObject);
-                    const oldValue: any = meta.getProperty('values', propertyName);
-                    const observers: Observer[] = meta.getProperty('observers', propertyName);
-                    meta.setProperty('values', propertyName, newValue);
-                    // if (Array.isArray(observers)) {
-                    //     observers.forEach(function(observer: Observer) {
-                    //         // only notify observer if value has changed
-                    //         if (newValue !== oldValue) {
-                    //         }
-                    //     });
-                    // }
-                }
-            });
-        }
-        
-        // set the new value if provided
-        if (typeof value !== 'undefined') {
-            (<IIterableObject>sourceObject)[propertyName] = value;
-        }
+        defineProperty(sourceObject, propertyName, value);
     }
     
     /**
@@ -195,6 +168,6 @@ export class CoreObject implements IIterableObject {
         assert(typeof sourceObject === 'object', 'The sourceObject provided to the isDefinedProperty method must be an object', TypeError);
         assert(typeof propertyName === 'string', 'The propertyName provided to the isDefinedProperty method must be a string', TypeError);
 
-        return sourceObject.hasOwnProperty(propertyName) && Meta.peek(sourceObject).hasProperty('values', propertyName)
+        return isDefinedProperty(sourceObject, propertyName);
     }
 }

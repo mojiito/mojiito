@@ -5,7 +5,7 @@ export interface IClass {
     name?: string;
 }
 
-export function getClassName(klass: IClass) {
+export function getClassName(klass: IClass): string {
     assert(arguments.length === 1, 'getClassName must be called with one arguments; a class');
     assert(typeof klass === 'function', 'The class provided to the getClassName function must be a function', TypeError);
     if (klass.name) {

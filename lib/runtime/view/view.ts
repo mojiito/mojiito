@@ -1,7 +1,6 @@
-import { CoreClass } from './../class/class';
-import { Meta } from './../meta/meta';
+import { Meta } from '../../core/meta/meta';
 import { assert } from './../../debug/debug';
-import { Application } from '../../runtime/runtime';
+import { ObservableObject } from './../observable/observableObject';
 
 export interface onDidAttachView {
     onDidAttachView(element: Element): void;
@@ -11,7 +10,7 @@ export interface onDidRenderView {
     onDidRenderView(element: Element): void;
 }
 
-export abstract class CoreView extends CoreClass {
+export abstract class View extends ObservableObject {
 
     private _isAttached: boolean = false;
     private _isRendered: boolean = false;

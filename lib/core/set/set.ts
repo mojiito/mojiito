@@ -23,26 +23,25 @@ export function set(obj: Object, propertyName: string, value: any): any {
     const source: any = obj; // needed for enabled noImplicitAny    
     const properties = propertyName.split('.');
     const property = properties.slice(0, 1)[0];
-    
-    if (obj instanceof CoreObject) {
-        CoreObject.defineProperties(obj);
-    }
 
     if (properties.length === 1) {
-        if (obj instanceof CoreObject) {
-            CoreObject.defineProperty(obj, property, value);
-        } else {
-            source[property] = value;
-        }
+        source[property] = value;
         return value;
     }
 
     if (!(property in obj)) {
         // if property is `undefined` create an object to fullfil the path
-        source[property] = CoreObject.create();
+        source[property] = {};
     } else if (typeof source[property] !== 'object') {
         throw new TypeError('The property in the path has to be an object ');
     }
 
     return set(source[property], properties.slice(1).join('.'), value);
+}
+
+export function setProperties(obj: Object, properties: Object): Object {
+    for (var key in properties) {
+        set(obj, key, (<any>properties)[key]);
+    }
+    return obj;
 }

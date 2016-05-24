@@ -14,6 +14,10 @@ export interface IIterable<T> {
     length: number;
 }
 
+export interface IIterableObject {
+    [key: string]: any
+}
+
 export class CoreIterator<T> implements IIterator<T> {
     protected _nextIndex = 0;
     protected _source: IIterable<T>;

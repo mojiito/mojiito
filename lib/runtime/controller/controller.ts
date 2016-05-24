@@ -1,44 +1,19 @@
-import { CoreView, onDidAttachView, onDidRenderView, Meta } from './../../core/core';
 import { assert } from './../../debug/debug';
+import { getClassName, endsWith, toKebabCase } from './../../utils/utils';
+import { CoreMap } from './../../core/map/map';
+import { registerClass } from './../register/register';
+import { View, onDidAttachView, onDidRenderView } from '../view/view';
 import { Application } from './../application/application';
 
-export interface IControllerMeta {
-    application: Application,
-    selector: string
-}
+export abstract class Controller extends View {
 
-export interface IController extends Controller {
-    new (): IController;
-    name: string;
-}
-
-export abstract class Controller extends CoreView {
+     static targetClassList: CoreMap = new CoreMap();
     
     constructor() {
         super();
     }
-    
-    // _attachController(element: Element) {
-    //     super._attachView(element);
-    // }
-    
-    static register(ControllerClass: IController, meta: IControllerMeta) {
-        // const elements = meta.application.root.querySelectorAll(meta.selector);
-        // let instances: Array<Controller> = [];
-        // for (let i = 0, max = elements.length; i < max; i++) {
-        //     let element = elements[i];
-        //     let controllerInstance = new ControllerClass();
-            
-        //     Meta.peek(controllerInstance).setProperties('controller', meta, {
-        //         writable: false,
-        //         configurable: false,
-        //         enumerable: true
-        //     });
-            
-        //     instances.push(controllerInstance);
-        //     controllerInstance._attachController(element);
-        // }
 
-        // return instances;
+    static register(ControllerClass: Function, meta?: { name: string; }) {
+        registerClass(Controller, ControllerClass, meta);
     }
 }

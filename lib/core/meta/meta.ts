@@ -257,16 +257,25 @@ export class Meta {
      * @param  {CoreArray} obj The CoreArray where to peek for a meta hash
      * @returns {Meta} The peeked or created meta object
      */
-    static peek(obj: CoreArray): Meta;
+    static peek(array: CoreArray): Meta;
     /**
-     * Retrieves the meta hash for an Object.
-     * If the object has no meta yet, a new one will be created
+     * Retrieves the meta hash for an array.
+     * If the array has no meta yet, a new one will be created
      * 
      * @static
-     * @param {Object} obj The Object where to peek for a meta hash
+     * @param {Object} array The Array where to peek for a meta hash
      * @returns {Meta} The peeked or created meta object
      */
     static peek(obj: Object): Meta;
+    /**
+     * Retrieves the meta hash for an array.
+     * If the array has no meta yet, a new one will be created
+     * 
+     * @static
+     * @param {Array<any>} array The Array where to peek for a meta hash
+     * @returns {Meta} The peeked or created meta object
+     */
+    static peek(array: Array<any>): Meta;
     static peek(obj: any): Meta {
         const source: any = obj;  // needed for enabled noImplicitAny
         let meta = source[Meta.META_FIELD];

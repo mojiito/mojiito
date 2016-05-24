@@ -1,10 +1,9 @@
 import { assert } from './../../debug/debug';
 import { Meta } from '../meta/meta';
-import { Observer } from '../observer/observer';
 import { CoreObject } from '../object/object';
 
 /**
- * Extends the native Array by observers, computed properties, ...
+ * Extends the native Array
  * 
  * Usage:
  * ````

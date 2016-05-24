@@ -1,6 +1,4 @@
-import { Meta, get, set } from '../../core/core';
-import { Application, singleton, registerClass, ITargetClass } from '../../runtime/runtime';
-import { assert } from '../../debug/debug';
+import { get, set } from '../../core/core';
 
 export class Mojito {
     
@@ -12,10 +10,6 @@ export class Mojito {
             instance = this;
             set(self, Mojito.GLOBAL_NAMESPACE, instance);
         }
-    }
-
-    register(TargetClass: ITargetClass, meta?: Object) {
-        registerClass(TargetClass, meta);
     }
 
     static getInstance(): Mojito {

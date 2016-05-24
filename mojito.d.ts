@@ -27,28 +27,15 @@ declare module "core/get/get" {
      */
     export function get(obj: Object, propertyName: string): any;
 }
-declare module "core/observer/observer" {
-    import { CoreObject } from "core/object/object";
-    import { CoreArray } from "core/array/array";
-    export class Observable {
-        constructor(subject: CoreObject, key: string);
-        constructor(subject: CoreArray, key: string);
-        subscribe(callback: (newValue: any, oldValue: any) => void): void;
-    }
-    export class Observer {
-        private onNext;
-        private onError;
-        private onComplete;
-        constructor(onNext: (newValue: any) => void, onError?: (error: Object) => void, onComplete?: () => void);
-        next(): void;
-        error(): void;
-        complete(): void;
-    }
-    export function observes(...keys: string[]): MethodDecorator;
+declare module "core/properties/propertyEvents" {
+    export function propertyWillChange(obj: Object, key: string): void;
+    export function propertyWillChange(array: Array<any>, key: string): void;
+    export function propertyDidChange(obj: Object, key: string): void;
+    export function propertyDidChange(obj: Array<any>, key: string): void;
 }
 declare module "core/array/array" {
     /**
-     * Extends the native Array by observers, computed properties, ...
+     * Extends the native Array
      *
      * Usage:
      * ````
@@ -481,46 +468,91 @@ declare module "core/meta/meta" {
          * @param  {CoreArray} obj The CoreArray where to peek for a meta hash
          * @returns {Meta} The peeked or created meta object
          */
-        static peek(obj: CoreArray): Meta;
+        static peek(array: CoreArray): Meta;
         /**
-         * Retrieves the meta hash for an Object.
-         * If the object has no meta yet, a new one will be created
+         * Retrieves the meta hash for an array.
+         * If the array has no meta yet, a new one will be created
          *
          * @static
-         * @param {Object} obj The Object where to peek for a meta hash
+         * @param {Object} array The Array where to peek for a meta hash
          * @returns {Meta} The peeked or created meta object
          */
         static peek(obj: Object): Meta;
+        /**
+         * Retrieves the meta hash for an array.
+         * If the array has no meta yet, a new one will be created
+         *
+         * @static
+         * @param {Array<any>} array The Array where to peek for a meta hash
+         * @returns {Meta} The peeked or created meta object
+         */
+        static peek(array: Array<any>): Meta;
     }
 }
-declare module "core/object/object" {
+declare module "core/iterator/iterator" {
+    export interface IIteratorItem<T> {
+        value?: T;
+        done: boolean;
+    }
+    export interface IIterator<T> {
+        next(): IIteratorItem<T>;
+    }
+    export interface IIterable<T> {
+        [index: number]: T;
+        length: number;
+    }
+    export interface IIterableObject {
+        [key: string]: any;
+    }
+    export class CoreIterator<T> implements IIterator<T> {
+        protected _nextIndex: number;
+        protected _source: IIterable<T>;
+        constructor(source: IIterable<T>);
+        next(): IIteratorItem<T>;
+    }
+}
+declare module "core/properties/properties" {
+    export function defineProperty(obj: Object, propertyName: string, value?: any): void;
     /**
-     * Extends the native Object by observers, computed properties, ...
+     * Checks if property is already defined by mojito's
+     * defineProperty method.
+     *
+     * @static
+     * @param {Object} obj The object where to look for the defined property
+     * @param {string} propertyName The name(key) of the defined property
+     * @returns {boolean} true if property is defined, false if not
+     */
+    export function isDefinedProperty(obj: Object, propertyName: string): boolean;
+}
+declare module "core/object/object" {
+    import { Meta } from "core/meta/meta";
+    import { IIterableObject } from "core/iterator/iterator";
+    /**
+     * Extends the native Object.
      * It's the default Object of Mojito
      *
      * Usage:
      * ````
-     * let a = new Mojito.Object();
+     * let a = new CoreObject();
      * // or
-     * let b = Mojito.Object.create();
+     * let b = CoreObject.create();
      * ````
      *
      * It's also possible to provide an object to the constructor.
      * The CoreObject will then be created with the properies, of
-     * that provided object, predefined.
+     * that provided object.
      *
      * Usage:
      * ````
-     * let a = new Mojito.Object({a: 1});
+     * let a = new CoreObject({a: 1});
      * // or
-     * let b = Mojito.Object.create({a: 1});
+     * let b = CoreObject.create({a: 1});
      * ````
      *
      * @export
      * @class CoreObject
-     * @extends {Observable}
      */
-    export class CoreObject {
+    export class CoreObject implements IIterableObject {
         /**
          * Creates an instance of CoreObject.
          *
@@ -543,16 +575,21 @@ declare module "core/object/object" {
          */
         set(propertyName: string, value: any): any;
         /**
+         * Returns the Meta hash of this CoreObject
+         *
+         * @returns {Meta} The Meta hash/map
+         */
+        getMeta(): Meta;
+        /**
          * Static method to provide functionality for `CoreObject.create()`
          *
          * @static
          * @param {Object} [obj] Object or property map to define properties
          * @returns {CoreObject} Newly created CoreObject
          */
-        static create(obj?: Object): CoreObject;
+        static create(obj?: Object): any;
         /**
-         * Custom defineProperty method for handling observers,
-         * computed propertiese, ...
+         * Custom defineProperty method for change detection
          *
          * @static
          * @param {CoreObject} sourceObject The object where to define the property
@@ -560,16 +597,6 @@ declare module "core/object/object" {
          * @param {*} [value] The value to be set on the property
          */
         static defineProperty(sourceObject: CoreObject, propertyName: string, value?: any): void;
-        /**
-         * Checks if property is already defined by mojito's
-         * defineProperty method.
-         *
-         * @static
-         * @param {CoreObject} sourceObject The object where to look for the property
-         * @param {string} propertyName The name(key) of the defined property
-         * @returns {boolean} true if property is defined, false if not
-         */
-        static isDefinedProperty(sourceObject: CoreObject, propertyName: string): boolean;
         /**
          * Defines all the properties provided in a propertyMap
          * on the sourceObject.
@@ -587,6 +614,16 @@ declare module "core/object/object" {
          * @returns {CoreObject} The object with the defined properties
          */
         static defineProperties(sourceObject: CoreObject, propertyMap?: Object): CoreObject;
+        /**
+         * Checks if property is already defined by mojito's
+         * defineProperty method.
+         *
+         * @static
+         * @param {CoreObject} sourceObject The object where to look for the property
+         * @param {string} propertyName The name(key) of the defined property
+         * @returns {boolean} true if property is defined, false if not
+         */
+        static isDefinedProperty(sourceObject: CoreObject, propertyName: string): boolean;
     }
 }
 declare module "core/set/set" {
@@ -603,24 +640,7 @@ declare module "core/set/set" {
      * @returns {*} (description) The value which has been set on the property
      */
     export function set(obj: Object, propertyName: string, value: any): any;
-}
-declare module "core/iterator/iterator" {
-    export interface IIteratorItem {
-        value?: any;
-        done: boolean;
-    }
-    export interface IIterator {
-        next(): IIteratorItem;
-    }
-    export interface IIterable {
-        length: number;
-    }
-    export class CoreIterator implements IIterator {
-        protected _nextIndex: number;
-        protected _source: IIterable;
-        constructor(source: IIterable);
-        next(): IIteratorItem;
-    }
+    export function setProperties(obj: Object, properties: Object): Object;
 }
 declare module "core/map/map" {
     import { CoreIterator, IIteratorItem, IIterable } from "core/iterator/iterator";
@@ -629,9 +649,9 @@ declare module "core/map/map" {
      *
      * @export
      * @class CoreMapIterator
-     * @extends {CoreIterator}
+     * @extends {CoreIterator<any>}
      */
-    export class CoreMapIterator extends CoreIterator {
+    export class CoreMapIterator extends CoreIterator<any> {
         /**
          * Store if the value of the iterator item should be:
          * undefined: [key, value]
@@ -645,10 +665,10 @@ declare module "core/map/map" {
         /**
          * Creates an instance of CoreMapIterator.
          *
-         * @param {IIterable} source Iterable object
+         * @param {IIterable<any>} source Iterable object
          * @param {number} [field] Set to 0 or 1 to modify the value of the iterator item
          */
-        constructor(source: IIterable, field?: number);
+        constructor(source: IIterable<any>, field?: number);
         /**
          * Returns the next item in the CoreMap.
          * A zero arguments function that returns an object with two properties:
@@ -659,9 +679,9 @@ declare module "core/map/map" {
          * value
          * any JavaScript value returned by the iterator. Can be omitted when done is true.
          *
-         * @returns {IIteratorItem} The next item in the CoreMap
+         * @returns {IIteratorItem<any>} The next item in the CoreMap
          */
-        next(): IIteratorItem;
+        next(): IIteratorItem<any>;
     }
     /**
      * Implementation of the ES6 Map.
@@ -670,13 +690,14 @@ declare module "core/map/map" {
      *
      * @export
      * @class CoreMap
+     * @implements {IIterable<any>}
      */
-    export class CoreMap {
+    export class CoreMap implements IIterable<any> {
         /**
          * Internal Array where all thoses keys and values are stored.
          *
          * @private
-         * @type {Array<Array<any>>}
+         * @type {IIterable<any>}
          */
         private _source;
         /**
@@ -694,6 +715,26 @@ declare module "core/map/map" {
          */
         length: number;
         /**
+         * Creates an instance of an empty CoreMap.
+         */
+        constructor();
+        /**
+         * Creates an instance of CoreMap with data provided by an object.
+         * The properties of the object will get stored as key/value paired arrays (eg: [key, value]).
+         * The key will be the property name
+         * The value will be the coresponding property value
+         *
+         * @param {Object} source The provided source object
+         */
+        constructor(source: Object);
+        /**
+         * Creates an instance of CoreMap out of an array.
+         * Every item of the provided array must be an array with two items - a key and a value.
+         *
+         * @param {Array<Array<any>>} source (description)
+         */
+        constructor(source: Array<Array<any>>);
+        /**
          * Removes all key/value pairs from the Map object.
          */
         clear(): void;
@@ -707,9 +748,9 @@ declare module "core/map/map" {
         /**
          * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
          *
-         * @returns {CoreIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+         * @returns {CoreMapIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
          */
-        entries(): CoreIterator;
+        entries(): CoreMapIterator;
         /**
          * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
          * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
@@ -759,59 +800,144 @@ declare module "core/map/map" {
          * @returns {CoreMap} (description)
          */
         static create(): CoreMap;
+        static create(source: Object): CoreMap;
+        static create(source: Array<Array<any>>): CoreMap;
     }
 }
-declare module "core/class/class" {
-    import { CoreObject } from "core/object/object";
-    export abstract class CoreClass extends CoreObject {
-        constructor(propertyMap?: Object);
-    }
+declare module "core/core" {
+    export { get } from "core/get/get";
+    export { set } from "core/set/set";
+    export { Meta } from "core/meta/meta";
+    export { CoreObject } from "core/object/object";
+    export { CoreArray } from "core/array/array";
+    export { CoreMap } from "core/map/map";
+}
+declare module "mojito/core" {
+    export * from "core/core";
+}
+declare module "mojito/debug" {
+    export * from "debug/debug";
 }
 declare module "runtime/mojito/mojito" {
-    import { ITargetClass } from "runtime/runtime";
     export class Mojito {
         private static GLOBAL_NAMESPACE;
         constructor();
-        register(TargetClass: ITargetClass, meta?: Object): void;
         static getInstance(): Mojito;
     }
 }
 declare module "utils/class/class" {
-    export function getClassName(Klass: Function): any;
+    export interface IClass {
+        [propertyName: string]: any;
+        name?: string;
+    }
+    export function getClassName(klass: IClass): string;
+}
+declare module "utils/string/endswith" {
+    export function endsWith(str: string, searchString: string, position?: number): boolean;
+}
+declare module "utils/string/kebab" {
+    export function toKebabCase(str: string): string;
 }
 declare module "utils/utils" {
     export { getClassName } from "utils/class/class";
+    export { endsWith } from "utils/string/endswith";
+    export { toKebabCase } from "utils/string/kebab";
+}
+declare module "core/watch/watch" {
+    export function watchKey(obj: Object, key: string): void;
+    export function watchKey(obj: Array<any>, key: string): void;
+    export function watchPath(obj: Object, path: string): void;
+    export function watchPath(obj: Array<any>, path: string): void;
+}
+declare module "runtime/observable/observer" {
+    export interface IObserver {
+        new (): IObserver;
+        new (callback?: Function): IObserver;
+        subscribe(callback: Function): void;
+        unsubscribe(): void;
+        notify(thisArg?: any): void;
+    }
+    export class Observer {
+        private _callbacks;
+        constructor(callback?: Function, thisArg?: any);
+        subscribe(callback: Function, thisArg?: any): void;
+        unsubscribe(): void;
+        notify(thisArg?: any): void;
+    }
+    export function notifyObservers(obj: Object, key: string): void;
+    export function notifyObservers(array: Array<any>, key: string): void;
+}
+declare module "runtime/observable/observe" {
+    import { Observer } from "runtime/observable/observer";
+    export function observe(obj: Function | Object | Array<any>, keyOrPath: string, callback?: Function, thisArg?: any): Observer;
+}
+declare module "runtime/observable/observable" {
+    import { Observer } from "runtime/observable/observer";
+    export interface IObservable {
+        observe(key: string, callback?: Function): Observer;
+        observe(path: string, callback?: Function): Observer;
+        observe(keys: Array<string>, callback?: Function): Array<Observer>;
+        observe(paths: Array<string>, callback?: Function): Array<Observer>;
+        unobserve(): void;
+    }
+}
+declare module "runtime/observable/observableObject" {
+    import { CoreObject } from "core/object/object";
+    import { IObservable } from "runtime/observable/observable";
+    import { Observer } from "runtime/observable/observer";
+    export class ObservableObject extends CoreObject implements IObservable {
+        constructor(obj?: Object);
+        observe(key: string, callback?: Function): Observer;
+        observe(path: string, callback?: Function): Observer;
+        observe(keys: Array<string>, callback?: Function): Array<Observer>;
+        observe(paths: Array<string>, callback?: Function): Array<Observer>;
+        unobserve(): void;
+        static create(obj?: Object): any;
+    }
+}
+declare module "runtime/view/view" {
+    import { ObservableObject } from "runtime/observable/observableObject";
+    export interface onDidAttachView {
+        onDidAttachView(element: Element): void;
+    }
+    export interface onDidRenderView {
+        onDidRenderView(element: Element): void;
+    }
+    export abstract class View extends ObservableObject {
+        private _isAttached;
+        private _isRendered;
+        private _isDestroyed;
+        $: Function;
+        _attachView(element: Element): void;
+        _renderView(): void;
+    }
 }
 declare module "runtime/controller/controller" {
-    import { CoreView } from "core/core";
-    import { Application } from "runtime/application/application";
-    export interface IControllerMeta {
-        application: Application;
-        selector: string;
-    }
-    export interface IController extends Controller {
-        new (): IController;
-        name: string;
-    }
-    export abstract class Controller extends CoreView {
+    import { CoreMap } from "core/map/map";
+    import { View } from "runtime/view/view";
+    export abstract class Controller extends View {
+        static targetClassList: CoreMap;
         constructor();
-        static register(ControllerClass: IController, meta: IControllerMeta): void;
+        static register(ControllerClass: Function, meta?: {
+            name: string;
+        }): void;
     }
 }
+declare module "runtime/register/register" {
+    export function register(meta?: Object): ClassDecorator;
+    export function registerClass(SourceClass: Function, TargetClass: Function, meta?: {
+        name: string;
+    }): void;
+}
 declare module "runtime/application/application" {
-    import { CoreClass, CoreMap } from "core/core";
-    export interface IApplicationClass {
-        new (): Application;
-        register(ApplicationClass: IApplicationClass): any;
-    }
-    export interface IApplicationMeta {
-        name?: string;
-    }
-    export abstract class Application extends CoreClass {
-        static applicationClassList: CoreMap;
-        root: Element;
-        constructor(root: HTMLElement);
-        static register(ApplicationClass: IApplicationClass, meta?: IApplicationMeta): void;
+    import { CoreMap } from "core/map/map";
+    import { ObservableObject } from "runtime/observable/observableObject";
+    export abstract class Application extends ObservableObject {
+        static targetClassList: CoreMap;
+        constructor();
+        static register(ApplicationClass: Function, meta?: {
+            name: string;
+        }): void;
     }
 }
 declare module "runtime/service/service" {
@@ -833,16 +959,11 @@ declare module "runtime/singleton/singleton" {
 declare module "runtime/injectable/injectable" {
     export function injectable(TargetClass: any): void;
 }
-declare module "runtime/inject/inject" {
+declare module "runtime/injectable/inject" {
     export function inject(InjectableClass: any): PropertyDecorator;
 }
-declare module "runtime/register/register" {
-    export interface ITargetClass {
-        new (): Function;
-        register(TargetClass: ITargetClass, meta?: Object): void;
-    }
-    export function register(meta?: Object): ClassDecorator;
-    export function registerClass(TargetClass: ITargetClass, meta?: Object): void;
+declare module "runtime/observable/observes" {
+    export function observes(...keys: string[]): MethodDecorator;
 }
 declare module "runtime/runtime" {
     export { Mojito } from "runtime/mojito/mojito";
@@ -850,43 +971,13 @@ declare module "runtime/runtime" {
     export { Controller } from "runtime/controller/controller";
     export { Service } from "runtime/service/service";
     export { injectable } from "runtime/injectable/injectable";
-    export { inject } from "runtime/inject/inject";
+    export { inject } from "runtime/injectable/inject";
     export { singleton } from "runtime/singleton/singleton";
-    export { register, registerClass, ITargetClass } from "runtime/register/register";
-}
-declare module "core/view/view" {
-    import { CoreClass } from "core/class/class";
-    export interface onDidAttachView {
-        onDidAttachView(element: Element): void;
-    }
-    export interface onDidRenderView {
-        onDidRenderView(element: Element): void;
-    }
-    export abstract class CoreView extends CoreClass {
-        private _isAttached;
-        private _isRendered;
-        private _isDestroyed;
-        $: Function;
-        _attachView(element: Element): void;
-        _renderView(): void;
-    }
-}
-declare module "core/core" {
-    export { get } from "core/get/get";
-    export { set } from "core/set/set";
-    export { Meta } from "core/meta/meta";
-    export { CoreObject } from "core/object/object";
-    export { CoreArray } from "core/array/array";
-    export { CoreMap } from "core/map/map";
-    export { CoreClass } from "core/class/class";
-    export { CoreView, onDidAttachView, onDidRenderView } from "core/view/view";
-    export { Observer, observes } from "core/observer/observer";
-}
-declare module "mojito/core" {
-    export * from "core/core";
-}
-declare module "mojito/debug" {
-    export * from "debug/debug";
+    export { register } from "runtime/register/register";
+    export { observe } from "runtime/observable/observe";
+    export { observes } from "runtime/observable/observes";
+    export { ObservableObject } from "runtime/observable/observableObject";
+    export { Observer } from "runtime/observable/observer";
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";
