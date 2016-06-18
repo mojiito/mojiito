@@ -1,8 +1,17 @@
-import { propertyWillChange, propertyDidChange } from './propertyEvents';
 import { assert } from './../../debug/debug';
 import { Meta } from '../meta/meta';
 import { IIterableObject } from '../iterator/iterator';
+import { mandatory_set } from './mandatory_set';
 
+/**
+ * (description)
+ * 
+ * @export
+ * @param {Object} obj (description)
+ * @param {string} propertyName (description)
+ * @param {*} [value] (description)
+ * @returns (description)
+ */
 export function defineProperty(obj: Object, propertyName: string, value?: any) {
     assert(arguments.length === 2 || arguments.length === 3, 'defineProperty must be called with at least two arguments; an object, a propertyName and optional a value');
     assert(typeof obj === 'object', 'The obj provided to the defineProperty function must be an object', TypeError);
@@ -22,12 +31,7 @@ export function defineProperty(obj: Object, propertyName: string, value?: any) {
                 return Meta.peek(obj).getProperty('values', propertyName);
             },
             set(value) {
-                const meta: Meta = Meta.peek(obj);
-                if (value !== meta.getProperty('values', propertyName)) {
-                    propertyWillChange(obj, propertyName);
-                    meta.setProperty('values', propertyName, value);
-                    propertyDidChange(obj, propertyName);
-                }
+                mandatory_set(obj, propertyName, value);
             }
         });
     } else if (typeof value !== 'undefined') {
@@ -38,8 +42,8 @@ export function defineProperty(obj: Object, propertyName: string, value?: any) {
 /**
  * Checks if property is already defined by mojito's 
  * defineProperty method.
- * 
- * @static
+ *
+ * @export
  * @param {Object} obj The object where to look for the defined property
  * @param {string} propertyName The name(key) of the defined property
  * @returns {boolean} true if property is defined, false if not

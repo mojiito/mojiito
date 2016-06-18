@@ -1,13 +1,5 @@
 export { Mojito } from './mojito/mojito';
-export { Application } from './application/application';
-//export { Component } from './component/component';
-export { Controller } from './controller/controller';
-export { Service } from './service/service';
-export { injectable } from './injectable/injectable';
-export { inject } from './injectable/inject';
-export { singleton } from './singleton/singleton';
-export { register } from './register/register';
-export { observe } from './observable/observe';
-export { observes } from './observable/observes';
-export { ObservableObject } from './observable/observableObject';
-export { Observer } from './observable/observer';
+// export { Service } from './service/service';
+// export { Injectable } from './injectable/injectable';
+// export { inject } from './injectable/inject';
+export { Directive, Component, Controller, Application } from './directives/directives';

@@ -1,14 +1,8 @@
 import { Meta } from '../../core/meta/meta';
 import { assert } from './../../debug/debug';
-import { ObservableObject } from './../observable/observableObject';
+import { ObservableObject } from '../../core/observable/observableObject';
+import { IDirectiveMetadata } from '../directives/directives';
 
-export interface onDidAttachView {
-    onDidAttachView(element: Element): void;
-}
-
-export interface onDidRenderView {
-    onDidRenderView(element: Element): void;
-}
 
 export abstract class View extends ObservableObject {
 

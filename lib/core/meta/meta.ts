@@ -277,6 +277,8 @@ export class Meta {
      */
     static peek(array: Array<any>): Meta;
     static peek(obj: any): Meta {
+        assert(arguments.length === 1, 'Meta.peek on an object or array must be called with one arguments; the object or array');
+        assert(typeof obj === 'object', 'The object or array provided to the Meta.peek method must be a object or array', TypeError);
         const source: any = obj;  // needed for enabled noImplicitAny
         let meta = source[Meta.META_FIELD];
 

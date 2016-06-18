@@ -3,7 +3,7 @@ import { observe } from './observe';
 import { ObservableObject } from './observableObject';
 
 export function observes(...keys: string[]): MethodDecorator {
-    assert(arguments.length === 1, 'The observes decorator must be called with one argument; an array of propertyKeys');
+    assert(arguments.length > 0, 'The observes decorator must be called with at least one property key');
 
     return function(target: ObservableObject, propertyKey: string, descriptor: TypedPropertyDescriptor<Function>): TypedPropertyDescriptor<Function> {
         assert(arguments.length === 3, 'The observe decorator callback must be called with three arguments; a target, a propertyKey and a descriptor');
@@ -17,7 +17,6 @@ export function observes(...keys: string[]): MethodDecorator {
         for (let i = 0, max = keys.length; i < max; i++) {
             let key = keys[i];
             assert(typeof key === 'string', 'The keys provided to the observe decorator callback must be strings', TypeError);
-
             observe(target, key, callback, target);
         }
         return descriptor;

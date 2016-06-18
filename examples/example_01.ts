@@ -1,18 +1,11 @@
-import { Application, Controller, register } from 'mojito/runtime';
+import { observes } from 'mojito/core';
+import { Application, Controller } from 'mojito/runtime';
 
-@register({
-    name: 'my-app'
-})
-class MyApp extends Application {
-    
+
+@Controller({ name: 'foo-controller' })    
+class FooController {
 }
 
-@register({
-    name: 'foo'
-})
-class FooController extends Controller {
-    
+@Controller({ name: 'bar-controller' })
+class BarController {
 }
-
-console.log(Application.targetClassList);
-console.log(Controller.targetClassList);

@@ -8,9 +8,6 @@ export function onAfterInstantiation(TargetClass: any, callback: Function) {
     return instantiation(TargetClass, null, callback);
 }
 
-/**
- * @memberOf test
- */
 export function instantiation(TargetClass: any, onBeforeInstantiation?: Function, onAfterInstantiation?: Function): any {
     assert(typeof TargetClass === 'function', 'TargetClass has to be a class!', TypeError);
     
@@ -58,7 +55,9 @@ export function instantiation(TargetClass: any, onBeforeInstantiation?: Function
     }
     
     // copy name
-    TargetClass['name'] = OriginalClass['name'];
+    if (OriginalClass['name']) {
+        TargetClass['name'] = OriginalClass['name'];
+    }
     
     return TargetClass;
 }

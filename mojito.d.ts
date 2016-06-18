@@ -27,12 +27,6 @@ declare module "core/get/get" {
      */
     export function get(obj: Object, propertyName: string): any;
 }
-declare module "core/properties/propertyEvents" {
-    export function propertyWillChange(obj: Object, key: string): void;
-    export function propertyWillChange(array: Array<any>, key: string): void;
-    export function propertyDidChange(obj: Object, key: string): void;
-    export function propertyDidChange(obj: Array<any>, key: string): void;
-}
 declare module "core/array/array" {
     /**
      * Extends the native Array
@@ -511,13 +505,89 @@ declare module "core/iterator/iterator" {
         next(): IIteratorItem<T>;
     }
 }
+declare module "core/watch/watch" {
+    export function watchKey(obj: Object, key: string): void;
+    export function watchKey(obj: Array<any>, key: string): void;
+    export function watchPath(obj: Object, path: string): void;
+    export function watchPath(obj: Array<any>, path: string): void;
+}
+declare module "core/observable/observe" {
+    import { Observer } from "core/observable/observer";
+    export function observe(obj: Object, key: string, callback?: Function, thisArg?: any): Observer;
+    export function observe(obj: Object, path: string, callback?: Function, thisArg?: any): Observer;
+    export function observe(array: Array<any>, key: string, callback?: Function, thisArg?: any): Observer;
+    export function observe(array: Array<any>, path: string, callback?: Function, thisArg?: any): Observer;
+    export function observe(fn: Function, key: string, callback?: Function, thisArg?: any): Observer;
+    export function observe(fn: Function, path: string, callback?: Function, thisArg?: any): Observer;
+}
+declare module "core/observable/observable" {
+    import { Observer } from "core/observable/observer";
+    export interface IObservable {
+        observe(key: string, callback?: Function): Observer;
+        observe(path: string, callback?: Function): Observer;
+        observe(keys: Array<string>, callback?: Function): Array<Observer>;
+        observe(paths: Array<string>, callback?: Function): Array<Observer>;
+        unobserve(): void;
+    }
+}
+declare module "core/observable/observableObject" {
+    import { CoreObject } from "core/object/object";
+    import { IObservable } from "core/observable/observable";
+    import { Observer } from "core/observable/observer";
+    export class ObservableObject extends CoreObject implements IObservable {
+        constructor(obj?: Object);
+        observe(key: string, callback?: Function): Observer;
+        observe(path: string, callback?: Function): Observer;
+        observe(keys: Array<string>, callback?: Function): Array<Observer>;
+        observe(paths: Array<string>, callback?: Function): Array<Observer>;
+        unobserve(): void;
+        static create(obj?: Object): any;
+    }
+}
+declare module "core/observable/observer" {
+    export interface IObserver {
+        new (): IObserver;
+        new (callback?: Function): IObserver;
+        subscribe(callback: Function): void;
+        unsubscribe(): void;
+        notify(thisArg?: any): void;
+    }
+    export class Observer {
+        private _callbacks;
+        constructor(callback?: Function, thisArg?: any);
+        subscribe(callback: Function, thisArg?: any): void;
+        unsubscribe(): void;
+        notify(thisArg?: any): void;
+    }
+    export function notifyObservers(obj: Object, key: string): void;
+    export function notifyObservers(array: Array<any>, key: string): void;
+}
+declare module "core/properties/propertyEvents" {
+    export function propertyWillChange(obj: Object, key: string, newValue: any, oldValue?: any): void;
+    export function propertyWillChange(array: Array<any>, key: string, newValue: any, oldValue?: any): void;
+    export function propertyDidChange(obj: Object, key: string, newValue: any, oldValue?: any): void;
+    export function propertyDidChange(obj: Array<any>, key: string, newValue: any, oldValue?: any): void;
+}
+declare module "core/properties/mandatory_set" {
+    export function mandatory_set(obj: Object, propertyName: string, value: any): void;
+    export function mandatory_set(obj: Array<any>, propertyName: string, value: any): void;
+}
 declare module "core/properties/properties" {
+    /**
+     * (description)
+     *
+     * @export
+     * @param {Object} obj (description)
+     * @param {string} propertyName (description)
+     * @param {*} [value] (description)
+     * @returns (description)
+     */
     export function defineProperty(obj: Object, propertyName: string, value?: any): void;
     /**
      * Checks if property is already defined by mojito's
      * defineProperty method.
      *
-     * @static
+     * @export
      * @param {Object} obj The object where to look for the defined property
      * @param {string} propertyName The name(key) of the defined property
      * @returns {boolean} true if property is defined, false if not
@@ -804,6 +874,9 @@ declare module "core/map/map" {
         static create(source: Array<Array<any>>): CoreMap;
     }
 }
+declare module "core/observable/observes" {
+    export function observes(...keys: string[]): MethodDecorator;
+}
 declare module "core/core" {
     export { get } from "core/get/get";
     export { set } from "core/set/set";
@@ -811,6 +884,8 @@ declare module "core/core" {
     export { CoreObject } from "core/object/object";
     export { CoreArray } from "core/array/array";
     export { CoreMap } from "core/map/map";
+    export { observes } from "core/observable/observes";
+    export { ObservableObject } from "core/observable/observableObject";
 }
 declare module "mojito/core" {
     export * from "core/core";
@@ -825,159 +900,109 @@ declare module "runtime/mojito/mojito" {
         static getInstance(): Mojito;
     }
 }
-declare module "utils/class/class" {
-    export interface IClass {
+declare module "runtime/directives/directive" {
+    /**
+     * Declares the interface to be used with class.
+     *
+     * @export
+     * @interface IClassDefinition
+     */
+    export interface IClassDefinition {
+        /**
+         * Required constructor function for a class.
+         *
+         * @type {Function}
+         */
+        constructor: Function;
+        /**
+         * Index signature for methods or properties on the class.
+         */
         [propertyName: string]: any;
+    }
+    /**
+     * Describes the metadata object for directives.
+     * See {@link Directive} decorator for more information
+     *
+     * @export
+     * @interface IDirectiveMetadata
+     */
+    export interface IDirectiveMetadata {
+        selector?: string;
         name?: string;
     }
-    export function getClassName(klass: IClass): string;
-}
-declare module "utils/string/endswith" {
-    export function endsWith(str: string, searchString: string, position?: number): boolean;
-}
-declare module "utils/string/kebab" {
-    export function toKebabCase(str: string): string;
-}
-declare module "utils/utils" {
-    export { getClassName } from "utils/class/class";
-    export { endsWith } from "utils/string/endswith";
-    export { toKebabCase } from "utils/string/kebab";
-}
-declare module "core/watch/watch" {
-    export function watchKey(obj: Object, key: string): void;
-    export function watchKey(obj: Array<any>, key: string): void;
-    export function watchPath(obj: Object, path: string): void;
-    export function watchPath(obj: Array<any>, path: string): void;
-}
-declare module "runtime/observable/observer" {
-    export interface IObserver {
-        new (): IObserver;
-        new (callback?: Function): IObserver;
-        subscribe(callback: Function): void;
-        unsubscribe(): void;
-        notify(thisArg?: any): void;
-    }
-    export class Observer {
-        private _callbacks;
-        constructor(callback?: Function, thisArg?: any);
-        subscribe(callback: Function, thisArg?: any): void;
-        unsubscribe(): void;
-        notify(thisArg?: any): void;
-    }
-    export function notifyObservers(obj: Object, key: string): void;
-    export function notifyObservers(array: Array<any>, key: string): void;
-}
-declare module "runtime/observable/observe" {
-    import { Observer } from "runtime/observable/observer";
-    export function observe(obj: Function | Object | Array<any>, keyOrPath: string, callback?: Function, thisArg?: any): Observer;
-}
-declare module "runtime/observable/observable" {
-    import { Observer } from "runtime/observable/observer";
-    export interface IObservable {
-        observe(key: string, callback?: Function): Observer;
-        observe(path: string, callback?: Function): Observer;
-        observe(keys: Array<string>, callback?: Function): Array<Observer>;
-        observe(paths: Array<string>, callback?: Function): Array<Observer>;
-        unobserve(): void;
-    }
-}
-declare module "runtime/observable/observableObject" {
-    import { CoreObject } from "core/object/object";
-    import { IObservable } from "runtime/observable/observable";
-    import { Observer } from "runtime/observable/observer";
-    export class ObservableObject extends CoreObject implements IObservable {
-        constructor(obj?: Object);
-        observe(key: string, callback?: Function): Observer;
-        observe(path: string, callback?: Function): Observer;
-        observe(keys: Array<string>, callback?: Function): Array<Observer>;
-        observe(paths: Array<string>, callback?: Function): Array<Observer>;
-        unobserve(): void;
-        static create(obj?: Object): any;
-    }
-}
-declare module "runtime/view/view" {
-    import { ObservableObject } from "runtime/observable/observableObject";
-    export interface onDidAttachView {
-        onDidAttachView(element: Element): void;
-    }
-    export interface onDidRenderView {
-        onDidRenderView(element: Element): void;
-    }
-    export abstract class View extends ObservableObject {
-        private _isAttached;
-        private _isRendered;
-        private _isDestroyed;
-        $: Function;
-        _attachView(element: Element): void;
-        _renderView(): void;
-    }
-}
-declare module "runtime/controller/controller" {
-    import { CoreMap } from "core/map/map";
-    import { View } from "runtime/view/view";
-    export abstract class Controller extends View {
-        static targetClassList: CoreMap;
-        constructor();
-        static register(ControllerClass: Function, meta?: {
-            name: string;
-        }): void;
-    }
-}
-declare module "runtime/register/register" {
-    export function register(meta?: Object): ClassDecorator;
-    export function registerClass(SourceClass: Function, TargetClass: Function, meta?: {
-        name: string;
-    }): void;
-}
-declare module "runtime/application/application" {
-    import { CoreMap } from "core/map/map";
-    import { ObservableObject } from "runtime/observable/observableObject";
-    export abstract class Application extends ObservableObject {
-        static targetClassList: CoreMap;
-        constructor();
-        static register(ApplicationClass: Function, meta?: {
-            name: string;
-        }): void;
-    }
-}
-declare module "runtime/service/service" {
-    import { CoreObject } from "core/core";
-    export abstract class Service extends CoreObject {
-    }
-}
-declare module "runtime/instantiation/instantiation" {
-    export function onBeforeInstantiation(TargetClass: any, callback: Function): any;
-    export function onAfterInstantiation(TargetClass: any, callback: Function): any;
     /**
-     * @memberOf test
+     * Directives allow you to attach behavior (a class) to elements in the DOM
+     * using a class decorator or the {@link registerDirective} function.
+     *
+     * A directive contains metadata (including the elements selector or name)
+     * and a class which will be attached to the elements.
+     *
+     * Assume this HTML Template or DOM
+     * ```html
+     * <form class="form">
+     *   <div>
+     *     <div my-directive>
+     *       <div>
+     *         <div></div>
+     *       </div>
+     *       <div></div>
+     *     </div>
+     *   </div>
+     * </form>
+     * ```
+     *
+     * ```typescript
+     * @Directive({ selector: '[my-directive]'})
+     * class MyDirective {
+     *  // Your Code
+     * }
+     *
+     * @export
+     * @param {IDirectiveMetadata} metadata Directive metadata
+     * @returns {ClassDecorator}
      */
-    export function instantiation(TargetClass: any, onBeforeInstantiation?: Function, onAfterInstantiation?: Function): any;
+    export function Directive(metadata: IDirectiveMetadata): ClassDecorator;
+    /**
+     * Function for registering the class and directive metadata.
+     * Normally you would not call this function directly.
+     * Use the {@link Directive} class decorator.
+     *
+     * @export
+     * @param {IClassDefinition} klass The directive klass which will be attached
+     * @param {IDirectiveMetadata} metadata The directive metadata
+     */
+    export function registerDirective(klass: IClassDefinition, metadata: IDirectiveMetadata): void;
 }
-declare module "runtime/singleton/singleton" {
-    export function singleton(TargetClass: any): void;
+declare module "runtime/directives/controller" {
+    import { IDirectiveMetadata } from "runtime/directives/directive";
+    export interface IControllerMetadata extends IDirectiveMetadata {
+        actions?: Object;
+    }
+    export function Controller(meta: IControllerMetadata): ClassDecorator;
 }
-declare module "runtime/injectable/injectable" {
-    export function injectable(TargetClass: any): void;
+declare module "runtime/directives/component" {
+    import { IDirectiveMetadata } from "runtime/directives/directive";
+    export interface IComponentMetadata extends IDirectiveMetadata {
+        actions?: Object;
+    }
+    export function Component(meta: IComponentMetadata): ClassDecorator;
 }
-declare module "runtime/injectable/inject" {
-    export function inject(InjectableClass: any): PropertyDecorator;
+declare module "runtime/directives/application" {
+    import { IDirectiveMetadata } from "runtime/directives/directive";
+    export interface IApplicationMetadata extends IDirectiveMetadata {
+        actions?: Object;
+    }
+    export function Application(meta: IApplicationMetadata): ClassDecorator;
 }
-declare module "runtime/observable/observes" {
-    export function observes(...keys: string[]): MethodDecorator;
+declare module "runtime/directives/directives" {
+    export { Directive, IDirectiveMetadata, registerDirective } from "runtime/directives/directive";
+    export { Controller, IControllerMetadata } from "runtime/directives/controller";
+    export { Component, IComponentMetadata } from "runtime/directives/component";
+    export { Application, IApplicationMetadata } from "runtime/directives/application";
 }
 declare module "runtime/runtime" {
     export { Mojito } from "runtime/mojito/mojito";
-    export { Application } from "runtime/application/application";
-    export { Controller } from "runtime/controller/controller";
-    export { Service } from "runtime/service/service";
-    export { injectable } from "runtime/injectable/injectable";
-    export { inject } from "runtime/injectable/inject";
-    export { singleton } from "runtime/singleton/singleton";
-    export { register } from "runtime/register/register";
-    export { observe } from "runtime/observable/observe";
-    export { observes } from "runtime/observable/observes";
-    export { ObservableObject } from "runtime/observable/observableObject";
-    export { Observer } from "runtime/observable/observer";
+    export { Directive, Component, Controller, Application } from "runtime/directives/directives";
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";

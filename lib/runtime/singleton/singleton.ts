@@ -1,7 +1,7 @@
 import { assert } from './../../debug/debug';
-import { onBeforeInstantiation } from './../instantiation/instantiation';
+import { onBeforeInstantiation } from './../core/instantiation/instantiation';
 
-export function singleton(TargetClass: any): void {
+export function Singleton(TargetClass: any): void {
     assert(typeof TargetClass === 'function', 'Decorator singleton has to be applied on a class!', TypeError);
     assert(!TargetClass.instance, 'The class seems to already implement the singleton pattern');
     
