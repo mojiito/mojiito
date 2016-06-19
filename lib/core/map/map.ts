@@ -1,5 +1,5 @@
 import { CoreIterator, IIteratorItem, IIterable } from '../iterator/iterator';
-import { assert } from './../../debug/debug';
+import { assert, Logger, LogLevel, LogType } from './../../debug/debug';
 
 /**
  * Iterator for the methods of the CoreMap that return iterators (e.g. CoreMap.entries, CoreMap.keys and CoreMap.values)
@@ -91,7 +91,7 @@ export class CoreMap implements IIterable<any>{
      * @type {number}
      */
     get length(): number {
-        !!console && !!console.warn && (console.warn("Don't use length property on CoreMaps!!"));
+        Logger.log(LogLevel.debug, `Don't use length property on CoreMaps!!`, LogType.warn);
         return 0;
     }
 
