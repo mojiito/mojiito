@@ -111,84 +111,84 @@ describe('CoreObject', () => {
         });
     });
 
-    describe('defineProperty', () => {
-        it('should exist', () => {
-            expect(typeof CoreObject.defineProperty).toBe('function');
-        });
-        it('should define a new property if it does not exist', () => {
-            const coreObject: any = new CoreObject();
-            CoreObject.defineProperty(coreObject, 'member', 'test');
-            expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
-        });
-        it('should replace an existing non defined property with a defined one', () => {
-            const coreObject: any = new CoreObject();
-            coreObject.member = 'fail';
-            CoreObject.defineProperty(coreObject, 'member', 'test');
-            expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
-        });
-        it('should override the value of an existing defined property', () => {
-            const coreObject: any = new CoreObject({ member: 'old' });
-            CoreObject.defineProperty(coreObject, 'member', 'test');
-            expect(coreObject['member'] === 'test');
-            expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
-        });
-    });
+    // describe('defineProperty', () => {
+    //     it('should exist', () => {
+    //         expect(typeof CoreObject.defineProperty).toBe('function');
+    //     });
+    //     it('should define a new property if it does not exist', () => {
+    //         const coreObject: any = new CoreObject();
+    //         CoreObject.defineProperty(coreObject, 'member', 'test');
+    //         expect(coreObject['member'] === 'test');
+    //         expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
+    //     });
+    //     it('should replace an existing non defined property with a defined one', () => {
+    //         const coreObject: any = new CoreObject();
+    //         coreObject.member = 'fail';
+    //         CoreObject.defineProperty(coreObject, 'member', 'test');
+    //         expect(coreObject['member'] === 'test');
+    //         expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
+    //     });
+    //     it('should override the value of an existing defined property', () => {
+    //         const coreObject: any = new CoreObject({ member: 'old' });
+    //         CoreObject.defineProperty(coreObject, 'member', 'test');
+    //         expect(coreObject['member'] === 'test');
+    //         expect(coreObject['member'] === Meta.peek(coreObject).getProperty('values', 'member'));
+    //     });
+    // });
 
-    describe('isDefinedProperty', () => {
-        it('should exist', () => {
-            expect(typeof CoreObject.isDefinedProperty).toBe('function');
-        });
-        it('should return `true` if a property was defined with the defineProperty method', () => {
-            const coreObject: any = new CoreObject({ member1: 'value1' });
-            CoreObject.defineProperty(coreObject, 'member2', 'value2');
-            expect(CoreObject.isDefinedProperty(coreObject, 'member1')).toBeTruthy();
-            expect(CoreObject.isDefinedProperty(coreObject, 'member2')).toBeTruthy();
-        });
-        it('should return `false` if a property was not defined with the defineProperty method', () => {
-            const coreObject: any = new CoreObject({ member1: 'value1' });
-            coreObject.member2 = 'value2';
-            Object.defineProperty(coreObject, 'member3', { writable: true, enumerable: false, configurable: true, value: 'value3' });
-            Object.defineProperty(coreObject, 'member4', { get: function() { return 'value4' }, set(value) { } });
-            expect(CoreObject.isDefinedProperty(coreObject, 'member1')).toBeTruthy();
-            expect(CoreObject.isDefinedProperty(coreObject, 'member2')).toBeFalsy();
-            expect(CoreObject.isDefinedProperty(coreObject, 'member3')).toBeFalsy();
-            expect(CoreObject.isDefinedProperty(coreObject, 'member4')).toBeFalsy();
-        });
-    });
+    // describe('isDefinedProperty', () => {
+    //     it('should exist', () => {
+    //         expect(typeof CoreObject.isDefinedProperty).toBe('function');
+    //     });
+    //     it('should return `true` if a property was defined with the defineProperty method', () => {
+    //         const coreObject: any = new CoreObject({ member1: 'value1' });
+    //         CoreObject.defineProperty(coreObject, 'member2', 'value2');
+    //         expect(CoreObject.isDefinedProperty(coreObject, 'member1')).toBeTruthy();
+    //         expect(CoreObject.isDefinedProperty(coreObject, 'member2')).toBeTruthy();
+    //     });
+    //     it('should return `false` if a property was not defined with the defineProperty method', () => {
+    //         const coreObject: any = new CoreObject({ member1: 'value1' });
+    //         coreObject.member2 = 'value2';
+    //         Object.defineProperty(coreObject, 'member3', { writable: true, enumerable: false, configurable: true, value: 'value3' });
+    //         Object.defineProperty(coreObject, 'member4', { get: function() { return 'value4' }, set(value) { } });
+    //         expect(CoreObject.isDefinedProperty(coreObject, 'member1')).toBeTruthy();
+    //         expect(CoreObject.isDefinedProperty(coreObject, 'member2')).toBeFalsy();
+    //         expect(CoreObject.isDefinedProperty(coreObject, 'member3')).toBeFalsy();
+    //         expect(CoreObject.isDefinedProperty(coreObject, 'member4')).toBeFalsy();
+    //     });
+    // });
 
-    describe('defineProperties', () => {
-        it('should exist', () => {
-            expect(typeof CoreObject.defineProperties).toBe('function');
-        });
-        it('should define multiple properties with the defineProperty method', () => {
-            const coreObject: any = new CoreObject();
-            CoreObject.defineProperties(coreObject, { member1: 1, member2: 2 });
-            expect(coreObject['member1'] === 1);
-            expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
-            expect(coreObject['member2'] === 2);
-            expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
-        });
-        it('should define properties on a CoreObject which are not defined', () => {
-            const coreObject: any = new CoreObject();
-            coreObject.member1 = 1;
-            expect(coreObject['member1'] === 1);
-            expect(Meta.peek(coreObject).getProperty('values', 'member1')).toBeUndefined();
-            CoreObject.defineProperties(coreObject);
-            expect(coreObject['member1'] === 1);
-            expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
-        });
-        it('should do both, define new and existing properties', () => {
-            const coreObject: any = new CoreObject();
-            coreObject.member1 = 1;
-            expect(coreObject['member1'] === 1);
-            expect(Meta.peek(coreObject).getProperty('values', 'member1')).toBeUndefined();
-            CoreObject.defineProperties(coreObject, { member2: 2 });
-            expect(coreObject['member1'] === 1);
-            expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
-            expect(coreObject['member2'] === 2);
-            expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
-        });
-    });
+    // describe('defineProperties', () => {
+    //     it('should exist', () => {
+    //         expect(typeof CoreObject.defineProperties).toBe('function');
+    //     });
+    //     it('should define multiple properties with the defineProperty method', () => {
+    //         const coreObject: any = new CoreObject();
+    //         CoreObject.defineProperties(coreObject, { member1: 1, member2: 2 });
+    //         expect(coreObject['member1'] === 1);
+    //         expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
+    //         expect(coreObject['member2'] === 2);
+    //         expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
+    //     });
+    //     it('should define properties on a CoreObject which are not defined', () => {
+    //         const coreObject: any = new CoreObject();
+    //         coreObject.member1 = 1;
+    //         expect(coreObject['member1'] === 1);
+    //         expect(Meta.peek(coreObject).getProperty('values', 'member1')).toBeUndefined();
+    //         CoreObject.defineProperties(coreObject);
+    //         expect(coreObject['member1'] === 1);
+    //         expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
+    //     });
+    //     it('should do both, define new and existing properties', () => {
+    //         const coreObject: any = new CoreObject();
+    //         coreObject.member1 = 1;
+    //         expect(coreObject['member1'] === 1);
+    //         expect(Meta.peek(coreObject).getProperty('values', 'member1')).toBeUndefined();
+    //         CoreObject.defineProperties(coreObject, { member2: 2 });
+    //         expect(coreObject['member1'] === 1);
+    //         expect(coreObject['member1'] === Meta.peek(coreObject).getProperty('values', 'member1'));
+    //         expect(coreObject['member2'] === 2);
+    //         expect(coreObject['member2'] === Meta.peek(coreObject).getProperty('values', 'member2'));
+    //     });
+    // });
 });

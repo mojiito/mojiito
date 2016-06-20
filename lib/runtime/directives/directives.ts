@@ -1,4 +1,4 @@
-export { Directive, IDirectiveMetadata, registerDirective } from './directive';
-export { Controller, IControllerMetadata } from './controller';
-export { Component, IComponentMetadata } from './component';
-export { Application, IApplicationMetadata } from './application';
+export { Directive, DirectiveMetadata, registerDirective, getRegisteredDirectives, DirectiveFactory } from './directive';
+export { Controller, ControllerMetadata } from './controller';
+export { Component, ComponentMetadata } from './component';
+export { Application, ApplicationMetadata } from './application';

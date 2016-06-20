@@ -9,8 +9,138 @@ declare module "debug/assert/assert" {
      */
     export function assert(assertion: boolean, message: string, ErrorType?: ErrorConstructor): void;
 }
+declare module "debug/logger/logger" {
+    /**
+     * Specifies the different log levels for the logger.
+     * From low to high level, these are:
+     * - info
+     * - debug
+     * - error
+     * - critical
+     * - none
+     *
+     * @export
+     * @enum {number}
+     */
+    export enum LogLevel {
+        /**
+         * Logs all levels
+         */
+        info = 0,
+        /**
+         * Logs debug, error and critical levels
+         */
+        debug = 1,
+        /**
+         * Only logs error and critical levels
+         */
+        error = 2,
+        /**
+         * Only logs critical levels
+         */
+        critical = 3,
+        /**
+         * Logs nothing
+         */
+        none = 4,
+    }
+    /**
+     * Specifies the type of the log message (equal to the console log functions)
+     *
+     * @export
+     * @enum {number}
+     */
+    export enum LogType {
+        /**
+         * Like console.log
+         */
+        log = 0,
+        /**
+         * Like console.info
+         */
+        info = 1,
+        /**
+         * Like console.debug
+         */
+        debug = 2,
+        /**
+         * Like console.warn
+         */
+        warn = 3,
+        /**
+         * Like console.error
+         */
+        error = 4,
+    }
+    /**
+     * Handles logging, checks if log levels match, allowes global loggin
+     * or creating a logger instance for specific case.
+     *
+     * @export
+     * @class Logger
+     */
+    export class Logger {
+        static globalLevel: LogLevel;
+        static globalLoggerInstance: Logger;
+        private privatelevel;
+        /**
+         * Creates an instance of Logger with a specific private {@link LogLevel}.
+         *
+         * @param {LogLevel} level Specified LogLevel
+         */
+        constructor(level: LogLevel);
+        /**
+         * Logs a message string to the console,
+         * taking care of private log levels and log types.
+         *
+         * @param {LogLevel} level The {@link LogLevel} of the message
+         * @param {string} message The message as a string
+         * @param {LogType} [type] The {@link LogType} of  the message
+         */
+        log(level: LogLevel, message: string, type?: LogType): void;
+        /**
+         * Logs a string returned by a message function to the console,
+         * taking care of private log levels and log types.
+         *
+         * @param {LogLevel} level The {@link LogLevel} of the message
+         * @param {() => string} message The message as a function which has to return a string
+         * @param {LogType} [type] The {@link LogType} of  the message
+         */
+        log(level: LogLevel, message: () => string, type?: LogType): void;
+        /**
+         * Global log function.
+         * Logs a message string to the console,
+         * taking care of global log levels and log types.
+         *
+         * @static
+         * @param {LogLevel} level The {@link LogLevel} of the message
+         * @param {string} message The message as a string
+         * @param {LogType} [type] The {@link LogType} of  the message
+         */
+        static log(level: LogLevel, message: string, type?: LogType): void;
+        /**
+         * Global log function.
+         * Logs a string returned by a message function to the console,
+         * taking care of global log levels and log types.
+         *
+         * @static
+         * @param {LogLevel} level The {@link LogLevel} of the message
+         * @param {() => string} message The message as a function which has to return a string
+         * @param {LogType} [type] The {@link LogType} of  the message
+         */
+        static log(level: LogLevel, message: () => string, type?: LogType): void;
+        /**
+         * Sets the global {@link LogLevel}
+         *
+         * @static
+         * @param {LogLevel} level The {@link LogLevel} which will be set.
+         */
+        static setGlobalLevel(level: LogLevel): void;
+    }
+}
 declare module "debug/debug" {
     export { assert } from "debug/assert/assert";
+    export { Logger, LogLevel, LogType } from "debug/logger/logger";
 }
 declare module "core/get/get" {
     /**
@@ -890,9 +1020,6 @@ declare module "core/core" {
 declare module "mojito/core" {
     export * from "core/core";
 }
-declare module "mojito/debug" {
-    export * from "debug/debug";
-}
 declare module "runtime/mojito/mojito" {
     export class Mojito {
         private static GLOBAL_NAMESPACE;
@@ -900,33 +1027,35 @@ declare module "runtime/mojito/mojito" {
         static getInstance(): Mojito;
     }
 }
-declare module "runtime/directives/directive" {
-    /**
-     * Declares the interface to be used with class.
-     *
-     * @export
-     * @interface IClassDefinition
-     */
-    export interface IClassDefinition {
-        /**
-         * Required constructor function for a class.
-         *
-         * @type {Function}
-         */
-        constructor: Function;
-        /**
-         * Index signature for methods or properties on the class.
-         */
+declare module "utils/class/class" {
+    export interface ClassFactory<T> {
+        new (...args: Array<any>): T;
         [propertyName: string]: any;
+        name?: string;
+    }
+}
+declare module "runtime/directives/directive" {
+    import { ClassFactory } from "utils/class/class";
+    /**
+     * Describes the pair of klass and metadata for directives used in the directives map.
+     *
+     * @interface IDirectiveDefinition
+     */
+    export class DirectiveFactory<T> {
+        private _class;
+        private _metadata;
+        klass: ClassFactory<T>;
+        metadata: DirectiveMetadata;
+        constructor(klass: ClassFactory<T>, metadata: DirectiveMetadata);
     }
     /**
      * Describes the metadata object for directives.
      * See {@link Directive} decorator for more information
      *
      * @export
-     * @interface IDirectiveMetadata
+     * @interface DirectiveMetadata
      */
-    export interface IDirectiveMetadata {
+    export interface DirectiveMetadata {
         selector?: string;
         name?: string;
     }
@@ -958,10 +1087,10 @@ declare module "runtime/directives/directive" {
      * }
      *
      * @export
-     * @param {IDirectiveMetadata} metadata Directive metadata
+     * @param {DirectiveMetadata} metadata Directive metadata
      * @returns {ClassDecorator}
      */
-    export function Directive(metadata: IDirectiveMetadata): ClassDecorator;
+    export function Directive(metadata: DirectiveMetadata): ClassDecorator;
     /**
      * Function for registering the class and directive metadata.
      * Normally you would not call this function directly.
@@ -969,36 +1098,108 @@ declare module "runtime/directives/directive" {
      *
      * @export
      * @param {IClassDefinition} klass The directive klass which will be attached
-     * @param {IDirectiveMetadata} metadata The directive metadata
+     * @param {DirectiveMetadata} metadata The directive metadata
      */
-    export function registerDirective(klass: IClassDefinition, metadata: IDirectiveMetadata): void;
+    export function registerDirective(klass: ClassFactory<any>, metadata: DirectiveMetadata): void;
+    export function getRegisteredDirectives(): {
+        [name: string]: DirectiveFactory<any>;
+    };
 }
 declare module "runtime/directives/controller" {
-    import { IDirectiveMetadata } from "runtime/directives/directive";
-    export interface IControllerMetadata extends IDirectiveMetadata {
-        actions?: Object;
+    import { DirectiveMetadata } from "runtime/directives/directive";
+    export interface ControllerMetadata extends DirectiveMetadata {
+        /**
+         * Specifes the actions (events) related to the element.
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'button',
+         *   actions: {
+         *     '(click)': 'onClick(event)'
+         *   }
+         * })
+         * class ButtonComponent {
+         *     onClick(event: MouseEvent) {
+         *       // your code
+         *     }
+         * }
+         * ```
+         *
+         * @type {{[key: string]: string}}
+         */
+        actions?: {
+            [key: string]: string;
+        };
     }
-    export function Controller(meta: IControllerMetadata): ClassDecorator;
+    export function Controller(meta: ControllerMetadata): ClassDecorator;
 }
 declare module "runtime/directives/component" {
-    import { IDirectiveMetadata } from "runtime/directives/directive";
-    export interface IComponentMetadata extends IDirectiveMetadata {
-        actions?: Object;
+    import { DirectiveMetadata } from "runtime/directives/directive";
+    export interface ComponentMetadata extends DirectiveMetadata {
+        /**
+         * Specifes the actions (events) related to the element.
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'button',
+         *   actions: {
+         *     '(click)': 'onClick(event)'
+         *   }
+         * })
+         * class ButtonComponent {
+         *     onClick(event: MouseEvent) {
+         *       // your code
+         *     }
+         * }
+         * ```
+         *
+         * @type {{[key: string]: string}}
+         */
+        actions?: {
+            [key: string]: string;
+        };
+        /**
+         * Defines a template string which will be compiled an applied to the DOM.
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'custom-tooltip',
+         *   template: `
+         *      <div class="tooltip__body">
+         *          Some text
+         *      </div>
+         *   `
+         * })
+         * class CustomTooltipComponent {
+         *      // your code
+         * }
+         * ```
+         *
+         * @type {string}
+         */
+        template?: string;
+        templateName?: string;
     }
-    export function Component(meta: IComponentMetadata): ClassDecorator;
+    /**
+     * Class Decorator for the Component {@link Directive}
+     *
+     * @export
+     * @param {IComponentMetadata} meta Component directive metadata
+     * @returns {ClassDecorator} Component class decorator
+     */
+    export function Component(meta: ComponentMetadata): ClassDecorator;
 }
 declare module "runtime/directives/application" {
-    import { IDirectiveMetadata } from "runtime/directives/directive";
-    export interface IApplicationMetadata extends IDirectiveMetadata {
-        actions?: Object;
+    import { DirectiveMetadata } from "runtime/directives/directive";
+    export interface ApplicationMetadata extends DirectiveMetadata {
     }
-    export function Application(meta: IApplicationMetadata): ClassDecorator;
+    export function Application(meta: ApplicationMetadata): ClassDecorator;
 }
 declare module "runtime/directives/directives" {
-    export { Directive, IDirectiveMetadata, registerDirective } from "runtime/directives/directive";
-    export { Controller, IControllerMetadata } from "runtime/directives/controller";
-    export { Component, IComponentMetadata } from "runtime/directives/component";
-    export { Application, IApplicationMetadata } from "runtime/directives/application";
+    export { Directive, DirectiveMetadata, registerDirective, getRegisteredDirectives, DirectiveFactory } from "runtime/directives/directive";
+    export { Controller, ControllerMetadata } from "runtime/directives/controller";
+    export { Component, ComponentMetadata } from "runtime/directives/component";
+    export { Application, ApplicationMetadata } from "runtime/directives/application";
 }
 declare module "runtime/runtime" {
     export { Mojito } from "runtime/mojito/mojito";
@@ -1006,4 +1207,98 @@ declare module "runtime/runtime" {
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";
+}
+declare module "compiler/dom_parser/dom_parser" {
+    export interface IDOMParserElementHook {
+        predicate: (element: Element) => boolean;
+        onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
+        onParse?: (element: Element, context: Array<any>) => void;
+        onAfterParse?: (element: Element, context: Array<any>) => void;
+        onDestroy?: (element: Element) => void;
+    }
+    export interface IDOMParserAttributeHook {
+        predicate: (attribute: Attr) => boolean;
+        onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
+        onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
+        onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
+        onDestroy?: (element: Element, attribute: Attr) => void;
+    }
+    export interface IDOMParserContextObject {
+        type: string;
+        name: string;
+        context: IDOMParserContext;
+    }
+    export interface IDOMParserContextList extends Array<IDOMParserContextObject> {
+        [index: number]: IDOMParserContextObject;
+    }
+    export interface IDOMParserContext extends Array<IDOMParserContextList> {
+        [index: number]: IDOMParserContextList;
+    }
+    export class DOMParser {
+        private elementHooks;
+        private attributeHooks;
+        parseTree(rootElement?: Element): void;
+        private parseNode(element, context?);
+        registerElementHook(hook: IDOMParserElementHook): void;
+        registerAttributeHook(hook: IDOMParserAttributeHook): void;
+    }
+}
+declare module "utils/string/endswith" {
+    export function endsWith(str: string, searchString: string, position?: number): boolean;
+}
+declare module "utils/string/kebab" {
+    export function toKebabCase(str: string): string;
+}
+declare module "utils/utils" {
+    export { ClassFactory } from "utils/class/class";
+    export { endsWith } from "utils/string/endswith";
+    export { toKebabCase } from "utils/string/kebab";
+}
+declare module "compiler/utils/dom_utils" {
+    /**
+     * Converts the array-like NodeList (NodeListOf) to a real array
+     *
+     * @export
+     * @template T
+     * @param {NodeListOf<T>} nodeList
+     * @returns {Array<T>} Converted Array
+     */
+    export function convertNodeListToArray<T extends Node>(nodeList: NodeListOf<T>): Array<T>;
+    /**
+     * Checks if a selector matches an element.
+     *
+     * @export
+     * @param {string} selector
+     * @param {Element} element
+     * @returns Returns true if selector matches, false if not
+     */
+    export function doesSelectorMatchElement(selector: string, element: Element): boolean;
+}
+declare module "compiler/resolver/resolver" {
+    export * from "compiler/resolver/directive_resolver";
+    export abstract class Resolver {
+        abstract validate(element: Element): boolean;
+        abstract resolve(element: Element): void;
+    }
+}
+declare module "compiler/resolver/directive_resolver" {
+    import { DirectiveMetadata } from "runtime/directives/directives";
+    import { ClassFactory } from "utils/utils";
+    import { Resolver } from "compiler/resolver/resolver";
+    export class DirectiveResolver extends Resolver {
+        private _class;
+        private _metadata;
+        constructor(klass: ClassFactory<Object>, metadata: DirectiveMetadata);
+        validate(element: Element): boolean;
+        resolve(element: Element): void;
+    }
+}
+declare module "compiler/compiler" {
+    export class Compiler {
+        private parser;
+        constructor();
+    }
+}
+declare module "mojito/compiler" {
+    export * from "compiler/compiler";
 }

@@ -1,3 +1,5 @@
+import { Logger, LogLevel, LogType } from '../../debug/debug';
+
 export interface IDOMParserElementHook {
     predicate: (element: Element) => boolean;
     onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
@@ -88,7 +90,7 @@ export class DOMParser {
                         try {
                             localContext = localContext.concat(attributeHook.onBeforeParse(element, attribute, filteredContext));
                         } catch (ex) {
-                            console.error(ex);
+                            Logger.log(LogLevel.critical, ex, LogType.error);
                         }
                     }
                     element.removeAttributeNode(attribute);

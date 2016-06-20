@@ -1,39 +1,33 @@
 import { assert } from '../../debug/debug';
 import { CoreMap } from '../../core/map/map';
+import { ClassFactory } from '../../utils/class/class';
 
 /**
  * Directives are stored here.
  */
-let directives: { [name: string]: IDirectiveDefinition } = {};
-
-/**
- * Declares the interface to be used with class.
- * 
- * @export
- * @interface IClassDefinition
- */
-export interface IClassDefinition {
-    /**
-     * Required constructor function for a class.
-     * 
-     * @type {Function}
-     */
-    constructor: Function;
-
-    /**
-     * Index signature for methods or properties on the class. 
-     */
-    [propertyName: string]: any;
-}
+let directives: { [name: string]: DirectiveFactory<any> } = {};
 
 /**
  * Describes the pair of klass and metadata for directives used in the directives map.
  * 
  * @interface IDirectiveDefinition
  */
-interface IDirectiveDefinition {
-    klass: IClassDefinition;
-    metadata: IDirectiveMetadata;
+export class DirectiveFactory<T> {
+    private _class: ClassFactory<T>;
+    private _metadata: DirectiveMetadata;
+
+    get klass(): ClassFactory<T> {
+        return this._class;
+    }
+
+    get metadata(): DirectiveMetadata {
+        return this._metadata;
+    }
+
+    constructor(klass: ClassFactory<T>, metadata: DirectiveMetadata) {
+        this._class = klass;
+        this._metadata = metadata;
+    }
 }
 
 /**
@@ -41,9 +35,9 @@ interface IDirectiveDefinition {
  * See {@link Directive} decorator for more information
  * 
  * @export
- * @interface IDirectiveMetadata
+ * @interface DirectiveMetadata
  */
-export interface IDirectiveMetadata {
+export interface DirectiveMetadata {
     selector?: string;
     name?: string;
 }
@@ -76,11 +70,11 @@ export interface IDirectiveMetadata {
  * }
  * 
  * @export
- * @param {IDirectiveMetadata} metadata Directive metadata
+ * @param {DirectiveMetadata} metadata Directive metadata
  * @returns {ClassDecorator}
  */
-export function Directive(metadata: IDirectiveMetadata): ClassDecorator {
-    return function (klass: IClassDefinition) {
+export function Directive(metadata: DirectiveMetadata): ClassDecorator {
+    return function(klass: ClassFactory<any>) {
         registerDirective(klass, metadata);
     }
 }
@@ -92,9 +86,9 @@ export function Directive(metadata: IDirectiveMetadata): ClassDecorator {
  * 
  * @export
  * @param {IClassDefinition} klass The directive klass which will be attached
- * @param {IDirectiveMetadata} metadata The directive metadata
+ * @param {DirectiveMetadata} metadata The directive metadata
  */
-export function registerDirective(klass: IClassDefinition, metadata: IDirectiveMetadata): void {
+export function registerDirective(klass: ClassFactory<any>, metadata: DirectiveMetadata): void {
     assert(
         typeof metadata === 'object' && !Array.isArray(metadata),
         'The metadata property for the directive must be an object and implement the IControllerMetadata interface!',
@@ -117,8 +111,9 @@ export function registerDirective(klass: IClassDefinition, metadata: IDirectiveM
     );
 
     // add to directives object
-    directives[name] = {
-        klass: klass,
-        metadata: metadata
-    }
+    directives[name] = new DirectiveFactory(klass, metadata);
+}
+
+export function getRegisteredDirectives(): { [name: string]: DirectiveFactory<any> }  {
+    return directives;
 }

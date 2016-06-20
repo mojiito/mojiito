@@ -1,5 +1,5 @@
 import { assert } from './../../debug/debug';
-import { onBeforeInstantiation } from './../core/instantiation/instantiation';
+import { onBeforeInstantiation } from '../../core/instantiation/instantiation';
 
 export function Singleton(TargetClass: any): void {
     assert(typeof TargetClass === 'function', 'Decorator singleton has to be applied on a class!', TypeError);

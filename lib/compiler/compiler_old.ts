@@ -11,9 +11,9 @@ private REGEX_FIND_FUNCTION_PARAMS = /\(.+\)$/;
 private REGEX_FIND_NAME = /\w+/;
 */
 
-import { DOMParser, IDOMParserContextObject, IDOMParserContext } from './dom-parser/dom-parser';
+// import { DOMParser, IDOMParserContextObject, IDOMParserContext } from './dom-parser/dom-parser';
 
-const parser = new DOMParser();
+// const parser = new DOMParser();
 
 // action hook
 // parser.registerAttributeHook({
@@ -44,6 +44,6 @@ parser.registerAttributeHook((attribute: Attr) => {
 */
 // definition hook
 
-console.time('parse');
-parser.parseTree(document.body);
-console.timeEnd('parse');
+// console.time('parse');
+// parser.parseTree(document.body);
+// console.timeEnd('parse');

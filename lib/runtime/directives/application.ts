@@ -1,9 +1,8 @@
-import { Directive, IDirectiveMetadata } from './directive';
+import { Directive, DirectiveMetadata } from './directive';
 
-export interface IApplicationMetadata extends IDirectiveMetadata {
-    actions?: Object;
+export interface ApplicationMetadata extends DirectiveMetadata {
 }
 
-export function Application(meta: IApplicationMetadata): ClassDecorator {
+export function Application(meta: ApplicationMetadata): ClassDecorator {
     return Directive(meta);
 }

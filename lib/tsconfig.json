@@ -12,7 +12,7 @@
     },
     "files": [
         "./mojito/core.ts",
-        "./mojito/debug.ts",
-        "./mojito/runtime.ts"
+        "./mojito/runtime.ts",
+        "./mojito/compiler.ts"
     ]
 }
