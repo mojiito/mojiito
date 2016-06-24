@@ -1,59 +1,5 @@
-import { CoreIterator, IIteratorItem, IIterable } from '../iterator/iterator';
+import { Iterator, IIteratorItem, IIterable } from '../iterator/iterator';
 import { assert, Logger, LogLevel, LogType } from './../../debug/debug';
-
-/**
- * Iterator for the methods of the CoreMap that return iterators (e.g. CoreMap.entries, CoreMap.keys and CoreMap.values)
- * 
- * @export
- * @class CoreMapIterator
- * @extends {CoreIterator<any>}
- */
-export class CoreMapIterator extends CoreIterator<any> {
-
-    /**
-     * Store if the value of the iterator item should be:
-     * undefined: [key, value]
-     * 0: key
-     * 1: value
-     * 
-     * @private
-     * @type {number}
-     */
-    private _field: number;
-
-    /**
-     * Creates an instance of CoreMapIterator.
-     * 
-     * @param {IIterable<any>} source Iterable object
-     * @param {number} [field] Set to 0 or 1 to modify the value of the iterator item
-     */
-    constructor(source: IIterable<any>, field?: number) {
-        super(source);
-        this._field = field;
-    }
-
-    /**
-     * Returns the next item in the CoreMap.
-     * A zero arguments function that returns an object with two properties:
-     * done (boolean)
-     * Has the value true if the iterator is past the end of the iterated sequence. In this case value optionally specifies the return value of the iterator. The return values are explained here.
-     * Has the value false if the iterator was able to produce the next value in the sequence. This is equivalent of not specifying the done property altogether.
-     *
-     * value
-     * any JavaScript value returned by the iterator. Can be omitted when done is true.
-     * 
-     * @returns {IIteratorItem<any>} The next item in the CoreMap
-     */
-    next(): IIteratorItem<any> {
-        let item = super.next();
-        if (item.value) {
-            if (typeof this._field === 'number') {
-                item.value = item.value[this._field];
-            }
-        }
-        return item;
-    }
-}
 
 /**
  * Implementation of the ES6 Map.
@@ -70,9 +16,9 @@ export class CoreMap implements IIterable<any>{
      * Internal Array where all thoses keys and values are stored.
      * 
      * @private
-     * @type {IIterable<any>}
+     * @type {Array<[any, any]}
      */
-    private _source: Array<any> = [];
+    private _source: Array<[any, any]> = [];
 
     /**
      * Returns the number of key/value pairs in the Map object.
@@ -112,13 +58,13 @@ export class CoreMap implements IIterable<any>{
      * Creates an instance of CoreMap out of an array.
      * Every item of the provided array must be an array with two items - a key and a value.
      * 
-     * @param {Array<Array<any>>} source (description)
+     * @param {Array<[any, any]>} source The provided source array
      */
-    constructor(source: Array<Array<any>>);
+    constructor(source: Array<[any, any]>);
     constructor(source?: any) {
         if (Array.isArray(source)) {
             for (let i = 0, max = source.length; i < max; i++) {
-                let item = <Array<any>>source[i];
+                let item = <Array<[any, any]>>source[i];
                 if (item.length === 2) {
                     this._source.push([item[0], item[1]]);
                 } else {
@@ -146,7 +92,7 @@ export class CoreMap implements IIterable<any>{
      * @param {*} key The key of the element to remove from the Map object.
      */
     delete(key: any): void {
-        let source = <Array<any>>this._source;
+        let source = this._source;
         for (let i = 0, max = source.length >>> 0; i < max; i++) {
             if (source[i][0] === key) {
                 source.splice(i, 1);
@@ -158,10 +104,10 @@ export class CoreMap implements IIterable<any>{
     /**
      * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
      * 
-     * @returns {CoreMapIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+     * @returns {Iterator<[any,any]>} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
      */
-    entries(): CoreMapIterator {
-        return new CoreMapIterator(this._source);
+    entries(): Iterator<[any,any]> {
+        return new Iterator(this._source);
     }
 
     /**
@@ -208,10 +154,14 @@ export class CoreMap implements IIterable<any>{
     /**
      * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
      * 
-     * @returns {CoreMapIterator} Iterator object that contains the keys for each element in the Map object in insertion order
+     * @returns {Iterator<any>} Iterator object that contains the keys for each element in the Map object in insertion order
      */
-    keys(): CoreMapIterator {
-        return new CoreMapIterator(this._source, 0);
+    keys(): Iterator<any> {
+        let keys: Array<any> = [];
+        this.forEach((value, key) => {
+            keys.push(key);
+        });
+        return new Iterator(keys);
     }
 
     /**
@@ -222,7 +172,7 @@ export class CoreMap implements IIterable<any>{
      * @returns {CoreMap} The Map object
      */
     set(key: any, value: any): CoreMap {
-        let source = <Array<any>>this._source;
+        let source = this._source;
         for (let i = 0, max = source.length >>> 0; i < max; i++) {
             if (key === source[i][0]) {
                 source[i][1] = value;
@@ -238,21 +188,173 @@ export class CoreMap implements IIterable<any>{
      * 
      * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
      */
-    values(): CoreMapIterator {
-        return new CoreMapIterator(this._source, 1);
+    values(): Iterator<any> {
+        let keys: Array<any> = [];
+        this.forEach((value, key) => {
+            keys.push(value);
+        });
+        return new Iterator(keys);
     }
 
-
     /**
-     * (description)
+     * Creates an instance of an empty CoreMap.
      * 
      * @static
-     * @returns {CoreMap} (description)
+     * @returns {CoreMap} Created empty CoreMap
      */
     static create(): CoreMap;
+    /**
+     * Creates an instance of CoreMap with data provided by an object.
+     * The properties of the object will get stored as key/value paired arrays (eg: [key, value]).
+     * The key will be the property name
+     * The value will be the coresponding property value
+     * 
+     * @static
+     * @param {Object} source The provided source object
+     * @returns {CoreMap} Created CoreMap
+     */
     static create(source: Object): CoreMap;
-    static create(source: Array<Array<any>>): CoreMap;
+    /**
+     * Creates an instance of CoreMap out of an array.
+     * Every item of the provided array must be an array with two items - a key and a value.
+     * 
+     * @static
+     * @param {Array<[any, any]>} source The provided source array
+     * @returns {CoreMap} Created CoreMap
+     */
+    static create(source: Array<[any, any]>): CoreMap;
     static create(source?: any): CoreMap {
         return new CoreMap(source);
+    }
+}
+
+/**
+ * Implementation of the ES6 Map as a typed variant.
+ * The Map object is a simple key/value map.
+ * Any value (both objects and primitive values) may be used as either a key or a value.
+ * 
+ * @export
+ * @class TypedMap
+ * @extends {CoreMap}
+ * @template K
+ * @template V
+ */
+export class TypedMap<K, V> extends CoreMap {
+    /**
+     * Creates an instance of an empty TypedMap.
+     */
+    constructor();
+    /**
+     * Creates an instance of TypedMap out of an array.
+     * Every item of the provided array must be an array with two items - a key and a value.
+     * 
+     * @param {Array<[K, V]>} source The provided source array
+     */
+    constructor(source: Array<[K, V]>);
+    constructor(source?: any) {
+        super(source);
+    }
+
+    /**
+     * Removes any value associated to the key and returns the value that Map.has(key) would have previously returned.
+     * Map.prototype.has(key) will return false afterwards.
+     * 
+     * @param {K} key The key of the element to remove from the Map object.
+     */
+    delete(key: K): void {
+        super.delete(key);
+    }
+
+    /**
+     * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
+     * 
+     * @returns {Iterator<[K, V]>} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+     */
+    entries(): Iterator<[K, V]> {
+        return super.entries();
+    }
+
+    /**
+     * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
+     * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
+     * 
+     * @param {(value: any, key: any, map: TypedMap) => void} callbackFn Function to execute for each element.
+     * @param {(Object | Function)} [thisArg] Value to use as this when executing callback.
+     */
+    forEach(callbackFn: (value: V, key: K, map: TypedMap<K, V>) => any, thisArg?: Object | Function): void {
+        super.forEach.apply(this, arguments);
+    }
+    
+    /**
+     * Returns the value associated to the key, or undefined if there is none.
+     * 
+     * @param {K} key The key of the element to return from the Map object.
+     * @returns {V} Value associated to the key, or undefined
+     */
+    get(key: K): V {
+        return super.get(key);
+    }
+
+    /**
+     * Returns a boolean asserting whether a value has been associated to the key in the Map object or not.
+     * 
+     * @param {*} key The key of the element to test for presence in the Map object.
+     * @returns {boolean} Value associated to the key
+     */
+    has(key: K): boolean {
+        return super.has(key);
+    }
+
+    /**
+     * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
+     * 
+     * @returns {Iterator<any>} Iterator object that contains the keys for each element in the Map object in insertion order
+     */
+    keys(): Iterator<K> {
+        return super.keys();
+    }
+
+    /**
+     * Sets the value for the key in the Map object. Returns the Map object.
+     * 
+     * @param {K} key The key of the element to add to the Map object.
+     * @param {V} value The value of the element to add to the Map object.
+     * @returns {TypedMap<K,V>} The Map object
+     */
+    set(key: K, value: V): TypedMap<K,V> {
+        return super.set(key, value);
+    }
+
+    /**
+     * Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
+     * 
+     * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
+     */
+    values(): Iterator<V> {
+        return super.values();
+    }
+
+    /**
+     * Creates an instance of an empty CoreMap.
+     * 
+     * @static
+     * @template K
+     * @template V
+     * @returns {TypedMap<K,V>} Created empty TypedMap
+     */
+    static create<K,V>(): TypedMap<K,V>;
+    /**
+     * Creates an instance of CoreMap out of an array.
+     * Every item of the provided array must be an array with two items - a key and a value.
+     * 
+     * @static
+     * @template K
+     * @template V
+     * @param {Array<[K, V]>} source The provided source array
+     * @returns {TypedMap<K,V>} Created TypedMap
+     */
+    static create<K,V>(source: Array<[K, V]>): TypedMap<K,V>;
+    static create<K,V>(source?: any): TypedMap<K,V> {
+        return new TypedMap<K, V>(source);
     }
 }
