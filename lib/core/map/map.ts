@@ -32,6 +32,9 @@ export class CoreMap implements IIterable<any>{
 
     /**
      * The value of the length property is 0.
+     * To fulfill the ES2015 specification the Map must implement
+     * a length property even if it always returns 0:
+     * https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map#Properties
      * 
      * @readonly
      * @type {number}
