@@ -1,8 +1,11 @@
 import { assert } from './../../debug/debug';
+import { Injector } from './injector';
+import { ClassFactory, getClassName } from '../../utils/class/class';
 
-export function inject(injectableClass: any): PropertyDecorator {
-    return function (target: any, propertyName: string): void {
-        assert(typeof injectableClass._injectableInstance === 'object', `You are injecting a class into your property "${propertyName}" which is not marked as Injectable!`);
-        target[propertyName] = injectableClass._injectableInstance;
+export function Inject<C>(injectableClass: ClassFactory<C>): PropertyDecorator {
+    return function (targetClass: any, propertyName: string): void {
+        let instance = Injector.resolve(injectableClass);
+        assert(instance instanceof injectableClass, `You are injecting a class into your property "${propertyName}" which is either not Injectable or not yet registered on the Injector`);
+        targetClass[propertyName] = instance;
     }
 }

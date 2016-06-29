@@ -1,4 +1,5 @@
 import { Logger, LogLevel, LogType } from '../../debug/debug';
+import { Injectable } from '../../runtime/injectable/injectable';
 
 export interface IDOMParserElementHook {
     predicate: (element: Element) => boolean;
@@ -9,6 +10,7 @@ export interface IDOMParserElementHook {
 }
 
 export interface IDOMParserAttributeHook {
+    removeAttributeNode?: boolean;
     predicate: (attribute: Attr) => boolean;
     onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
     onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
@@ -30,8 +32,10 @@ export interface IDOMParserContext extends Array<IDOMParserContextList> {
     [index: number]: IDOMParserContextList;
 };
 
+@Injectable
 export class DOMParser {
 
+    static _instance: DOMParser;    
     private elementHooks: Array<IDOMParserElementHook> = [];
     private attributeHooks: Array<IDOMParserAttributeHook> = [];
 
@@ -93,8 +97,10 @@ export class DOMParser {
                             Logger.log(LogLevel.critical, ex, LogType.error);
                         }
                     }
-                    element.removeAttributeNode(attribute);
-                    diff++;
+                    if (attributeHook.removeAttributeNode) {
+                        element.removeAttributeNode(attribute);
+                        diff++;
+                    }
 
                     (function(hook: IDOMParserAttributeHook, element: Element, attribute: Attr) {
                         if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, attribute, context); });
@@ -141,5 +147,20 @@ export class DOMParser {
 
     registerAttributeHook(hook: IDOMParserAttributeHook): void {
         this.attributeHooks.push(hook);
+    }
+
+    static getInstance(): DOMParser {
+        if (!(DOMParser._instance instanceof DOMParser)) {
+            let instance = new DOMParser();
+            Object.defineProperty(DOMParser, '_instance', {
+                writable: false,
+                configurable: false,
+                enumerable: false,
+                value: instance 
+            });
+            return instance;
+        }
+
+        return this._instance;
     }
 }

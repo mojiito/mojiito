@@ -1,14 +1,13 @@
 import { observes } from 'mojito/core';
-import { Application, Controller } from 'mojito/runtime';
-import { Compiler } from 'mojito/compiler';
+import { Application, Controller, bootstrap } from 'mojito/runtime';
+import { DirectiveResolver, DOMParser } from 'mojito/compiler';
 
+console.time('init');
 
-@Controller({ name: 'foo-controller' })    
+@Controller({ selector: 'my-controller' })    
 class FooController {
 }
 
-@Controller({ name: 'bar-controller' })
-class BarController {
-}
+bootstrap();
 
-let compiler = new Compiler();
+console.timeEnd('init');

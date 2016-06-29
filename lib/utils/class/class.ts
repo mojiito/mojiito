@@ -5,3 +5,7 @@ export interface ClassFactory<T> {
     [propertyName: string]: any;
     name?: string;
 }
+
+export function getClassName<T>(klass: ClassFactory<T>) {
+    return klass.name ? klass.name : /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];
+}

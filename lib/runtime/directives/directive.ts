@@ -1,34 +1,8 @@
 import { assert } from '../../debug/debug';
 import { CoreMap } from '../../core/map/map';
-import { ClassFactory } from '../../utils/class/class';
-
-/**
- * Directives are stored here.
- */
-let directives: { [name: string]: DirectiveFactory<any> } = {};
-
-/**
- * Describes the pair of klass and metadata for directives used in the directives map.
- * 
- * @interface IDirectiveDefinition
- */
-export class DirectiveFactory<T> {
-    private _class: ClassFactory<T>;
-    private _metadata: DirectiveMetadata;
-
-    get klass(): ClassFactory<T> {
-        return this._class;
-    }
-
-    get metadata(): DirectiveMetadata {
-        return this._metadata;
-    }
-
-    constructor(klass: ClassFactory<T>, metadata: DirectiveMetadata) {
-        this._class = klass;
-        this._metadata = metadata;
-    }
-}
+import { ClassFactory, getClassName } from '../../utils/class/class';
+import { Injector } from '../../runtime/injectable/injector';
+import { DirectiveResolver } from '../compiler/resolver/resolver';
 
 /**
  * Describes the metadata object for directives.
@@ -38,15 +12,14 @@ export class DirectiveFactory<T> {
  * @interface DirectiveMetadata
  */
 export interface DirectiveMetadata {
-    selector?: string;
-    name?: string;
+    selector: string;
 }
 
 /**
  * Directives allow you to attach behavior (a class) to elements in the DOM
  * using a class decorator or the {@link registerDirective} function.
  *
- * A directive contains metadata (including the elements selector or name)
+ * A directive contains metadata (including the elements selector)
  * and a class which will be attached to the elements.
  *
  * Assume this HTML Template or DOM
@@ -74,7 +47,7 @@ export interface DirectiveMetadata {
  * @returns {ClassDecorator}
  */
 export function Directive(metadata: DirectiveMetadata): ClassDecorator {
-    return function(klass: ClassFactory<any>) {
+    return function (klass: ClassFactory<any>) {
         registerDirective(klass, metadata);
     }
 }
@@ -89,31 +62,58 @@ export function Directive(metadata: DirectiveMetadata): ClassDecorator {
  * @param {DirectiveMetadata} metadata The directive metadata
  */
 export function registerDirective(klass: ClassFactory<any>, metadata: DirectiveMetadata): void {
+    
+    // Check if metadata is an object
     assert(
         typeof metadata === 'object' && !Array.isArray(metadata),
-        'The metadata property for the directive must be an object and implement the IControllerMetadata interface!',
+        `The metadata property for the directive on your class "${getClassName(klass)}" must be an object and implement the IControllerMetadata interface!`,
         TypeError
     );
-    assert(
-        typeof metadata.name === 'string' || typeof metadata.selector === 'string',
-        'The directive metadata object must specify a name and/or a selector!'
-    );
-    let name = metadata.name;
-    if (!name) {
-        name = '' + Math.floor(Math.random() * 10 + 1) * Date.now();
+
+    // Check if a selector is specified in the metadata.
+    // Every directive must have a selector
+    assert(typeof metadata.selector === 'string',
+        `The directive metadata object on your class "${getClassName(klass)}" must specify a selector!`,
+        TypeError);
+
+    metadata.selector = metadata.selector.trim();
+
+    // Check if selector contains only one level of dom nodes
+    // Ok: .my-selector
+    // Not allowed: .parent .my-selector
+    assert(metadata.selector.indexOf(' ') === -1,
+        `The directive selector "${metadata.selector}" on your class "${getClassName(klass)}" contains more than one levels of nodes. Only one is allowed!`,
+        SyntaxError);
+    
+    // Check if selector is valid
+    assert(!!metadata.selector.match(/^([a-z#\-\.\[\]\=\"\']*)+$/),
+        `The directive selector "${metadata.selector}" on your class "${getClassName(klass)}" is not valid`,
+        SyntaxError);
+
+    // Parsing the selector string to an array
+    // 'my-element.class1#id[attribute1].class2[attribute2="value"]'
+    // to
+    // ["my-element", ".class1", "#id", "[attribute1]", ".class2", "[attribute2="value"]"]   
+    let selectorList: string[] = metadata.selector.split('.').join(' .').split('#').join(' #').split('[').join(' [').trim().split(' ');
+
+    for (let i = 0, max = selectorList.length; i < max; i++) {
+        let selector = selectorList[i];
+        if (!selector.length) {
+            continue;
+        }
+
+        // Check if the selector contains element names whicht are not allowed
+        // eg. custom elements without a "-" in it
+        assert(
+            !selector.match(/^\w+(-\w+)*$/) || !(document.createElement(selector) instanceof HTMLUnknownElement),
+            `The selector "${metadata.selector}" on your class "${getClassName(klass)}" contains an element name "${selector}" which is not allowed. 
+            If you are using a custom element, there has to be a "-" char in it!)`,
+            SyntaxError);
+        
+        
     }
 
-    // Check if directive with a specific name is already registerd
-    assert(
-        typeof directives[name] === 'undefined',
-        `The directive with the name "${name}" has been already registerd!`,
-        ReferenceError
-    );
+    let directiveResolver = Injector.resolve(DirectiveResolver);
+    directiveResolver.resolve(klass, metadata);
 
-    // add to directives object
-    directives[name] = new DirectiveFactory(klass, metadata);
-}
-
-export function getRegisteredDirectives(): { [name: string]: DirectiveFactory<any> }  {
-    return directives;
 }

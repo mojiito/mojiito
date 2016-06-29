@@ -1,14 +1,8 @@
 import { assert } from './../../debug/debug';
+import { ClassFactory, getClassName } from '../../utils/class/class';
+import { Injector } from './injector';
 
-export function Injectable(TargetClass: any): void {
-    assert(typeof TargetClass === 'function', 'Decorator njectable has to be applied on a class!', TypeError);
-    
-    var instance: Function = new TargetClass();
-
-    Object.defineProperty(TargetClass, '_injectableInstance', {
-        writable: false,
-        configurable: false,
-        enumerable: false,
-        value: instance
-    });
+export function Injectable(TargetClass: ClassFactory<any>): void {
+    assert(typeof TargetClass === 'function', 'Decorator Injectable has to be applied on a class!', TypeError);
+    Injector.register(TargetClass);
 }

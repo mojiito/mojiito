@@ -628,7 +628,7 @@ declare module "core/iterator/iterator" {
     export interface IIterableObject {
         [key: string]: any;
     }
-    export class CoreIterator<T> implements IIterator<T> {
+    export class Iterator<T> implements IIterator<T> {
         protected _nextIndex: number;
         protected _source: IIterable<T>;
         constructor(source: IIterable<T>);
@@ -843,46 +843,7 @@ declare module "core/set/set" {
     export function setProperties(obj: Object, properties: Object): Object;
 }
 declare module "core/map/map" {
-    import { CoreIterator, IIteratorItem, IIterable } from "core/iterator/iterator";
-    /**
-     * Iterator for the methods of the CoreMap that return iterators (e.g. CoreMap.entries, CoreMap.keys and CoreMap.values)
-     *
-     * @export
-     * @class CoreMapIterator
-     * @extends {CoreIterator<any>}
-     */
-    export class CoreMapIterator extends CoreIterator<any> {
-        /**
-         * Store if the value of the iterator item should be:
-         * undefined: [key, value]
-         * 0: key
-         * 1: value
-         *
-         * @private
-         * @type {number}
-         */
-        private _field;
-        /**
-         * Creates an instance of CoreMapIterator.
-         *
-         * @param {IIterable<any>} source Iterable object
-         * @param {number} [field] Set to 0 or 1 to modify the value of the iterator item
-         */
-        constructor(source: IIterable<any>, field?: number);
-        /**
-         * Returns the next item in the CoreMap.
-         * A zero arguments function that returns an object with two properties:
-         * done (boolean)
-         * Has the value true if the iterator is past the end of the iterated sequence. In this case value optionally specifies the return value of the iterator. The return values are explained here.
-         * Has the value false if the iterator was able to produce the next value in the sequence. This is equivalent of not specifying the done property altogether.
-         *
-         * value
-         * any JavaScript value returned by the iterator. Can be omitted when done is true.
-         *
-         * @returns {IIteratorItem<any>} The next item in the CoreMap
-         */
-        next(): IIteratorItem<any>;
-    }
+    import { Iterator, IIterable } from "core/iterator/iterator";
     /**
      * Implementation of the ES6 Map.
      * The Map object is a simple key/value map.
@@ -897,7 +858,7 @@ declare module "core/map/map" {
          * Internal Array where all thoses keys and values are stored.
          *
          * @private
-         * @type {IIterable<any>}
+         * @type {Array<[any, any]}
          */
         private _source;
         /**
@@ -909,6 +870,9 @@ declare module "core/map/map" {
         size: number;
         /**
          * The value of the length property is 0.
+         * To fulfill the ES2015 specification the Map must implement
+         * a length property even if it always returns 0:
+         * https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map#Properties
          *
          * @readonly
          * @type {number}
@@ -931,9 +895,9 @@ declare module "core/map/map" {
          * Creates an instance of CoreMap out of an array.
          * Every item of the provided array must be an array with two items - a key and a value.
          *
-         * @param {Array<Array<any>>} source (description)
+         * @param {Array<[any, any]>} source The provided source array
          */
-        constructor(source: Array<Array<any>>);
+        constructor(source: Array<[any, any]>);
         /**
          * Removes all key/value pairs from the Map object.
          */
@@ -948,9 +912,9 @@ declare module "core/map/map" {
         /**
          * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
          *
-         * @returns {CoreMapIterator} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+         * @returns {Iterator<[any,any]>} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
          */
-        entries(): CoreMapIterator;
+        entries(): Iterator<[any, any]>;
         /**
          * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
          * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
@@ -976,9 +940,9 @@ declare module "core/map/map" {
         /**
          * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
          *
-         * @returns {CoreMapIterator} Iterator object that contains the keys for each element in the Map object in insertion order
+         * @returns {Iterator<any>} Iterator object that contains the keys for each element in the Map object in insertion order
          */
-        keys(): CoreMapIterator;
+        keys(): Iterator<any>;
         /**
          * Sets the value for the key in the Map object. Returns the Map object.
          *
@@ -992,16 +956,133 @@ declare module "core/map/map" {
          *
          * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
          */
-        values(): CoreMapIterator;
+        values(): Iterator<any>;
         /**
-         * (description)
+         * Creates an instance of an empty CoreMap.
          *
          * @static
-         * @returns {CoreMap} (description)
+         * @returns {CoreMap} Created empty CoreMap
          */
         static create(): CoreMap;
+        /**
+         * Creates an instance of CoreMap with data provided by an object.
+         * The properties of the object will get stored as key/value paired arrays (eg: [key, value]).
+         * The key will be the property name
+         * The value will be the coresponding property value
+         *
+         * @static
+         * @param {Object} source The provided source object
+         * @returns {CoreMap} Created CoreMap
+         */
         static create(source: Object): CoreMap;
-        static create(source: Array<Array<any>>): CoreMap;
+        /**
+         * Creates an instance of CoreMap out of an array.
+         * Every item of the provided array must be an array with two items - a key and a value.
+         *
+         * @static
+         * @param {Array<[any, any]>} source The provided source array
+         * @returns {CoreMap} Created CoreMap
+         */
+        static create(source: Array<[any, any]>): CoreMap;
+    }
+    /**
+     * Implementation of the ES6 Map as a typed variant.
+     * The Map object is a simple key/value map.
+     * Any value (both objects and primitive values) may be used as either a key or a value.
+     *
+     * @export
+     * @class TypedMap
+     * @extends {CoreMap}
+     * @template K
+     * @template V
+     */
+    export class TypedMap<K, V> extends CoreMap {
+        /**
+         * Creates an instance of an empty TypedMap.
+         */
+        constructor();
+        /**
+         * Creates an instance of TypedMap out of an array.
+         * Every item of the provided array must be an array with two items - a key and a value.
+         *
+         * @param {Array<[K, V]>} source The provided source array
+         */
+        constructor(source: Array<[K, V]>);
+        /**
+         * Removes any value associated to the key and returns the value that Map.has(key) would have previously returned.
+         * Map.prototype.has(key) will return false afterwards.
+         *
+         * @param {K} key The key of the element to remove from the Map object.
+         */
+        delete(key: K): void;
+        /**
+         * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
+         *
+         * @returns {Iterator<[K, V]>} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+         */
+        entries(): Iterator<[K, V]>;
+        /**
+         * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
+         * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
+         *
+         * @param {(value: any, key: any, map: TypedMap) => void} callbackFn Function to execute for each element.
+         * @param {(Object | Function)} [thisArg] Value to use as this when executing callback.
+         */
+        forEach(callbackFn: (value: V, key: K, map: TypedMap<K, V>) => any, thisArg?: Object | Function): void;
+        /**
+         * Returns the value associated to the key, or undefined if there is none.
+         *
+         * @param {K} key The key of the element to return from the Map object.
+         * @returns {V} Value associated to the key, or undefined
+         */
+        get(key: K): V;
+        /**
+         * Returns a boolean asserting whether a value has been associated to the key in the Map object or not.
+         *
+         * @param {*} key The key of the element to test for presence in the Map object.
+         * @returns {boolean} Value associated to the key
+         */
+        has(key: K): boolean;
+        /**
+         * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
+         *
+         * @returns {Iterator<any>} Iterator object that contains the keys for each element in the Map object in insertion order
+         */
+        keys(): Iterator<K>;
+        /**
+         * Sets the value for the key in the Map object. Returns the Map object.
+         *
+         * @param {K} key The key of the element to add to the Map object.
+         * @param {V} value The value of the element to add to the Map object.
+         * @returns {TypedMap<K,V>} The Map object
+         */
+        set(key: K, value: V): TypedMap<K, V>;
+        /**
+         * Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
+         *
+         * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
+         */
+        values(): Iterator<V>;
+        /**
+         * Creates an instance of an empty CoreMap.
+         *
+         * @static
+         * @template K
+         * @template V
+         * @returns {TypedMap<K,V>} Created empty TypedMap
+         */
+        static create<K, V>(): TypedMap<K, V>;
+        /**
+         * Creates an instance of CoreMap out of an array.
+         * Every item of the provided array must be an array with two items - a key and a value.
+         *
+         * @static
+         * @template K
+         * @template V
+         * @param {Array<[K, V]>} source The provided source array
+         * @returns {TypedMap<K,V>} Created TypedMap
+         */
+        static create<K, V>(source: Array<[K, V]>): TypedMap<K, V>;
     }
 }
 declare module "core/observable/observes" {
@@ -1020,34 +1101,102 @@ declare module "core/core" {
 declare module "mojito/core" {
     export * from "core/core";
 }
-declare module "runtime/mojito/mojito" {
-    export class Mojito {
-        private static GLOBAL_NAMESPACE;
-        constructor();
-        static getInstance(): Mojito;
-    }
-}
 declare module "utils/class/class" {
     export interface ClassFactory<T> {
         new (...args: Array<any>): T;
         [propertyName: string]: any;
         name?: string;
     }
+    export function getClassName<T>(klass: ClassFactory<T>): string;
+}
+declare module "runtime/injectable/injector" {
+    import { TypedMap } from "core/map/map";
+    import { ClassFactory } from "utils/class/class";
+    export abstract class Injector {
+        static _instances: TypedMap<ClassFactory<{}>, {}>;
+        static resolve<C>(klass: ClassFactory<C>): C;
+        static register<C>(klass: ClassFactory<C>, ...args: Array<any>): C;
+    }
+}
+declare module "runtime/injectable/injectable" {
+    import { ClassFactory } from "utils/class/class";
+    export function Injectable(TargetClass: ClassFactory<any>): void;
+}
+declare module "runtime/injectable/inject" {
+    import { ClassFactory } from "utils/class/class";
+    export function Inject<C>(injectableClass: ClassFactory<C>): PropertyDecorator;
+}
+declare module "compiler/dom_parser/dom_parser" {
+    export interface IDOMParserElementHook {
+        predicate: (element: Element) => boolean;
+        onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
+        onParse?: (element: Element, context: Array<any>) => void;
+        onAfterParse?: (element: Element, context: Array<any>) => void;
+        onDestroy?: (element: Element) => void;
+    }
+    export interface IDOMParserAttributeHook {
+        removeAttributeNode?: boolean;
+        predicate: (attribute: Attr) => boolean;
+        onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
+        onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
+        onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
+        onDestroy?: (element: Element, attribute: Attr) => void;
+    }
+    export interface IDOMParserContextObject {
+        type: string;
+        name: string;
+        context: IDOMParserContext;
+    }
+    export interface IDOMParserContextList extends Array<IDOMParserContextObject> {
+        [index: number]: IDOMParserContextObject;
+    }
+    export interface IDOMParserContext extends Array<IDOMParserContextList> {
+        [index: number]: IDOMParserContextList;
+    }
+    export class DOMParser {
+        static _instance: DOMParser;
+        private elementHooks;
+        private attributeHooks;
+        parseTree(rootElement?: Element): void;
+        private parseNode(element, context?);
+        registerElementHook(hook: IDOMParserElementHook): void;
+        registerAttributeHook(hook: IDOMParserAttributeHook): void;
+        static getInstance(): DOMParser;
+    }
+}
+declare module "compiler/utils/dom_utils" {
+    /**
+     * Converts the array-like NodeList (NodeListOf) to a real array
+     *
+     * @export
+     * @template T
+     * @param {NodeListOf<T>} nodeList
+     * @returns {Array<T>} Converted Array
+     */
+    export function convertNodeListToArray<T extends Node>(nodeList: NodeListOf<T>): Array<T>;
+    /**
+     * Checks if a selector matches an element.
+     *
+     * @export
+     * @param {string} selector
+     * @param {Element} element
+     * @returns Returns true if selector matches, false if not
+     */
+    export function doesSelectorMatchElement(selector: string, element: Element): boolean;
+}
+declare module "compiler/resolver/resolver" {
+    import { DirectiveMetadata } from "runtime/directives/directive";
+    import { ClassFactory } from "utils/class/class";
+    export interface Resolver {
+        resolve(klass: ClassFactory<any>, metadata: Object): void;
+    }
+    export class DirectiveResolver implements Resolver {
+        private parser;
+        resolve<C>(klass: ClassFactory<C>, metadata: DirectiveMetadata): void;
+    }
 }
 declare module "runtime/directives/directive" {
     import { ClassFactory } from "utils/class/class";
-    /**
-     * Describes the pair of klass and metadata for directives used in the directives map.
-     *
-     * @interface IDirectiveDefinition
-     */
-    export class DirectiveFactory<T> {
-        private _class;
-        private _metadata;
-        klass: ClassFactory<T>;
-        metadata: DirectiveMetadata;
-        constructor(klass: ClassFactory<T>, metadata: DirectiveMetadata);
-    }
     /**
      * Describes the metadata object for directives.
      * See {@link Directive} decorator for more information
@@ -1056,14 +1205,13 @@ declare module "runtime/directives/directive" {
      * @interface DirectiveMetadata
      */
     export interface DirectiveMetadata {
-        selector?: string;
-        name?: string;
+        selector: string;
     }
     /**
      * Directives allow you to attach behavior (a class) to elements in the DOM
      * using a class decorator or the {@link registerDirective} function.
      *
-     * A directive contains metadata (including the elements selector or name)
+     * A directive contains metadata (including the elements selector)
      * and a class which will be attached to the elements.
      *
      * Assume this HTML Template or DOM
@@ -1101,9 +1249,6 @@ declare module "runtime/directives/directive" {
      * @param {DirectiveMetadata} metadata The directive metadata
      */
     export function registerDirective(klass: ClassFactory<any>, metadata: DirectiveMetadata): void;
-    export function getRegisteredDirectives(): {
-        [name: string]: DirectiveFactory<any>;
-    };
 }
 declare module "runtime/directives/controller" {
     import { DirectiveMetadata } from "runtime/directives/directive";
@@ -1112,13 +1257,13 @@ declare module "runtime/directives/controller" {
          * Specifes the actions (events) related to the element.
          *
          * ```typescript
-         * @Component({
+         * @Controller({
          *   selector: 'button',
          *   actions: {
          *     '(click)': 'onClick(event)'
          *   }
          * })
-         * class ButtonComponent {
+         * class LoginController {
          *     onClick(event: MouseEvent) {
          *       // your code
          *     }
@@ -1196,108 +1341,26 @@ declare module "runtime/directives/application" {
     export function Application(meta: ApplicationMetadata): ClassDecorator;
 }
 declare module "runtime/directives/directives" {
-    export { Directive, DirectiveMetadata, registerDirective, getRegisteredDirectives, DirectiveFactory } from "runtime/directives/directive";
+    export { Directive, DirectiveMetadata, registerDirective } from "runtime/directives/directive";
     export { Controller, ControllerMetadata } from "runtime/directives/controller";
     export { Component, ComponentMetadata } from "runtime/directives/component";
     export { Application, ApplicationMetadata } from "runtime/directives/application";
 }
+declare module "runtime/bootstrap/bootstrap" {
+    export function bootstrap(): void;
+}
 declare module "runtime/runtime" {
-    export { Mojito } from "runtime/mojito/mojito";
+    export { Injectable } from "runtime/injectable/injectable";
+    export { Inject } from "runtime/injectable/inject";
     export { Directive, Component, Controller, Application } from "runtime/directives/directives";
+    export { bootstrap } from "runtime/bootstrap/bootstrap";
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";
 }
-declare module "compiler/dom_parser/dom_parser" {
-    export interface IDOMParserElementHook {
-        predicate: (element: Element) => boolean;
-        onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
-        onParse?: (element: Element, context: Array<any>) => void;
-        onAfterParse?: (element: Element, context: Array<any>) => void;
-        onDestroy?: (element: Element) => void;
-    }
-    export interface IDOMParserAttributeHook {
-        predicate: (attribute: Attr) => boolean;
-        onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
-        onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
-        onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
-        onDestroy?: (element: Element, attribute: Attr) => void;
-    }
-    export interface IDOMParserContextObject {
-        type: string;
-        name: string;
-        context: IDOMParserContext;
-    }
-    export interface IDOMParserContextList extends Array<IDOMParserContextObject> {
-        [index: number]: IDOMParserContextObject;
-    }
-    export interface IDOMParserContext extends Array<IDOMParserContextList> {
-        [index: number]: IDOMParserContextList;
-    }
-    export class DOMParser {
-        private elementHooks;
-        private attributeHooks;
-        parseTree(rootElement?: Element): void;
-        private parseNode(element, context?);
-        registerElementHook(hook: IDOMParserElementHook): void;
-        registerAttributeHook(hook: IDOMParserAttributeHook): void;
-    }
-}
-declare module "utils/string/endswith" {
-    export function endsWith(str: string, searchString: string, position?: number): boolean;
-}
-declare module "utils/string/kebab" {
-    export function toKebabCase(str: string): string;
-}
-declare module "utils/utils" {
-    export { ClassFactory } from "utils/class/class";
-    export { endsWith } from "utils/string/endswith";
-    export { toKebabCase } from "utils/string/kebab";
-}
-declare module "compiler/utils/dom_utils" {
-    /**
-     * Converts the array-like NodeList (NodeListOf) to a real array
-     *
-     * @export
-     * @template T
-     * @param {NodeListOf<T>} nodeList
-     * @returns {Array<T>} Converted Array
-     */
-    export function convertNodeListToArray<T extends Node>(nodeList: NodeListOf<T>): Array<T>;
-    /**
-     * Checks if a selector matches an element.
-     *
-     * @export
-     * @param {string} selector
-     * @param {Element} element
-     * @returns Returns true if selector matches, false if not
-     */
-    export function doesSelectorMatchElement(selector: string, element: Element): boolean;
-}
-declare module "compiler/resolver/resolver" {
-    export * from "compiler/resolver/directive_resolver";
-    export abstract class Resolver {
-        abstract validate(element: Element): boolean;
-        abstract resolve(element: Element): void;
-    }
-}
-declare module "compiler/resolver/directive_resolver" {
-    import { DirectiveMetadata } from "runtime/directives/directives";
-    import { ClassFactory } from "utils/utils";
-    import { Resolver } from "compiler/resolver/resolver";
-    export class DirectiveResolver extends Resolver {
-        private _class;
-        private _metadata;
-        constructor(klass: ClassFactory<Object>, metadata: DirectiveMetadata);
-        validate(element: Element): boolean;
-        resolve(element: Element): void;
-    }
-}
 declare module "compiler/compiler" {
-    export class Compiler {
-        private parser;
-        constructor();
-    }
+    export * from "compiler/dom_parser/dom_parser";
+    export * from "compiler/resolver/resolver";
 }
 declare module "mojito/compiler" {
     export * from "compiler/compiler";

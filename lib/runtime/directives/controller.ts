@@ -1,17 +1,18 @@
 import { Directive, DirectiveMetadata } from './directive';
 
 export interface ControllerMetadata extends DirectiveMetadata {
+    
     /**
      * Specifes the actions (events) related to the element.
      *
      * ```typescript
-     * @Component({
+     * @Controller({
      *   selector: 'button',
      *   actions: {
      *     '(click)': 'onClick(event)'
      *   }
      * })
-     * class ButtonComponent {
+     * class LoginController {
      *     onClick(event: MouseEvent) {
      *       // your code
      *     }

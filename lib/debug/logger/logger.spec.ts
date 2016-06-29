@@ -4,7 +4,6 @@ import { Logger, LogLevel, LogType } from './logger';
 
 var console = {
     log: function (msg: string) {
-        console.log("asdf");
     },
     warn: function(msg: string) {
     },
