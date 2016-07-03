@@ -2,50 +2,36 @@ import { Logger, LogLevel, LogType } from '../../debug/debug';
 import { Injectable } from '../../runtime/injectable/injectable';
 
 export interface IDOMParserElementHook {
-    predicate: (element: Element) => boolean;
-    onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
-    onParse?: (element: Element, context: Array<any>) => void;
-    onAfterParse?: (element: Element, context: Array<any>) => void;
-    onDestroy?: (element: Element) => void;
+    predicate: (element: HTMLElement) => boolean;
+    onBeforeParse?: (element: HTMLElement, context: Array<any>) => Object | Function;
+    onParse?: (element: HTMLElement, context: Array<any>) => void;
+    onAfterParse?: (element: HTMLElement, context: Array<any>) => void;
+    onDestroy?: (element: HTMLElement) => void;
 }
 
 export interface IDOMParserAttributeHook {
     removeAttributeNode?: boolean;
     predicate: (attribute: Attr) => boolean;
-    onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
-    onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
-    onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
-    onDestroy?: (element: Element, attribute: Attr) => void;
+    onBeforeParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => Object | Function;
+    onParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => void;
+    onAfterParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => void;
+    onDestroy?: (element: HTMLElement, attribute: Attr) => void;
 }
 
-export interface IDOMParserContextObject {
-    type: string,
-    name: string,
-    context: IDOMParserContext
-}
-
-export interface IDOMParserContextList extends Array<IDOMParserContextObject> {
-    [index: number]: IDOMParserContextObject;
-};
-
-export interface IDOMParserContext extends Array<IDOMParserContextList> {
-    [index: number]: IDOMParserContextList;
-};
-
-@Injectable
+@Injectable()
 export class DOMParser {
 
     static _instance: DOMParser;    
     private elementHooks: Array<IDOMParserElementHook> = [];
     private attributeHooks: Array<IDOMParserAttributeHook> = [];
 
-    parseTree(rootElement?: Element): void {
+    parseTree(rootElement?: HTMLElement): void {
         this.parseNode(rootElement, []);
     }
 
-    private parseNode(element: Element, context?: IDOMParserContext): void {
-        if (!(element instanceof Element)) {
-            throw new Error('The property element has to be an Element');
+    private parseNode(element: HTMLElement, context?: Array<Array<Object | Function>>): void {
+        if (!(element instanceof HTMLElement)) {
+            throw new Error('The property element has to be an HTMLElement');
         }
 
         if (!Array.isArray(context)) {
@@ -61,7 +47,7 @@ export class DOMParser {
         const elementHooks = this.elementHooks;
         const parseFunctions: any[] = [];
         const afterParseFunctions: any[] = [];
-        let localContext: IDOMParserContextList = [];
+        let localContext: Array<Object | Function> = [];
         let filteredContext = context.filter((context: any) => !!context);
         for (let i = 0, max = elementHooks.length; i < max; i++) {
             var elementHook = elementHooks[i];
@@ -70,17 +56,16 @@ export class DOMParser {
                     try {
                         localContext = localContext.concat(elementHook.onBeforeParse(element, filteredContext));
                     } catch (ex) {
-                        console.error(ex);
+                        Logger.log(LogLevel.error, ex, LogType.error);
                     }
                 }
 
-                (function(hook: IDOMParserElementHook, element: Element) {
+                (function(hook: IDOMParserElementHook, element: HTMLElement) {
                     if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, context); });
                     if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, context); });
                 })(elementHook, element);
             }
         }
-
         const attributes: NamedNodeMap = element.attributes;
         const attributeHooks = this.attributeHooks;
         let diff: number = 0;
@@ -102,7 +87,7 @@ export class DOMParser {
                         diff++;
                     }
 
-                    (function(hook: IDOMParserAttributeHook, element: Element, attribute: Attr) {
+                    (function(hook: IDOMParserAttributeHook, element: HTMLElement, attribute: Attr) {
                         if (hook.onParse) parseFunctions.push((context: Array<any>) => { hook.onParse(element, attribute, context); });
                         if (hook.onAfterParse) afterParseFunctions.push((context: Array<any>) => { hook.onAfterParse(element, attribute, context); });
                     })(attributeHook, element, attribute);
@@ -111,7 +96,6 @@ export class DOMParser {
         }
         context.unshift(localContext.length ? localContext : null);
         filteredContext = context.filter((context: any) => !!context);
-
         for (let i = 0, max = parseFunctions.length; i < max; i++) {
             parseFunctions[i](filteredContext);
         }
@@ -126,7 +110,7 @@ export class DOMParser {
                 continue;
             }
 
-            if (node instanceof Element) {
+            if (node instanceof HTMLElement) {
                 this.parseNode(node, context);
             }
         }

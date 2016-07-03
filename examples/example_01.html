@@ -22,7 +22,7 @@
 
 <body my-application>
 
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
+    <div class="mdl-layout mdl-js-layout">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
             <!-- Title -->
@@ -31,7 +31,9 @@
             </header>
         <main class="mdl-layout__content">
             <div class="page-content">
-                <my-controller (click)="fn1()" data-on-click="fn()"></my-controller>
+                <my-controller (click)="fn1()" data-on-click="fn()">
+                    <my-controller (click)="fn1()" data-on-click="fn()"></my-controller>
+                </my-controller>
             </div>
         </main>
     </div>

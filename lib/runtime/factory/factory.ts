@@ -1,13 +1,2 @@
-
-
-interface Factory {
-    create(element: Element);
-}
-
-export class DirectiveFactory implements Factory {
-    constructor() { }
-    
-    create(element: Element) {
-        
-    }
-}
+export * from './directive_factory';
+export * from './component_factory';

@@ -1114,55 +1114,46 @@ declare module "runtime/injectable/injector" {
     import { ClassFactory } from "utils/class/class";
     export abstract class Injector {
         static _instances: TypedMap<ClassFactory<{}>, {}>;
-        static resolve<C>(klass: ClassFactory<C>): C;
+        static get<C>(klass: ClassFactory<C>): C;
         static register<C>(klass: ClassFactory<C>, ...args: Array<any>): C;
     }
 }
 declare module "runtime/injectable/injectable" {
-    import { ClassFactory } from "utils/class/class";
-    export function Injectable(TargetClass: ClassFactory<any>): void;
-}
-declare module "runtime/injectable/inject" {
-    import { ClassFactory } from "utils/class/class";
-    export function Inject<C>(injectableClass: ClassFactory<C>): PropertyDecorator;
+    export function Injectable(): ClassDecorator;
 }
 declare module "compiler/dom_parser/dom_parser" {
     export interface IDOMParserElementHook {
-        predicate: (element: Element) => boolean;
-        onBeforeParse?: (element: Element, context: Array<any>) => IDOMParserContextObject;
-        onParse?: (element: Element, context: Array<any>) => void;
-        onAfterParse?: (element: Element, context: Array<any>) => void;
-        onDestroy?: (element: Element) => void;
+        predicate: (element: HTMLElement) => boolean;
+        onBeforeParse?: (element: HTMLElement, context: Array<any>) => Object | Function;
+        onParse?: (element: HTMLElement, context: Array<any>) => void;
+        onAfterParse?: (element: HTMLElement, context: Array<any>) => void;
+        onDestroy?: (element: HTMLElement) => void;
     }
     export interface IDOMParserAttributeHook {
         removeAttributeNode?: boolean;
         predicate: (attribute: Attr) => boolean;
-        onBeforeParse?: (element: Element, attribute: Attr, context: Array<any>) => IDOMParserContextObject;
-        onParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
-        onAfterParse?: (element: Element, attribute: Attr, context: Array<any>) => void;
-        onDestroy?: (element: Element, attribute: Attr) => void;
-    }
-    export interface IDOMParserContextObject {
-        type: string;
-        name: string;
-        context: IDOMParserContext;
-    }
-    export interface IDOMParserContextList extends Array<IDOMParserContextObject> {
-        [index: number]: IDOMParserContextObject;
-    }
-    export interface IDOMParserContext extends Array<IDOMParserContextList> {
-        [index: number]: IDOMParserContextList;
+        onBeforeParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => Object | Function;
+        onParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => void;
+        onAfterParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => void;
+        onDestroy?: (element: HTMLElement, attribute: Attr) => void;
     }
     export class DOMParser {
         static _instance: DOMParser;
         private elementHooks;
         private attributeHooks;
-        parseTree(rootElement?: Element): void;
+        parseTree(rootElement?: HTMLElement): void;
         private parseNode(element, context?);
         registerElementHook(hook: IDOMParserElementHook): void;
         registerAttributeHook(hook: IDOMParserAttributeHook): void;
         static getInstance(): DOMParser;
     }
+}
+declare module "runtime/bootstrap/bootstrap" {
+    export function bootstrap(root?: HTMLElement): void;
+}
+declare module "runtime/injectable/inject" {
+    import { ClassFactory } from "utils/class/class";
+    export function Inject<C>(injectableClass: ClassFactory<C>): PropertyDecorator;
 }
 declare module "compiler/utils/dom_utils" {
     /**
@@ -1184,114 +1175,48 @@ declare module "compiler/utils/dom_utils" {
      */
     export function doesSelectorMatchElement(selector: string, element: Element): boolean;
 }
-declare module "compiler/resolver/resolver" {
-    import { DirectiveMetadata } from "runtime/directives/directive";
+declare module "runtime/factory/directive_factory" {
     import { ClassFactory } from "utils/class/class";
-    export interface Resolver {
-        resolve(klass: ClassFactory<any>, metadata: Object): void;
+    import { DirectiveMetadataReference } from "runtime/directives/directive";
+    export interface IDirectiveReference<C> {
+        element: HTMLElement;
+        instance: C;
+        componentClass: ClassFactory<C>;
+        destroy(): void;
     }
-    export class DirectiveResolver implements Resolver {
-        private parser;
-        resolve<C>(klass: ClassFactory<C>, metadata: DirectiveMetadata): void;
+    export class DirectiveReference<C> implements IDirectiveReference<C> {
+        private _element;
+        private _instance;
+        private _directiveClass;
+        constructor(element: HTMLElement, directiveClass: ClassFactory<C>);
+        element: HTMLElement;
+        instance: C;
+        componentClass: ClassFactory<C>;
+        destroy(): void;
+    }
+    export class DirectiveFactory<C> {
+        protected klass: ClassFactory<C>;
+        protected metaRef: DirectiveMetadataReference;
+        constructor(klass: ClassFactory<C>, metaRef: DirectiveMetadataReference);
+        create(element: HTMLElement): DirectiveReference<C>;
     }
 }
-declare module "runtime/directives/directive" {
+declare module "runtime/directives/component_directive" {
     import { ClassFactory } from "utils/class/class";
-    /**
-     * Describes the metadata object for directives.
-     * See {@link Directive} decorator for more information
-     *
-     * @export
-     * @interface DirectiveMetadata
-     */
-    export interface DirectiveMetadata {
-        selector: string;
-    }
-    /**
-     * Directives allow you to attach behavior (a class) to elements in the DOM
-     * using a class decorator or the {@link registerDirective} function.
-     *
-     * A directive contains metadata (including the elements selector)
-     * and a class which will be attached to the elements.
-     *
-     * Assume this HTML Template or DOM
-     * ```html
-     * <form class="form">
-     *   <div>
-     *     <div my-directive>
-     *       <div>
-     *         <div></div>
-     *       </div>
-     *       <div></div>
-     *     </div>
-     *   </div>
-     * </form>
-     * ```
-     *
-     * ```typescript
-     * @Directive({ selector: '[my-directive]'})
-     * class MyDirective {
-     *  // Your Code
-     * }
-     *
-     * @export
-     * @param {DirectiveMetadata} metadata Directive metadata
-     * @returns {ClassDecorator}
-     */
-    export function Directive(metadata: DirectiveMetadata): ClassDecorator;
-    /**
-     * Function for registering the class and directive metadata.
-     * Normally you would not call this function directly.
-     * Use the {@link Directive} class decorator.
-     *
-     * @export
-     * @param {IClassDefinition} klass The directive klass which will be attached
-     * @param {DirectiveMetadata} metadata The directive metadata
-     */
-    export function registerDirective(klass: ClassFactory<any>, metadata: DirectiveMetadata): void;
-}
-declare module "runtime/directives/controller" {
-    import { DirectiveMetadata } from "runtime/directives/directive";
-    export interface ControllerMetadata extends DirectiveMetadata {
+    import { IDirectiveMetadata, DirectiveMetadataReference } from "runtime/directives/directive";
+    import { ComponentFactory } from "runtime/factory/factory";
+    export interface IComponentMetadata extends IDirectiveMetadata {
         /**
          * Specifes the actions (events) related to the element.
          *
          * ```typescript
-         * @Controller({
+         * @Directive({
          *   selector: 'button',
          *   actions: {
          *     '(click)': 'onClick(event)'
          *   }
          * })
-         * class LoginController {
-         *     onClick(event: MouseEvent) {
-         *       // your code
-         *     }
-         * }
-         * ```
-         *
-         * @type {{[key: string]: string}}
-         */
-        actions?: {
-            [key: string]: string;
-        };
-    }
-    export function Controller(meta: ControllerMetadata): ClassDecorator;
-}
-declare module "runtime/directives/component" {
-    import { DirectiveMetadata } from "runtime/directives/directive";
-    export interface ComponentMetadata extends DirectiveMetadata {
-        /**
-         * Specifes the actions (events) related to the element.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'button',
-         *   actions: {
-         *     '(click)': 'onClick(event)'
-         *   }
-         * })
-         * class ButtonComponent {
+         * class MyButton {
          *     onClick(event: MouseEvent) {
          *       // your code
          *     }
@@ -1325,35 +1250,126 @@ declare module "runtime/directives/component" {
         template?: string;
         templateName?: string;
     }
+    export class ComponentMetadataReference extends DirectiveMetadataReference {
+        private _actions;
+        private _template;
+        private _templateName;
+        constructor(metadata: IComponentMetadata);
+        actions: {
+            [key: string]: string;
+        };
+        template: string;
+        templateName: string;
+    }
+    export function Component(metadata: IComponentMetadata): ClassDecorator;
+    export function registerComponent<C>(componentClass: ClassFactory<C>, metadata: IComponentMetadata): ComponentFactory<C>;
+}
+declare module "runtime/factory/component_factory" {
+    import { ComponentMetadataReference } from "runtime/directives/component_directive";
+    import { IDirectiveReference, DirectiveReference, DirectiveFactory } from "runtime/factory/directive_factory";
+    import { ClassFactory } from "utils/class/class";
+    export interface IComponentReference<C> extends IDirectiveReference<C> {
+        destroy(): void;
+    }
+    export class ComponentReference<C> extends DirectiveReference<C> implements IComponentReference<C> {
+        destroy(): void;
+    }
+    export class ComponentFactory<C> extends DirectiveFactory<C> {
+        constructor(klass: ClassFactory<C>, metaRef: ComponentMetadataReference);
+        create(element: HTMLElement): ComponentReference<C>;
+    }
+}
+declare module "runtime/factory/factory" {
+    export * from "runtime/factory/directive_factory";
+    export * from "runtime/factory/component_factory";
+}
+declare module "compiler/resolver/resolver" {
+    import { DirectiveMetadataReference, ComponentMetadataReference } from "runtime/directives/directives";
+    import { ClassFactory } from "utils/class/class";
+    import { DirectiveFactory, ComponentFactory } from "runtime/factory/factory";
+    export interface IResolver {
+        resolve<C>(klass: ClassFactory<C>, metadata: Object): DirectiveFactory<C>;
+    }
+    export class DirectiveResolver implements IResolver {
+        private parser;
+        resolve<C>(directiveClass: ClassFactory<C>, metaRef: DirectiveMetadataReference): DirectiveFactory<C>;
+    }
+    export class ComponentResolver extends DirectiveResolver {
+        resolve<C>(klass: ClassFactory<C>, metaRef: ComponentMetadataReference): ComponentFactory<C>;
+    }
+}
+declare module "runtime/directives/directive" {
+    import { ClassFactory } from "utils/class/class";
+    import { DirectiveFactory } from "runtime/factory/factory";
     /**
-     * Class Decorator for the Component {@link Directive}
+     * Describes the metadata object for directives.
+     * See {@link Directive} decorator for more information
      *
      * @export
-     * @param {IComponentMetadata} meta Component directive metadata
-     * @returns {ClassDecorator} Component class decorator
+     * @interface DirectiveMetadata
      */
-    export function Component(meta: ComponentMetadata): ClassDecorator;
-}
-declare module "runtime/directives/application" {
-    import { DirectiveMetadata } from "runtime/directives/directive";
-    export interface ApplicationMetadata extends DirectiveMetadata {
+    export interface IDirectiveMetadata {
+        selector: string;
     }
-    export function Application(meta: ApplicationMetadata): ClassDecorator;
+    export class DirectiveMetadataReference {
+        protected _factory: typeof DirectiveFactory;
+        private _selector;
+        constructor(metadata: IDirectiveMetadata);
+        selector: string;
+        factory: ClassFactory<DirectiveFactory<any>>;
+    }
+    /**
+     * Directives allow you to attach behavior (a class) to elements in the DOM
+     * using a class decorator or the {@link registerDirective} function.
+     *
+     * A directive contains metadata (including the elements selector)
+     * and a class which will be attached to the elements.
+     *
+     * Assume this HTML Template or DOM
+     * ```html
+     * <form class="form">
+     *   <div>
+     *     <div my-directive>
+     *       <div>
+     *         <div></div>
+     *       </div>
+     *       <div></div>
+     *     </div>
+     *   </div>
+     * </form>
+     * ```
+     *
+     * ```typescript
+     * @Directive({ selector: '[my-directive]'})
+     * class MyDirective {
+     *  // Your Code
+     * }
+     *
+     * @export
+     * @param {DirectiveMetadata} metadata Directive metadata
+     * @returns {ClassDecorator}
+     */
+    export function Directive(metadata: IDirectiveMetadata): ClassDecorator;
+    /**
+     * Function for registering the directive class and metadata.
+     * Normally you would not call this function directly.
+     * Use the {@link Directive} class decorator.
+     *
+     * @export
+     * @param {IClassDefinition} klass The directive klass which will be attached
+     * @param {DirectiveMetadata} metadata The directive metadata
+     */
+    export function registerDirective<C>(directiveClass: ClassFactory<C>, metadata: IDirectiveMetadata): DirectiveFactory<C>;
 }
 declare module "runtime/directives/directives" {
-    export { Directive, DirectiveMetadata, registerDirective } from "runtime/directives/directive";
-    export { Controller, ControllerMetadata } from "runtime/directives/controller";
-    export { Component, ComponentMetadata } from "runtime/directives/component";
-    export { Application, ApplicationMetadata } from "runtime/directives/application";
-}
-declare module "runtime/bootstrap/bootstrap" {
-    export function bootstrap(): void;
+    export * from "runtime/directives/directive";
+    export * from "runtime/directives/component_directive";
 }
 declare module "runtime/runtime" {
+    export { bootstrap } from "runtime/bootstrap/bootstrap";
     export { Injectable } from "runtime/injectable/injectable";
     export { Inject } from "runtime/injectable/inject";
-    export { Directive, Component, Controller, Application } from "runtime/directives/directives";
-    export { bootstrap } from "runtime/bootstrap/bootstrap";
+    export { Directive, Component } from "runtime/directives/directives";
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";

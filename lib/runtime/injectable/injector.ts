@@ -6,7 +6,7 @@ export abstract class Injector {
 
     static _instances = new TypedMap<ClassFactory<{}>, {}>();
 
-    static resolve<C>(klass: ClassFactory<C>): C {
+    static get<C>(klass: ClassFactory<C>): C {
         let instance = <C>this._instances.get(klass);
 
         // Not shure if we should throw an error or return null if no instance was found
