@@ -18,9 +18,7 @@ export function observe(obj: Function | Object | Array<any>, keyOrPath: string, 
     let source = obj;
     for (let i = 0, max = parts.length; i < max; i++) {
         let part = parts[i];
-        console.log(source, part);
         if (i >= parts.length - 1) {
-            console.log('end');
             let observer = <Observer>Meta.peek(source).getProperty('observers', part);
             if (observer instanceof Observer) {
                 if (typeof callback === 'function') {

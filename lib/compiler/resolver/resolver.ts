@@ -33,7 +33,6 @@ export class DirectiveResolver implements IResolver {
                     return;
                 }
                 let instance = <ClassFactory<C>>context[0];
-                console.log(factory);
             },
         });
         return factory;
