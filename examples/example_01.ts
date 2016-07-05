@@ -1,10 +1,14 @@
 import { observes } from 'mojito/core';
-import { Directive, Component, bootstrap } from 'mojito/runtime';
+import { Directive, Component, bootstrap, OnInit } from 'mojito/runtime';
 
 console.time('init');
 @Component({ selector: 'my-controller' })    
-class Foo {
+class Foo implements OnInit {
     constructor(element: Element) {
+    }
+
+    onInit() {
+        console.log('onInit');
     }
 }
 

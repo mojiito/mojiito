@@ -1,12 +1,12 @@
 import { assert } from '../../debug/debug';
 import { TypedMap } from '../../core/map/map';
-import { ClassFactory, getClassName } from '../../utils/class/class';
+import { ClassType, getClassName } from '../../utils/class/class';
 
 export abstract class Injector {
 
-    static _instances = new TypedMap<ClassFactory<{}>, {}>();
+    static _instances = new TypedMap<ClassType<any>, {}>();
 
-    static get<C>(klass: ClassFactory<C>): C {
+    static get<C>(klass: ClassType<C>): C {
         let instance = <C>this._instances.get(klass);
 
         // Not shure if we should throw an error or return null if no instance was found
@@ -17,7 +17,7 @@ export abstract class Injector {
         return instance || null;
     }
 
-    static register<C>(klass: ClassFactory<C>, ...args: Array<any>): C {
+    static register<C>(klass: ClassType<C>, ...args: Array<any>): C {
         let registeredInstance = this._instances.get(klass);
         assert(typeof registeredInstance === 'undefined' || !(registeredInstance instanceof klass), `The class "${getClassName(klass)}" is already registered for injecting!`);
 

@@ -15,7 +15,7 @@
       'typescript': '../node_modules/typescript/lib/typescript.js'
     }
   });
-  
+  System.import('../../node_modules/reflect-metadata/Reflect.ts').catch(err => {console.error(err)});
   System.import('example_01.ts').catch(err => {console.error(err)});
   </script>
 </head>
