@@ -1,7 +1,8 @@
-# mojito
-Mojito is a JavaScript framework which brings the benefits of Controllers, Observers, Computed Properties, Class Bindings, ... to your (static) website.
+# Mojito
+Mojito is a JavaScript framework, heavily inspired by Angular and Ember, which brings the benefits of components, services, ... to your (static) website.
 
-Check the [wiki/documentation](https://github.com/thomaspink/mojito.js/wiki) for more information!
+## Status
+We currently working very hard on developing the new Version 1.0 completly rewritten in TypeScript. 
 
 ## Building Mojito.js
 1. Ensure that Node.js is installed.
