@@ -3,7 +3,7 @@ Mojito is a JavaScript framework, heavily inspired by Angular and Ember, which b
 
 ## Status
 We currently working very hard on developing the new Version 1.0 completely rewritten in TypeScript. 
-If you want to use the older Version 0.5.5 go to the (https://github.com/thomaspink/mojito.js/tree/maste)[master branch].
+If you want to use the older Version 0.5.5 go to the [master branch](https://github.com/thomaspink/mojito.js/tree/master).
 
 ## Building Mojito.js
 1. Ensure that Node.js is installed.
