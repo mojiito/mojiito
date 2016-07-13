@@ -1,5 +1,11 @@
 import { ClassType } from '../../utils/class/class';
 
+/**
+ * Describes how the {@link Injector} should instantiate a given token.
+ * 
+ * @export
+ * @class Provider
+ */
 export class Provider {
     constructor(token: any,
         {useClass, useValue, useExisting, useFactory, dependencies}: {
@@ -26,6 +32,20 @@ export class Provider {
 
 }
 
+/**
+ * Creates a {@link Provider}.
+ * 
+ * @export
+ * @param {*} token
+ * @param {{
+ *     useClass?: ClassType<any>,
+ *     useValue?: any,
+ *     useExisting?: any,
+ *     useFactory?: Function,
+ *     dependencies?: Object[],
+ * }} {useClass, useValue, useExisting, useFactory, dependencies}
+ * @returns {Provider}
+ */
 export function provide(token: any, {useClass, useValue, useExisting, useFactory, dependencies}: {
     useClass?: ClassType<any>,
     useValue?: any,
@@ -43,7 +63,7 @@ export function provide(token: any, {useClass, useValue, useExisting, useFactory
 }
 
 /**
- * 
+ * An internal resolved representation of a {@link Provider} used by the {@link Injector}.
  * 
  * @export
  * @class ResolvedProvider
@@ -106,6 +126,8 @@ export function resolveProvider(provider: Provider): ResolvedProvider {
 }
 
 /**
+ * An internal resolved representation of a factory function created by resolving {@link Provider}.
+ *
  * A ResolvedFactory is basically a function which creates
  * and returns the item (class, value,.. ) provided.
  * 
