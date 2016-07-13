@@ -7,10 +7,9 @@ DI documentation on angular.io:
 * [Hierarchical Dependency Injection](https://angular.io/docs/ts/latest/guide/hierarchical-dependency-injection.html)
 
 We use this dependency injection (DI) to resolve dependencies of classes, components and services.    
-There are two principles: Injectors and Providers
+There are two principles: Injectors and Providers    
 **Injector**
-An `Injector` is a replacement for a `new` operator, which can automatically resolve the
- * constructor dependencies.    
+An `Injector` is a replacement for a `new` operator, which can automatically resolve the constructor dependencies.    
      
-**Provider**
+**Provider**   
 Describes how the {@link Injector} should instantiate a given token.
