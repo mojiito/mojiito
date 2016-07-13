@@ -1,31 +1,60 @@
-// {provide: Number,  useFactory: () => { return 1+2; }}
-// new Provider(String, { useFactory: (value) => { return "Value: " + value; })
 import { CoreMap } from '../../core/core';
 import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider, resolveProviders } from './provider';
 
+/**
+ * An `Injector` is a replacement for a `new` operator, which can automatically resolve the
+ * constructor dependencies.
+ * 
+ * @export
+ * @class Injector
+ */
 export class Injector {
+
     private _parent: Injector = null;
     private _providers: ResolvedProvider[] = [];
     private _values: CoreMap = new CoreMap();
 
+    /**
+     * Creates an instance of Injector.
+     * 
+     * @param {ResolvedProvider[]} providers
+     * @param {Injector} [parent=null]
+     */
     constructor(providers: ResolvedProvider[], parent: Injector = null) {
         this._parent = parent;
         this._providers = providers;
     }
 
+    /**
+     * The parent of this injector
+     * 
+     * @readonly
+     * @type {Injector}
+     */
     get parent(): Injector {
         return this._parent || null;
     }
 
-    get providers(): ResolvedProvider[] {
-        return this._providers || [];
-    }
-
+    /**
+     * Turns an array of provider definitions into an array of resolved providers.
+     * 
+     * @static
+     * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+     * @returns {ResolvedProvider[]}
+     */
     static resolve(providers: Array<ClassType<any> | Provider | { [key: string]: any }>): ResolvedProvider[] {
         return resolveProviders(providers);
     }
 
+    /**
+     * Resolves an array of providers and creates an injector from those providers.
+     * 
+     * @static
+     * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+     * @param {Injector} [parent=null]
+     * @returns
+     */
     static resolveAndCreate(
         providers: Array<ClassType<any> | Provider | { [key: string]: any }>,
         parent: Injector = null
@@ -34,19 +63,45 @@ export class Injector {
         return Injector.fromResolvedProviders(resolvedProviders, parent)
     }
 
+    /**
+     * Creates an injector from previously resolved providers.
+     * 
+     * @static
+     * @param {ResolvedProvider[]} providers
+     * @param {Injector} [parent=null]
+     * @returns
+     */
     static fromResolvedProviders(providers: ResolvedProvider[], parent: Injector = null) {
         return new Injector(providers, parent);
     }
 
+    /**
+     * Resolves an array of providers and creates a child injector from those providers.
+     * 
+     * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+     * @returns {Injector}
+     */
     resolveAndCreateChild(providers: Array<ClassType<any> | Provider | { [key: string]: any }>): Injector {
         let resolvedProviders = Injector.resolve(providers);
         return this.createChildFromResolved(resolvedProviders);
     }
 
+    /**
+     * Creates a child injector from previously resolved providers.
+     * 
+     * @param {ResolvedProvider[]} providers
+     * @returns {Injector}
+     */
     createChildFromResolved(providers: ResolvedProvider[]): Injector {
         return Injector.fromResolvedProviders(providers, this);
     }
 
+    /**
+     * Gets the value of the resolved provider matching the token
+     * 
+     * @param {*} token
+     * @returns {*}
+     */
     get(token: any): any {
         let value = this._values.get(token);
         if (value) {

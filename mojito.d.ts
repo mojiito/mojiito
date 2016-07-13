@@ -1340,79 +1340,6 @@ declare module "runtime/component/resolver" {
         resolve<C>(componentClass: ClassType<C>): ComponentFactory<C>;
     }
 }
-declare module "runtime/bootstrap/bootstrap" {
-    import { ClassType } from "utils/class/class";
-    export function bootstrap<C>(appComponent: ClassType<C>, root?: HTMLElement): void;
-}
-declare module "runtime/lifecycle/lifecycle_hooks" {
-    export enum LifecycleHooks {
-        OnInit = 0,
-        OnChanges = 1,
-        OnRender = 2,
-        OnDestroy = 3,
-    }
-    export abstract class OnInit {
-        abstract onInit(): void;
-    }
-    export abstract class OnChanges {
-        abstract onChanges(): void;
-    }
-    export abstract class OnRender {
-        abstract onRender(): void;
-    }
-    export abstract class OnDestroy {
-        abstract onDestroy(): void;
-    }
-}
-declare module "runtime/component/directive" {
-    import { ClassType } from "utils/class/class";
-    import { ComponentMetadata, ComponentMetadataReference } from "runtime/component/metadata";
-    /**
-     * The component directive allows you to attach behavior (a class) to elements in the DOM
-     * using a class decorator or the {@link registerDirective} function.
-     *
-     * A component directive contains metadata (including the elements selector)
-     * and a class which will be attached to the elements.
-     *
-     * Assume this HTML Template or DOM
-     * ```html
-     * <form class="form">
-     *   <div>
-     *     <div my-component>
-     *       <div>
-     *         <div></div>
-     *       </div>
-     *       <div></div>
-     *     </div>
-     *   </div>
-     * </form>
-     * ```
-     *
-     * ```typescript
-     * @Component({ selector: '[my-component]'})
-     * class MyComponent {
-     *  // Your Code
-     * }
-     * ```
-     *
-     * @export
-     * @param {ComponentMetadata} metadata Component metadata
-     * @returns {ClassDecorator}
-     */
-    export function Component(metadata: ComponentMetadata): ClassDecorator;
-    /**
-     * Function for registering a component class and metadata.
-     * Normally you would not call this function directly.
-     * Use the {@link Component} class decorator.
-     *
-     * @export
-     * @template C
-     * @param {ClassFactory<C>} componentClass
-     * @param {IComponentMetadata} metadata
-     * @returns {ComponentFactory<C>}
-     */
-    export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata): ComponentMetadataReference<{}>;
-}
 declare module "runtime/di/provider" {
     import { ClassType } from "utils/class/class";
     export class Provider {
@@ -1488,24 +1415,83 @@ declare module "runtime/di/provider" {
 declare module "runtime/di/injector" {
     import { ClassType } from "utils/class/class";
     import { Provider, ResolvedProvider } from "runtime/di/provider";
+    /**
+     * An `Injector` is a replacement for a `new` operator, which can automatically resolve the
+     * constructor dependencies.
+     *
+     * @export
+     * @class Injector
+     */
     export class Injector {
         private _parent;
         private _providers;
         private _values;
+        /**
+         * Creates an instance of Injector.
+         *
+         * @param {ResolvedProvider[]} providers
+         * @param {Injector} [parent=null]
+         */
         constructor(providers: ResolvedProvider[], parent?: Injector);
+        /**
+         * The parent of this injector
+         *
+         * @readonly
+         * @type {Injector}
+         */
         parent: Injector;
-        providers: ResolvedProvider[];
+        /**
+         * Turns an array of provider definitions into an array of resolved providers.
+         *
+         * @static
+         * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+         * @returns {ResolvedProvider[]}
+         */
         static resolve(providers: Array<ClassType<any> | Provider | {
             [key: string]: any;
         }>): ResolvedProvider[];
+        /**
+         * Resolves an array of providers and creates an injector from those providers.
+         *
+         * @static
+         * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+         * @param {Injector} [parent=null]
+         * @returns
+         */
         static resolveAndCreate(providers: Array<ClassType<any> | Provider | {
             [key: string]: any;
         }>, parent?: Injector): Injector;
+        /**
+         * Creates an injector from previously resolved providers.
+         *
+         * @static
+         * @param {ResolvedProvider[]} providers
+         * @param {Injector} [parent=null]
+         * @returns
+         */
         static fromResolvedProviders(providers: ResolvedProvider[], parent?: Injector): Injector;
+        /**
+         * Resolves an array of providers and creates a child injector from those providers.
+         *
+         * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+         * @returns {Injector}
+         */
         resolveAndCreateChild(providers: Array<ClassType<any> | Provider | {
             [key: string]: any;
         }>): Injector;
+        /**
+         * Creates a child injector from previously resolved providers.
+         *
+         * @param {ResolvedProvider[]} providers
+         * @returns {Injector}
+         */
         createChildFromResolved(providers: ResolvedProvider[]): Injector;
+        /**
+         * Gets the value of the resolved provider matching the token
+         *
+         * @param {*} token
+         * @returns {*}
+         */
         get(token: any): any;
     }
 }
@@ -1518,6 +1504,83 @@ declare module "runtime/di/di" {
      */
     export { Injector } from "runtime/di/injector";
     export { Provider, ResolvedProvider } from "runtime/di/provider";
+}
+declare module "runtime/bootstrap/bootstrap" {
+    import { ClassType } from "utils/class/class";
+    import { Provider } from "runtime/di/di";
+    export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: Array<ClassType<any> | Provider | {
+        [key: string]: any;
+    }>, root?: HTMLElement): void;
+    export function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): void;
+}
+declare module "runtime/lifecycle/lifecycle_hooks" {
+    export enum LifecycleHooks {
+        OnInit = 0,
+        OnChanges = 1,
+        OnRender = 2,
+        OnDestroy = 3,
+    }
+    export abstract class OnInit {
+        abstract onInit(): void;
+    }
+    export abstract class OnChanges {
+        abstract onChanges(): void;
+    }
+    export abstract class OnRender {
+        abstract onRender(): void;
+    }
+    export abstract class OnDestroy {
+        abstract onDestroy(): void;
+    }
+}
+declare module "runtime/component/directive" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentMetadata, ComponentMetadataReference } from "runtime/component/metadata";
+    /**
+     * The component directive allows you to attach behavior (a class) to elements in the DOM
+     * using a class decorator or the {@link registerDirective} function.
+     *
+     * A component directive contains metadata (including the elements selector)
+     * and a class which will be attached to the elements.
+     *
+     * Assume this HTML Template or DOM
+     * ```html
+     * <form class="form">
+     *   <div>
+     *     <div my-component>
+     *       <div>
+     *         <div></div>
+     *       </div>
+     *       <div></div>
+     *     </div>
+     *   </div>
+     * </form>
+     * ```
+     *
+     * ```typescript
+     * @Component({ selector: '[my-component]'})
+     * class MyComponent {
+     *  // Your Code
+     * }
+     * ```
+     *
+     * @export
+     * @param {ComponentMetadata} metadata Component metadata
+     * @returns {ClassDecorator}
+     */
+    export function Component(metadata: ComponentMetadata): ClassDecorator;
+    /**
+     * Function for registering a component class and metadata.
+     * Normally you would not call this function directly.
+     * Use the {@link Component} class decorator.
+     *
+     * @export
+     * @template C
+     * @param {ClassFactory<C>} componentClass
+     * @param {IComponentMetadata} metadata
+     * @returns {ComponentFactory<C>}
+     */
+    export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata): ComponentMetadataReference<{}>;
 }
 declare module "runtime/runtime" {
     export { bootstrap } from "runtime/bootstrap/bootstrap";
