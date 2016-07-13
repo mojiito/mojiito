@@ -8,7 +8,8 @@ DI documentation on angular.io:
 
 We use this dependency injection (DI) to resolve dependencies of classes, components and services.    
 There are two principles: Injectors and Providers    
-**Injector**
+    
+**Injector**    
 An `Injector` is a replacement for a `new` operator, which can automatically resolve the constructor dependencies.    
      
 **Provider**   
