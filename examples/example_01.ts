@@ -1,8 +1,6 @@
 import { observes } from 'mojito/core';
 import { Injector } from 'mojito/runtime';
 
-console.time('init');
-
 // class asf {}
 // @Component({ selector: '[my-application]' })    
 // class App {
@@ -19,15 +17,20 @@ console.time('init');
 
 // bootstrap(App);
 
-class aaaaa {
+class a1 {
 
 }
 
-let inj = Injector.resolveAndCreate([aaaaa]);
-console.log(inj);
+class b1 {
 
+}
 
-console.timeEnd('init');
+let inj = Injector.resolveAndCreate([a1, b1]);
+let inj1 = inj.resolveAndCreateChild([a1]);
+console.log(inj.get(a1) === inj.get(a1)); // true
+console.log(inj1.get(a1) === inj1.get(a1)); // true
+console.log(inj1.get(a1) === inj.get(a1)); // false
+console.log(inj.get(b1) === inj1.get(b1)); // true
 
 
 

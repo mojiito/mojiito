@@ -1,11 +1,13 @@
 // {provide: Number,  useFactory: () => { return 1+2; }}
 // new Provider(String, { useFactory: (value) => { return "Value: " + value; })
+import { CoreMap } from '../../core/core';
 import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider, resolveProviders } from './provider';
 
 export class Injector {
     private _parent: Injector = null;
     private _providers: ResolvedProvider[] = [];
+    private _values: CoreMap = new CoreMap();
 
     constructor(providers: ResolvedProvider[], parent: Injector = null) {
         this._parent = parent;
@@ -46,8 +48,18 @@ export class Injector {
     }
 
     get(token: any): any {
-
+        let value = this._values.get(token);
+        if (value) {
+            return value; 
+        }
+        for (let i = 0, max = this._providers.length; i < max; i++) {
+            let provider = this._providers[i];
+            if (provider.token === token) {
+                value = provider.resolvedFactory.factory();
+                this._values.set(token, value);
+                return value;
+            }
+        }
+        return this._parent ? this._parent.get(token) : null;
     }
-
-    toString() { }
 }

@@ -50,16 +50,16 @@ export function provide(token: any, {useClass, useValue, useExisting, useFactory
  */
 export class ResolvedProvider {
 
-    private _key: any;
+    private _token: any;
     private _resolvedFactory: ResolvedFactory;
 
-    constructor(key: any, resolvedFactory: ResolvedFactory) {
-        this._key = key;
+    constructor(token: any, resolvedFactory: ResolvedFactory) {
+        this._token = token;
         this._resolvedFactory = resolvedFactory;
     }
 
-    get key(): any {
-        return this._key;
+    get token(): any {
+        return this._token;
     }
 
     get resolvedFactory(): ResolvedFactory {
@@ -102,7 +102,7 @@ export function resolveProviders(providers: Array<ClassType<any> | Provider | { 
  * @returns {ResolvedProvider}
  */
 export function resolveProvider(provider: Provider): ResolvedProvider {
-    return new ResolvedProvider('asdf', ResolvedFactory.resolve(provider));
+    return new ResolvedProvider(provider.token, ResolvedFactory.resolve(provider));
 }
 
 /**
@@ -120,9 +120,7 @@ export class ResolvedFactory {
     constructor(provider: Provider) {
         let factoryFn: Function;
         if (provider.useClass) {
-            // TODO: Implement factory
-            //   var useClass = resolveForwardRef(provider.useClass);
-            //   factoryFn = reflector.factory(useClass);
+            factoryFn = () => new provider.useClass();
         } else if (provider.useExisting) {
             factoryFn = (instance: any) => instance;
         } else if (provider.useFactory) {

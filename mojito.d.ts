@@ -1094,7 +1094,7 @@ declare module "core/core" {
     export { Meta } from "core/meta/meta";
     export { CoreObject } from "core/object/object";
     export { CoreArray } from "core/array/array";
-    export { CoreMap } from "core/map/map";
+    export { CoreMap, TypedMap } from "core/map/map";
     export { observes } from "core/observable/observes";
     export { ObservableObject } from "core/observable/observableObject";
 }
@@ -1444,10 +1444,10 @@ declare module "runtime/di/provider" {
      * @class ResolvedProvider
      */
     export class ResolvedProvider {
-        private _key;
+        private _token;
         private _resolvedFactory;
-        constructor(key: any, resolvedFactory: ResolvedFactory);
-        key: any;
+        constructor(token: any, resolvedFactory: ResolvedFactory);
+        token: any;
         resolvedFactory: ResolvedFactory;
     }
     /**
@@ -1491,6 +1491,7 @@ declare module "runtime/di/injector" {
     export class Injector {
         private _parent;
         private _providers;
+        private _values;
         constructor(providers: ResolvedProvider[], parent?: Injector);
         parent: Injector;
         providers: ResolvedProvider[];
@@ -1506,7 +1507,6 @@ declare module "runtime/di/injector" {
         }>): Injector;
         createChildFromResolved(providers: ResolvedProvider[]): Injector;
         get(token: any): any;
-        toString(): void;
     }
 }
 declare module "runtime/di/di" {
