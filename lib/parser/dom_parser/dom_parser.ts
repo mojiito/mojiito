@@ -1,5 +1,5 @@
 import { Logger, LogLevel, LogType } from '../../debug/debug';
-import { Injectable } from '../../runtime/injectable/injectable';
+// import { Injectable } from '../../runtime/injectable/injectable';
 
 export interface IDOMParserElementHook {
     predicate: (element: HTMLElement) => boolean;
@@ -18,10 +18,9 @@ export interface IDOMParserAttributeHook {
     onDestroy?: (element: HTMLElement, attribute: Attr) => void;
 }
 
-@Injectable()
+// @Injectable()
 export class DOMParser {
-
-    static _instance: DOMParser;    
+  
     private elementHooks: Array<IDOMParserElementHook> = [];
     private attributeHooks: Array<IDOMParserAttributeHook> = [];
 
@@ -131,20 +130,5 @@ export class DOMParser {
 
     registerAttributeHook(hook: IDOMParserAttributeHook): void {
         this.attributeHooks.push(hook);
-    }
-
-    static getInstance(): DOMParser {
-        if (!(DOMParser._instance instanceof DOMParser)) {
-            let instance = new DOMParser();
-            Object.defineProperty(DOMParser, '_instance', {
-                writable: false,
-                configurable: false,
-                enumerable: false,
-                value: instance 
-            });
-            return instance;
-        }
-
-        return this._instance;
     }
 }

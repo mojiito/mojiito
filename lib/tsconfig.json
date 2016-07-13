@@ -13,7 +13,6 @@
     "files": [
         "./typings.d.ts",
         "./mojito/core.ts",
-        "./mojito/runtime.ts",
-        "./mojito/compiler.ts"
+        "./mojito/runtime.ts"
     ]
 }

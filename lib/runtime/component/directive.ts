@@ -2,6 +2,7 @@ import { assert } from '../../debug/debug';
 import { ClassType } from '../../utils/class/class';
 import { ComponentFactory } from './factory';
 import { ComponentMetadata, ComponentMetadataReference } from './metadata';
+import { ComponentReflection } from './reflection';;
 
 /**
  * The component directive allows you to attach behavior (a class) to elements in the DOM
@@ -54,6 +55,6 @@ export function Component(metadata: ComponentMetadata): ClassDecorator {
  */
 export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata) {
     let metaRef = new ComponentMetadataReference(metadata);
-    assert(!!(Reflect && Reflect.defineMetadata), 'reflect-metadata shim is required when using class decorators');
-    Reflect.defineMetadata('meta', metaRef, componentClass);
+    ComponentReflection.get(componentClass).metadataReference = metaRef;
+    return metaRef;
 }

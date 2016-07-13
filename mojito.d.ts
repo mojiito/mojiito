@@ -1109,19 +1109,27 @@ declare module "utils/class/class" {
     }
     export function getClassName<T>(klass: ClassType<T>): string;
 }
-declare module "runtime/injectable/injector" {
-    import { TypedMap } from "core/map/map";
-    import { ClassType } from "utils/class/class";
-    export abstract class Injector {
-        static _instances: TypedMap<ClassType<any>, {}>;
-        static get<C>(klass: ClassType<C>): C;
-        static register<C>(klass: ClassType<C>, ...args: Array<any>): C;
-    }
+declare module "utils/dom/dom" {
+    /**
+     * Converts the array-like NodeList (NodeListOf) to a real array
+     *
+     * @export
+     * @template T
+     * @param {NodeListOf<T>} nodeList
+     * @returns {Array<T>} Converted Array
+     */
+    export function convertNodeListToArray<T extends Node>(nodeList: NodeListOf<T>): Array<T>;
+    /**
+     * Checks if a selector matches an element.
+     *
+     * @export
+     * @param {string} selector
+     * @param {Element} element
+     * @returns Returns true if selector matches, false if not
+     */
+    export function doesSelectorMatchElement(selector: string, element: Element): boolean;
 }
-declare module "runtime/injectable/injectable" {
-    export function Injectable(): ClassDecorator;
-}
-declare module "compiler/dom_parser/dom_parser" {
+declare module "parser/dom_parser/dom_parser" {
     export interface IDOMParserElementHook {
         predicate: (element: HTMLElement) => boolean;
         onBeforeParse?: (element: HTMLElement, context: Array<any>) => Object | Function;
@@ -1138,53 +1146,28 @@ declare module "compiler/dom_parser/dom_parser" {
         onDestroy?: (element: HTMLElement, attribute: Attr) => void;
     }
     export class DOMParser {
-        static _instance: DOMParser;
         private elementHooks;
         private attributeHooks;
         parseTree(rootElement?: HTMLElement): void;
         private parseNode(element, context?);
         registerElementHook(hook: IDOMParserElementHook): void;
         registerAttributeHook(hook: IDOMParserAttributeHook): void;
-        static getInstance(): DOMParser;
     }
 }
-declare module "runtime/bootstrap/bootstrap" {
-    export function bootstrap(root?: HTMLElement): void;
+declare module "parser/parser" {
+    export * from "parser/dom_parser/dom_parser";
 }
-declare module "runtime/injectable/inject" {
-    import { ClassType } from "utils/class/class";
-    export function Inject<C>(injectableClass: ClassType<C>): PropertyDecorator;
-}
-declare module "runtime/lifecycle/lifecycle_hooks" {
-    export enum LifecycleHooks {
-        OnInit = 0,
-        OnChanges = 1,
-        OnRender = 2,
-        OnDestroy = 3,
-    }
-    export abstract class OnInit {
-        abstract onInit(): void;
-    }
-    export abstract class OnChanges {
-        abstract onChanges(): void;
-    }
-    export abstract class OnRender {
-        abstract onRender(): void;
-    }
-    export abstract class OnDestroy {
-        abstract onDestroy(): void;
-    }
-}
-declare module "runtime/component/reference" {
-    import { ClassType } from "utils/class/class";
-    export class ComponentReference<C> {
-        private _element;
-        private _instance;
-        private _directiveClass;
-        constructor(element: HTMLElement, directiveClass: ClassType<C>);
-        element: HTMLElement;
-        instance: C;
-        componentClass: ClassType<C>;
+declare module "runtime/view/view" {
+    export class View {
+        private parser;
+        private _rootElement;
+        rootElement: HTMLElement;
+        constructor(element: HTMLElement);
+        /**
+         * TODO: Implement
+         */
+        render(): void;
+        parse(): void;
         destroy(): void;
     }
 }
@@ -1196,7 +1179,7 @@ declare module "runtime/component/metadata" {
      * @abstract
      * @class ComponentMetadata
      */
-    export abstract class ComponentMetadata {
+    export interface ComponentMetadata {
         /**
          * Specifies the CSS Selector where the class will be instanciated on.
          *
@@ -1247,7 +1230,7 @@ declare module "runtime/component/metadata" {
          * Specifies the actions (events) related to the element.
          *
          * ```typescript
-         * @Directive({
+         * @Component({
          *   selector: 'button',
          *   actions: {
          *     '(click)': 'onClick(event)'
@@ -1262,7 +1245,7 @@ declare module "runtime/component/metadata" {
          *
          * @type {{[key: string]: string}}
          */
-        actions: {
+        actions?: {
             [key: string]: string;
         };
         /**
@@ -1284,13 +1267,13 @@ declare module "runtime/component/metadata" {
          *
          * @type {string}
          */
-        template: string;
+        template?: string;
         /**
          * TODO: CLI Implementation
          *
          * @type {string}
          */
-        templateName: string;
+        templateName?: string;
     }
     /**
      * Reference Object containing the component metadata
@@ -1313,20 +1296,77 @@ declare module "runtime/component/metadata" {
         templateName: string;
     }
 }
+declare module "runtime/component/reflection" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentMetadataReference } from "runtime/component/metadata";
+    export class ComponentReflection {
+        metadataReference: ComponentMetadataReference<any>;
+        injectableClasses: ClassType<any>[];
+        private static _propertyName;
+        constructor(metadataReference?: ComponentMetadataReference<any>, injectableClasses?: ClassType<any>[]);
+        static get(reflectedClass: ClassType<any>): ComponentReflection;
+        static create(reflectedClass: ClassType<any>, metadataReference?: ComponentMetadataReference<any>, injectableClasses?: ClassType<any>[]): ComponentReflection;
+    }
+}
+declare module "runtime/component/reference" {
+    import { View } from "runtime/view/view";
+    export class ComponentReference<C> {
+        private _view;
+        private _instance;
+        private _parentRef;
+        constructor(componentInstance: C, view: View, parentReference?: ComponentReference<any>);
+        view: View;
+        instance: C;
+        parent: ComponentReference<any>;
+        destroy(): void;
+    }
+}
 declare module "runtime/component/factory" {
     import { ClassType } from "utils/class/class";
     import { ComponentReference } from "runtime/component/reference";
     import { ComponentMetadataReference } from "runtime/component/metadata";
     export class ComponentFactory<C> {
-        private componentClass;
-        private metaRef;
-        constructor(componentClass: ClassType<C>, metaRef: ComponentMetadataReference<C>);
-        create(element: HTMLElement): ComponentReference<C>;
+        private _metaRef;
+        private _componentClass;
+        constructor(componentClass: ClassType<C>, parentRef?: ComponentFactory<any>);
+        metadataReference: ComponentMetadataReference<C>;
+        create(element: HTMLElement, parentRef: ComponentReference<any>): ComponentReference<C>;
+    }
+}
+declare module "runtime/component/resolver" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentFactory } from "runtime/component/factory";
+    export class ComponentResolver {
+        resolve<C>(componentClass: ClassType<C>): ComponentFactory<C>;
+    }
+}
+declare module "runtime/bootstrap/bootstrap" {
+    import { ClassType } from "utils/class/class";
+    export function bootstrap<C>(appComponent: ClassType<C>, root?: HTMLElement): void;
+}
+declare module "runtime/lifecycle/lifecycle_hooks" {
+    export enum LifecycleHooks {
+        OnInit = 0,
+        OnChanges = 1,
+        OnRender = 2,
+        OnDestroy = 3,
+    }
+    export abstract class OnInit {
+        abstract onInit(): void;
+    }
+    export abstract class OnChanges {
+        abstract onChanges(): void;
+    }
+    export abstract class OnRender {
+        abstract onRender(): void;
+    }
+    export abstract class OnDestroy {
+        abstract onDestroy(): void;
     }
 }
 declare module "runtime/component/directive" {
     import { ClassType } from "utils/class/class";
-    import { ComponentMetadata } from "runtime/component/metadata";
+    import { ComponentMetadata, ComponentMetadataReference } from "runtime/component/metadata";
     /**
      * The component directive allows you to attach behavior (a class) to elements in the DOM
      * using a class decorator or the {@link registerDirective} function.
@@ -1371,21 +1411,120 @@ declare module "runtime/component/directive" {
      * @param {IComponentMetadata} metadata
      * @returns {ComponentFactory<C>}
      */
-    export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata): void;
+    export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata): ComponentMetadataReference<{}>;
+}
+declare module "runtime/di/provider" {
+    import { ClassType } from "utils/class/class";
+    export class Provider {
+        constructor(token: any, {useClass, useValue, useExisting, useFactory, dependencies}: {
+            useClass?: ClassType<any>;
+            useValue?: any;
+            useExisting?: any;
+            useFactory?: Function;
+            dependencies: Object[];
+        });
+        token: any;
+        useClass: ClassType<any>;
+        useValue: any;
+        useExisting: any;
+        useFactory: Function;
+        dependencies: Object[];
+    }
+    export function provide(token: any, {useClass, useValue, useExisting, useFactory, dependencies}: {
+        useClass?: ClassType<any>;
+        useValue?: any;
+        useExisting?: any;
+        useFactory?: Function;
+        dependencies?: Object[];
+    }): Provider;
+    /**
+     *
+     *
+     * @export
+     * @class ResolvedProvider
+     */
+    export class ResolvedProvider {
+        private _key;
+        private _resolvedFactory;
+        constructor(key: any, resolvedFactory: ResolvedFactory);
+        key: any;
+        resolvedFactory: ResolvedFactory;
+    }
+    /**
+     * Resolves an array of Providers or stuff that can be converted to a Provider
+     *
+     * @internal
+     * @export
+     * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
+     * @returns {ResolvedProvider[]}
+     */
+    export function resolveProviders(providers: Array<ClassType<any> | Provider | {
+        [key: string]: any;
+    }>): ResolvedProvider[];
+    /**
+     * Resolves a single Provider and returns an ResolvedProvider
+     *
+     * @internal
+     * @export
+     * @param {Provider} provider
+     * @returns {ResolvedProvider}
+     */
+    export function resolveProvider(provider: Provider): ResolvedProvider;
+    /**
+     * A ResolvedFactory is basically a function which creates
+     * and returns the item (class, value,.. ) provided.
+     *
+     * @export
+     * @class ResolvedFactory
+     */
+    export class ResolvedFactory {
+        private _factoryFn;
+        private _dependencies;
+        constructor(provider: Provider);
+        factory: Function;
+        static resolve(provider: Provider): ResolvedFactory;
+    }
+}
+declare module "runtime/di/injector" {
+    import { ClassType } from "utils/class/class";
+    import { Provider, ResolvedProvider } from "runtime/di/provider";
+    export class Injector {
+        private _parent;
+        private _providers;
+        constructor(providers: ResolvedProvider[], parent?: Injector);
+        parent: Injector;
+        providers: ResolvedProvider[];
+        static resolve(providers: Array<ClassType<any> | Provider | {
+            [key: string]: any;
+        }>): ResolvedProvider[];
+        static resolveAndCreate(providers: Array<ClassType<any> | Provider | {
+            [key: string]: any;
+        }>, parent?: Injector): Injector;
+        static fromResolvedProviders(providers: ResolvedProvider[], parent?: Injector): Injector;
+        resolveAndCreateChild(providers: Array<ClassType<any> | Provider | {
+            [key: string]: any;
+        }>): Injector;
+        createChildFromResolved(providers: ResolvedProvider[]): Injector;
+        get(token: any): any;
+        toString(): void;
+    }
+}
+declare module "runtime/di/di" {
+    /**
+     * Mojito's dependency injection basically a simpler version of Angular's DI.
+     * All the credits and respect to the Angular team.
+     *
+     * TODO: Insert stuff...
+     */
+    export { Injector } from "runtime/di/injector";
+    export { Provider, ResolvedProvider } from "runtime/di/provider";
 }
 declare module "runtime/runtime" {
     export { bootstrap } from "runtime/bootstrap/bootstrap";
-    export { Injectable } from "runtime/injectable/injectable";
-    export { Inject } from "runtime/injectable/inject";
     export * from "runtime/lifecycle/lifecycle_hooks";
     export { Component } from "runtime/component/directive";
+    export * from "runtime/di/di";
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";
-}
-declare module "compiler/compiler" {
-    export * from "compiler/dom_parser/dom_parser";
-}
-declare module "mojito/compiler" {
-    export * from "compiler/compiler";
 }

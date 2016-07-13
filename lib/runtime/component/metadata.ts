@@ -7,7 +7,7 @@ import { assert } from '../../debug/debug';
  * @abstract
  * @class ComponentMetadata
  */
-export abstract class ComponentMetadata {
+export interface ComponentMetadata {
 
     /**
      * Specifies the CSS Selector where the class will be instanciated on. 
@@ -60,7 +60,7 @@ export abstract class ComponentMetadata {
      * Specifies the actions (events) related to the element.
      *
      * ```typescript
-     * @Directive({
+     * @Component({
      *   selector: 'button',
      *   actions: {
      *     '(click)': 'onClick(event)'
@@ -75,7 +75,7 @@ export abstract class ComponentMetadata {
      *
      * @type {{[key: string]: string}}
      */
-    actions: { [key: string]: string };
+    actions?: { [key: string]: string };
     
     /**
      * Defines a template string which will be compiled an applied to the DOM.
@@ -96,14 +96,14 @@ export abstract class ComponentMetadata {
      *
      * @type {string}
      */
-    template: string;
+    template?: string;
 
     /**
      * TODO: CLI Implementation
      * 
      * @type {string}
      */
-    templateName: string;
+    templateName?: string;
 }
 
 /**

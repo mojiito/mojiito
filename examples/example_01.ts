@@ -1,18 +1,31 @@
 import { observes } from 'mojito/core';
-import { Directive, Component, bootstrap, OnInit } from 'mojito/runtime';
+import { Injector } from 'mojito/runtime';
 
 console.time('init');
-@Component({ selector: 'my-controller' })    
-class Foo implements OnInit {
-    constructor(element: Element) {
-    }
 
-    onInit() {
-        console.log('onInit');
-    }
+// class asf {}
+// @Component({ selector: '[my-application]' })    
+// class App {
+//     constructor(@Inject(asf) test) {
+//     }
+// }
+
+// @Component({ selector: 'my-component' })
+// class TestComponent {
+//     private test: App;
+//     constructor() {
+//     }
+// }
+
+// bootstrap(App);
+
+class aaaaa {
+
 }
 
-bootstrap();
+let inj = Injector.resolveAndCreate([aaaaa]);
+console.log(inj);
+
 
 console.timeEnd('init');
 
