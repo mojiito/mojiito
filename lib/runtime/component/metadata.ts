@@ -1,4 +1,6 @@
 import { assert } from '../../debug/debug';
+import { ClassType } from '../../utils/class/class';
+import { Provider } from '../di/di';
 
 /**
  * Specifies the metadata to describe a component class using the {@Component} decorator.
@@ -104,6 +106,13 @@ export interface ComponentMetadata {
      * @type {string}
      */
     templateName?: string;
+
+    /**
+     * List of provideable classes, providers or provider like objects
+     * 
+     * @type {(Array<ClassType<any> | Provider | { [key: string]: any }>)}
+     */
+    providers?: Array<ClassType<any> | Provider | { [key: string]: any }>;
 }
 
 /**

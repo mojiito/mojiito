@@ -1171,175 +1171,6 @@ declare module "runtime/view/view" {
         destroy(): void;
     }
 }
-declare module "runtime/component/metadata" {
-    /**
-     * Specifies the metadata to describe a component class using the {@Component} decorator.
-     *
-     * @export
-     * @abstract
-     * @class ComponentMetadata
-     */
-    export interface ComponentMetadata {
-        /**
-         * Specifies the CSS Selector where the class will be instanciated on.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'button'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'my-button'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: '[my-button]'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: '.btn'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: '#my-button'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * @type {string}
-         */
-        selector: string;
-        /**
-         * Specifies the actions (events) related to the element.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'button',
-         *   actions: {
-         *     '(click)': 'onClick(event)'
-         *   }
-         * })
-         * class MyButton {
-         *     onClick(event: MouseEvent) {
-         *       // your code
-         *     }
-         * }
-         * ```
-         *
-         * @type {{[key: string]: string}}
-         */
-        actions?: {
-            [key: string]: string;
-        };
-        /**
-         * Defines a template string which will be compiled an applied to the DOM.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'custom-tooltip',
-         *   template: `
-         *      <div class="tooltip__body">
-         *          Some text
-         *      </div>
-         *   `
-         * })
-         * class CustomTooltipComponent {
-         *      // your code
-         * }
-         * ```
-         *
-         * @type {string}
-         */
-        template?: string;
-        /**
-         * TODO: CLI Implementation
-         *
-         * @type {string}
-         */
-        templateName?: string;
-    }
-    /**
-     * Reference Object containing the component metadata
-     *
-     * @export
-     * @class ComponentMetadataReference
-     * @template C
-     */
-    export class ComponentMetadataReference<C> {
-        private _selector;
-        private _actions;
-        private _template;
-        private _templateName;
-        constructor(metadata: ComponentMetadata);
-        selector: string;
-        actions: {
-            [key: string]: string;
-        };
-        template: string;
-        templateName: string;
-    }
-}
-declare module "runtime/component/reflection" {
-    import { ClassType } from "utils/class/class";
-    import { ComponentMetadataReference } from "runtime/component/metadata";
-    export class ComponentReflection {
-        metadataReference: ComponentMetadataReference<any>;
-        injectableClasses: ClassType<any>[];
-        private static _propertyName;
-        constructor(metadataReference?: ComponentMetadataReference<any>, injectableClasses?: ClassType<any>[]);
-        static get(reflectedClass: ClassType<any>): ComponentReflection;
-        static create(reflectedClass: ClassType<any>, metadataReference?: ComponentMetadataReference<any>, injectableClasses?: ClassType<any>[]): ComponentReflection;
-    }
-}
-declare module "runtime/component/reference" {
-    import { View } from "runtime/view/view";
-    export class ComponentReference<C> {
-        private _view;
-        private _instance;
-        private _parentRef;
-        constructor(componentInstance: C, view: View, parentReference?: ComponentReference<any>);
-        view: View;
-        instance: C;
-        parent: ComponentReference<any>;
-        destroy(): void;
-    }
-}
-declare module "runtime/component/factory" {
-    import { ClassType } from "utils/class/class";
-    import { ComponentReference } from "runtime/component/reference";
-    import { ComponentMetadataReference } from "runtime/component/metadata";
-    export class ComponentFactory<C> {
-        private _metaRef;
-        private _componentClass;
-        constructor(componentClass: ClassType<C>, parentRef?: ComponentFactory<any>);
-        metadataReference: ComponentMetadataReference<C>;
-        create(element: HTMLElement, parentRef: ComponentReference<any>): ComponentReference<C>;
-    }
-}
-declare module "runtime/component/resolver" {
-    import { ClassType } from "utils/class/class";
-    import { ComponentFactory } from "runtime/component/factory";
-    export class ComponentResolver {
-        resolve<C>(componentClass: ClassType<C>): ComponentFactory<C>;
-    }
-}
 declare module "runtime/di/provider" {
     import { ClassType } from "utils/class/class";
     /**
@@ -1526,6 +1357,185 @@ declare module "runtime/di/di" {
      */
     export { Injector } from "runtime/di/injector";
     export { Provider, ResolvedProvider } from "runtime/di/provider";
+}
+declare module "runtime/component/metadata" {
+    import { ClassType } from "utils/class/class";
+    import { Provider } from "runtime/di/di";
+    /**
+     * Specifies the metadata to describe a component class using the {@Component} decorator.
+     *
+     * @export
+     * @abstract
+     * @class ComponentMetadata
+     */
+    export interface ComponentMetadata {
+        /**
+         * Specifies the CSS Selector where the class will be instanciated on.
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'button'
+         * })
+         * class MyButton {
+         * }
+         * ```
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'my-button'
+         * })
+         * class MyButton {
+         * }
+         * ```
+         *
+         * ```typescript
+         * @Component({
+         *   selector: '[my-button]'
+         * })
+         * class MyButton {
+         * }
+         * ```
+         *
+         * ```typescript
+         * @Component({
+         *   selector: '.btn'
+         * })
+         * class MyButton {
+         * }
+         * ```
+         *
+         * ```typescript
+         * @Component({
+         *   selector: '#my-button'
+         * })
+         * class MyButton {
+         * }
+         * ```
+         *
+         * @type {string}
+         */
+        selector: string;
+        /**
+         * Specifies the actions (events) related to the element.
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'button',
+         *   actions: {
+         *     '(click)': 'onClick(event)'
+         *   }
+         * })
+         * class MyButton {
+         *     onClick(event: MouseEvent) {
+         *       // your code
+         *     }
+         * }
+         * ```
+         *
+         * @type {{[key: string]: string}}
+         */
+        actions?: {
+            [key: string]: string;
+        };
+        /**
+         * Defines a template string which will be compiled an applied to the DOM.
+         *
+         * ```typescript
+         * @Component({
+         *   selector: 'custom-tooltip',
+         *   template: `
+         *      <div class="tooltip__body">
+         *          Some text
+         *      </div>
+         *   `
+         * })
+         * class CustomTooltipComponent {
+         *      // your code
+         * }
+         * ```
+         *
+         * @type {string}
+         */
+        template?: string;
+        /**
+         * TODO: CLI Implementation
+         *
+         * @type {string}
+         */
+        templateName?: string;
+        /**
+         * List of provideable classes, providers or provider like objects
+         *
+         * @type {(Array<ClassType<any> | Provider | { [key: string]: any }>)}
+         */
+        providers?: Array<ClassType<any> | Provider | {
+            [key: string]: any;
+        }>;
+    }
+    /**
+     * Reference Object containing the component metadata
+     *
+     * @export
+     * @class ComponentMetadataReference
+     * @template C
+     */
+    export class ComponentMetadataReference<C> {
+        private _selector;
+        private _actions;
+        private _template;
+        private _templateName;
+        constructor(metadata: ComponentMetadata);
+        selector: string;
+        actions: {
+            [key: string]: string;
+        };
+        template: string;
+        templateName: string;
+    }
+}
+declare module "runtime/component/reflection" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentMetadataReference } from "runtime/component/metadata";
+    export class ComponentReflection {
+        metadataReference: ComponentMetadataReference<any>;
+        injectableClasses: ClassType<any>[];
+        private static _propertyName;
+        constructor(metadataReference?: ComponentMetadataReference<any>, injectableClasses?: ClassType<any>[]);
+        static get(reflectedClass: ClassType<any>): ComponentReflection;
+        static create(reflectedClass: ClassType<any>, metadataReference?: ComponentMetadataReference<any>, injectableClasses?: ClassType<any>[]): ComponentReflection;
+    }
+}
+declare module "runtime/component/reference" {
+    import { View } from "runtime/view/view";
+    export class ComponentReference<C> {
+        private _view;
+        private _instance;
+        private _parentRef;
+        constructor(componentInstance: C, view: View, parentReference?: ComponentReference<any>);
+        view: View;
+        instance: C;
+        parent: ComponentReference<any>;
+        destroy(): void;
+    }
+}
+declare module "runtime/component/factory" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentReference } from "runtime/component/reference";
+    import { ComponentMetadataReference } from "runtime/component/metadata";
+    export class ComponentFactory<C> {
+        private _metaRef;
+        private _componentClass;
+        constructor(componentClass: ClassType<C>, parentRef?: ComponentFactory<any>);
+        metadataReference: ComponentMetadataReference<C>;
+        create(element: HTMLElement, parentRef: ComponentReference<any>): ComponentReference<C>;
+    }
+}
+declare module "runtime/component/resolver" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentFactory } from "runtime/component/factory";
+    export class ComponentResolver {
+        resolve<C>(componentClass: ClassType<C>): ComponentFactory<C>;
+    }
 }
 declare module "runtime/bootstrap/bootstrap" {
     import { ClassType } from "utils/class/class";
