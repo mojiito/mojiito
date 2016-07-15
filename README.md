@@ -1,4 +1,4 @@
-<img src="http://thomaspink.github.io/mojito.js/mojito-brand.svg" width="180">    
+  
      
 Mojito is a JavaScript framework, heavily inspired by Angular and Ember, which brings the benefits of components, services, ... to your (static) website.
 
