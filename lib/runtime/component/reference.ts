@@ -1,37 +1,34 @@
 import { ClassType } from '../../utils/class/class';
-import { View } from '../view/view';
-import { ComponentReflection } from './reflection';
+import { ViewElement } from '../view/view_element';
+import { Injector } from '../di/di';
 
 export class ComponentReference<C> {
-    private _view: View;
-    private _instance: C;
-    // private _injector: Injector;
-    private _parentRef: ComponentReference<any>;
+    // private _view: View;
+    private _hostElement: ViewElement;
+    private _componentType: ClassType<C>;
 
-    constructor(
-        componentInstance: C,
-        view: View,
-        parentReference: ComponentReference<any> = null) {
-        this._view = view;
-        this._instance = componentInstance;
-        this._parentRef = parentReference;
+    constructor(hostElement: ViewElement, componentType: ClassType<C>) {
+        this._hostElement = hostElement;
+        this._componentType = componentType;
     }
 
-    get view(): View {
-        return this._view;
+    get hostElement(): ViewElement {
+        return this._hostElement;
     }
 
     get instance(): C {
-        return this._instance;
+        return this._hostElement.component;
     }
 
-    get parent(): ComponentReference<any> {
-        return this._parentRef;
+    get injector(): Injector {
+        return this._hostElement.injector;
     }
 
-    // get injector(): Injector {
-    //     return this._injector;
-    // }
+    get componentType(): ClassType<C> {
+        return this._componentType;
+    }
 
-    destroy() { }
+    destroy() {
+        // TODO!
+    }
 }

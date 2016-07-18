@@ -1,23 +1,31 @@
-import { DOMParser } from '../../parser/parser';
+import { DOMParser } from '../../render/render';
+import { ViewRef } from './reference';
+import { ViewFactory } from './factory';
+import { Injector } from '../di/di';
+
 
 export class View {
 
-    private parser: DOMParser;  
-    private _rootElement: HTMLElement;
+    private _ref: ViewRef<View>;    
+    private _parser: DOMParser;  
+    private _rootElement: Element;
 
-    get rootElement(): HTMLElement {
+    get rootElement(): Element {
         return this._rootElement;
     }
 
-    constructor(element: HTMLElement) {
-        this._rootElement = element;
+    get ref(): ViewRef<View> {
+        return this._ref;
     }
 
-    /**
-     * TODO: Implement 
-     */
-    render() { }
+    constructor(element: Element) {
+        this._rootElement = element;
+        this._ref = new ViewRef(this);
+    }
 
-    parse() { }
+    parse() {
+
+    }
+
     destroy() { }
 }

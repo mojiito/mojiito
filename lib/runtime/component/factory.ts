@@ -3,28 +3,45 @@ import { doesSelectorMatchElement } from '../../utils/dom/dom';
 import { assert } from '../../debug/debug';
 import { ComponentReference } from './reference';
 import { ComponentMetadataReference } from './metadata';
-import { View } from '../view/view';
-import { ComponentReflection } from './reflection';
+import { ViewContainerRef } from '../view/view_container';
+import { ViewElement } from '../view/view_element';
+import { ElementRef } from '../view/element';
+import { Annotations } from '../annotations/annotations';
+import { Injector, provide } from '../di/di';
 
 export class ComponentFactory<C> {
 
     private _metaRef: ComponentMetadataReference<C>;
-    private _componentClass: ClassType<C>;
+    private _componentType: ClassType<C>;
     
-    constructor(componentClass: ClassType<C>, parentRef?: ComponentFactory<any>) {
-        this._componentClass = componentClass;
-        this._metaRef = ComponentReflection.get(componentClass).metadataReference;
+    constructor(componentClass: ClassType<C>) {
+        this._componentType = componentClass;
+        this._metaRef = Annotations.peek(componentClass).get(ComponentMetadataReference)[0];
     }
 
     get metadataReference() {
         return this._metaRef;
     }
 
-    create(element: HTMLElement, parentRef: ComponentReference<any>): ComponentReference<C> {
-        assert(doesSelectorMatchElement(this.metadataReference.selector, element), `The provided element does not match the selector "${this.metadataReference.selector}" specified in the metadata of the component "${getClassName(this._componentClass)}"`);
-        let view = new View(element);
-        let componentInstance = new this._componentClass();
-        let ref = new ComponentReference(componentInstance, view, parentRef);
+    create(injector: Injector, nativeElement: Element): ComponentReference<C> {        
+
+        let hostElement = new ViewElement(nativeElement);
+
+        let providers = Array.isArray(this._metaRef.providers) ? this._metaRef.providers : [];
+        providers = providers.concat([
+            provide(ElementRef, { useValue: hostElement.elementRef })
+        ]);
+        
+        let inj = injector.resolveAndCreateChild(providers);
+
+        // ---- REWORK -----
+        // Do injection maybe?
+        let component = new this._componentType();
+        // ---- REWORK END -----
+
+        hostElement.initComponent(component, inj);
+
+        let ref = new ComponentReference(hostElement, this._componentType);
         return ref;
     }
 }

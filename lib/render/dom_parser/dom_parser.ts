@@ -1,5 +1,5 @@
 import { Logger, LogLevel, LogType } from '../../debug/debug';
-// import { Injectable } from '../../runtime/injectable/injectable';
+import { Injectable } from '../../runtime/di/di';
 
 export interface IDOMParserElementHook {
     predicate: (element: HTMLElement) => boolean;
@@ -18,7 +18,7 @@ export interface IDOMParserAttributeHook {
     onDestroy?: (element: HTMLElement, attribute: Attr) => void;
 }
 
-// @Injectable()
+@Injectable()
 export class DOMParser {
   
     private elementHooks: Array<IDOMParserElementHook> = [];

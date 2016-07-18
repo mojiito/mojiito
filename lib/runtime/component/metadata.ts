@@ -128,6 +128,7 @@ export class ComponentMetadataReference<C> {
     private _actions: { [key: string]: string };
     private _template: string;
     private _templateName: string;
+    private _providers: Array<ClassType<any> | Provider | { [key: string]: any }>;
 
     constructor(metadata: ComponentMetadata) {
 
@@ -183,6 +184,7 @@ export class ComponentMetadataReference<C> {
         this._actions = metadata.actions;
         this._template = metadata.template;
         this._templateName = metadata.templateName;
+        this._providers = metadata.providers || [];
     }
 
     get selector(): string {
@@ -199,5 +201,9 @@ export class ComponentMetadataReference<C> {
 
     get templateName(): string {
         return this.templateName || null;
+    }
+
+    get providers(): Array<ClassType<any> | Provider | { [key: string]: any }> {
+        return this._providers;
     }
 }

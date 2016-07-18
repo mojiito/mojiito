@@ -13,7 +13,7 @@ export class Provider {
             useValue?: any,
             useExisting?: any,
             useFactory?: Function,
-            dependencies: Object[]
+            dependencies?: Object[]
         }) {
         this.token = token;
         this.useClass = useClass;

@@ -9,3 +9,7 @@ export interface ClassType<T> {
 export function getClassName<T>(klass: ClassType<T>) {
     return klass.name ? klass.name : /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];
 }
+
+export function isClassInstance(instance: any): boolean {
+    return typeof instance === 'object' && !!instance['constructor']
+}

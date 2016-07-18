@@ -1,15 +1,17 @@
 import { assert } from '../../debug/debug';
-// import { Injectable } from '../../runtime/injectable/injectable';
+import { Injectable } from '../di/di';
 import { ClassType, getClassName } from '../../utils/class/class';
 import { ComponentFactory } from './factory';
 import { ComponentMetadataReference } from './metadata';
+import { Annotations } from '../annotations/annotations';
 
-// @Injectable()
+@Injectable()
 export class ComponentResolver {
-    resolve<C>(componentClass: ClassType<C>): ComponentFactory<C> {
-        let factory = <ComponentFactory<C>>Reflect.getMetadata('factory', componentClass);
+    resolveComponent<C>(componentClass: ClassType<C>): ComponentFactory<C> {
+        let factory = Annotations.peek(componentClass).getSingle(ComponentFactory);
         if (!(factory instanceof ComponentFactory)) {
             factory = new ComponentFactory(componentClass);
+            Annotations.peek(componentClass).set(factory);
         }
         return factory;
     }
