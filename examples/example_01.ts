@@ -3,14 +3,18 @@ import { Injector, Injectable, Inject, Component, bootstrap, Provider } from 'mo
 
 
 @Injectable()
-class A { }
+class UsefulService {}
 
 @Injectable()
-class B {
-    constructor( @Inject(A) a) {
-        
-    }
+class NeedsService {
+    constructor( @Inject(UsefulService) public service: UsefulService) {
+        console.log(arguments);
+  }
 }
+
+var injector = Injector.resolveAndCreate([NeedsService, UsefulService]);
+// console.log(injector);
+console.log(injector.get(NeedsService).service);
 
 // @Component({ selector: '[my-application]' })    
 // class App {

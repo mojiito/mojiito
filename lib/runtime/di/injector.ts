@@ -1,6 +1,8 @@
 import { CoreMap } from '../../core/core';
 import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider, resolveProviders } from './provider';
+import { assert } from '../../debug/debug';
+import { stringify } from '../../utils/string/stringify';
 
 /**
  * An `Injector` is a replacement for a `new` operator, which can automatically resolve the
@@ -110,7 +112,15 @@ export class Injector {
         for (let i = 0, max = this._providers.length; i < max; i++) {
             let provider = this._providers[i];
             if (provider.token === token) {
-                value = provider.resolvedFactory.factory();
+                let resolvedFactory = provider.resolvedFactory;
+                let resolvedDepts: any[] = [];
+                for (let j = 0, max = resolvedFactory.dependencies.length; j < max; j++) {
+                    let deptToken = resolvedFactory.dependencies[j];
+                    let dept = this.get(deptToken);
+                    assert(!!dept, `Cannot resolve all parameters for ${stringify(resolvedFactory.factory)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
+                    resolvedDepts.push(dept);
+                }
+                value = resolvedFactory.factory(resolvedDepts);
                 this._values.set(token, value);
                 return value;
             }

@@ -1,4 +1,9 @@
 import { ClassType } from '../../utils/class/class';
+import { Annotations } from '../annotations/annotations';
+import { InjectMetadata, InjectableMetadata } from './metadata';
+import { Injector } from './injector';
+import { assert } from '../../debug/debug';
+import { stringify } from '../../utils/string/stringify';
 
 /**
  * Describes how the {@link Injector} should instantiate a given token.
@@ -131,12 +136,25 @@ export function resolveProvider(provider: Provider): ResolvedProvider {
 export class ResolvedFactory {
 
     private _factoryFn: Function;
-    private _dependencies: any[];
+    private _dependencies: any[] = [];
 
     constructor(provider: Provider) {
         let factoryFn: Function;
         if (provider.useClass) {
-            factoryFn = () => new provider.useClass();
+            let dependencyTokens = Annotations.peek(provider.useClass).get(InjectMetadata);
+            if (Array.isArray(dependencyTokens)) {
+                let isInjectable = !!Annotations.peek(provider.useClass).get(InjectableMetadata);
+                assert(!!isInjectable, `Cannot resolve all parameters for ${stringify(provider.useClass)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
+                for (let i = 0, max = dependencyTokens.length; i < max; i++) {
+                    let dep = dependencyTokens[i];
+                    if (dep instanceof InjectMetadata) {
+                        this._dependencies.push(dep.token);
+                    }
+                }
+            }
+            factoryFn = (dependecies: any[] = []) => {
+                return new (Function.prototype.bind.apply(provider.useClass, [null].concat(dependecies)))
+            };
         } else if (provider.useFactory) {
             factoryFn = provider.useFactory;
         } else {
@@ -147,13 +165,14 @@ export class ResolvedFactory {
     }
 
     get factory(): Function {
-        return this._factoryFn;
+        return this._factoryFn;        
     }
 
-    // TODO: implement dependencies    
-    // get dependencies(): any[] {
-    //     return this._dependencies || [];
-    // }
+    get dependencies(): any[] {
+        return this._dependencies || [];
+    }
+
+
 
     static resolve(provider: Provider): ResolvedFactory {
         return new ResolvedFactory(provider);

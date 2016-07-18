@@ -1110,6 +1110,34 @@ declare module "utils/class/class" {
     export function getClassName<T>(klass: ClassType<T>): string;
     export function isClassInstance(instance: any): boolean;
 }
+declare module "runtime/annotations/annotations" {
+    import { ClassType } from "utils/class/class";
+    export class Annotations {
+        private _map;
+        private _classType;
+        constructor(classType: ClassType<any>);
+        get<A>(annotationType: ClassType<A>): A[];
+        getSingle<A>(annotationType: ClassType<A>): A;
+        add<A>(annotation: A): void;
+        set<A>(annotation: A): void;
+        static peek(classType: ClassType<any>): Annotations;
+        static isAnnotated(classType: ClassType<any>): boolean;
+    }
+}
+declare module "utils/string/stringify" {
+    export function stringify(token: any): string;
+}
+declare module "runtime/di/metadata" {
+    export class InjectableMetadata {
+        constructor();
+        toString(): string;
+    }
+    export class InjectMetadata {
+        token: any;
+        constructor(token: any);
+        toString(): string;
+    }
+}
 declare module "runtime/di/provider" {
     import { ClassType } from "utils/class/class";
     /**
@@ -1197,6 +1225,7 @@ declare module "runtime/di/provider" {
         private _dependencies;
         constructor(provider: Provider);
         factory: Function;
+        dependencies: any[];
         static resolve(provider: Provider): ResolvedFactory;
     }
 }
@@ -1281,34 +1310,6 @@ declare module "runtime/di/injector" {
          * @returns {*}
          */
         get(token: any): any;
-    }
-}
-declare module "runtime/annotations/annotations" {
-    import { ClassType } from "utils/class/class";
-    export class Annotations {
-        private _map;
-        private _classType;
-        constructor(classType: ClassType<any>);
-        get<A>(annotationType: ClassType<A>): A[];
-        getSingle<A>(annotationType: ClassType<A>): A;
-        add<A>(annotation: A): void;
-        set<A>(annotation: A): void;
-        static peek(classType: ClassType<any>): Annotations;
-        static isAnnotated(classType: ClassType<any>): boolean;
-    }
-}
-declare module "utils/string/stringify" {
-    export function stringify(token: any): string;
-}
-declare module "runtime/di/metadata" {
-    export class InjectableMetadata {
-        constructor();
-        toString(): string;
-    }
-    export class InjectMetadata {
-        token: any;
-        constructor(token: any);
-        toString(): string;
     }
 }
 declare module "runtime/di/decorators" {
