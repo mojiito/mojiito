@@ -60,22 +60,22 @@ describe('CoreMap', () => {
         });
     });
 
-    describe('length', () => {
-        it('it should exist', () => {
-            const map: CoreMap = new CoreMap();
-            expect(typeof map.length).toBe('number');
-        });
-        it('it return always be 0', () => {
-            const map: CoreMap = new CoreMap();
-            expect(map.length).toBe(0);
-            map.set('key1', 'value1');
-            expect(map.length).toBe(0);
-            map.set('key2', 'value2');
-            expect(map.length).toBe(0);
-            map.delete('key1');
-            expect(map.length).toBe(0);
-        });
-    });
+    // describe('length', () => {
+    //     it('it should exist', () => {
+    //         const map: CoreMap = new CoreMap();
+    //         expect(typeof map.length).toBe('number');
+    //     });
+    //     it('it return always be 0', () => {
+    //         const map: CoreMap = new CoreMap();
+    //         expect(map.length).toBe(0);
+    //         map.set('key1', 'value1');
+    //         expect(map.length).toBe(0);
+    //         map.set('key2', 'value2');
+    //         expect(map.length).toBe(0);
+    //         map.delete('key1');
+    //         expect(map.length).toBe(0);
+    //     });
+    // });
 
     describe('clear', () => {
         it('it should exist', () => {
@@ -308,22 +308,22 @@ describe('TypedMap', () => {
         });
     });
 
-    describe('length', () => {
-        it('it should exist', () => {
-            const map = new TypedMap<string, string>();
-            expect(typeof map.length).toBe('number');
-        });
-        it('it return always be 0', () => {
-            const map = new TypedMap<string, string>();
-            expect(map.length).toBe(0);
-            map.set('key1', 'value1');
-            expect(map.length).toBe(0);
-            map.set('key2', 'value2');
-            expect(map.length).toBe(0);
-            map.delete('key1');
-            expect(map.length).toBe(0);
-        });
-    });
+    // describe('length', () => {
+    //     it('it should exist', () => {
+    //         const map = new TypedMap<string, string>();
+    //         expect(typeof map.length).toBe('number');
+    //     });
+    //     it('it return always be 0', () => {
+    //         const map = new TypedMap<string, string>();
+    //         expect(map.length).toBe(0);
+    //         map.set('key1', 'value1');
+    //         expect(map.length).toBe(0);
+    //         map.set('key2', 'value2');
+    //         expect(map.length).toBe(0);
+    //         map.delete('key1');
+    //         expect(map.length).toBe(0);
+    //     });
+    // });
 
     describe('clear', () => {
         it('it should exist', () => {
