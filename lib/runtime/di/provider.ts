@@ -8,17 +8,15 @@ import { ClassType } from '../../utils/class/class';
  */
 export class Provider {
     constructor(token: any,
-        {useClass, useValue, useExisting, useFactory, dependencies}: {
+        {useClass, useValue, useFactory, dependencies}: {
             useClass?: ClassType<any>,
             useValue?: any,
-            useExisting?: any,
             useFactory?: Function,
             dependencies?: Object[]
         }) {
         this.token = token;
         this.useClass = useClass;
         this.useValue = useValue;
-        this.useExisting = useExisting;
         this.useFactory = useFactory;
         this.dependencies = dependencies;
 
@@ -26,7 +24,6 @@ export class Provider {
     token: any;
     useClass: ClassType<any>;
     useValue: any;
-    useExisting: any;
     useFactory: Function;
     dependencies: Object[];
 
@@ -40,23 +37,20 @@ export class Provider {
  * @param {{
  *     useClass?: ClassType<any>,
  *     useValue?: any,
- *     useExisting?: any,
  *     useFactory?: Function,
  *     dependencies?: Object[],
- * }} {useClass, useValue, useExisting, useFactory, dependencies}
+ * }} {useClass, useValue, useFactory, dependencies}
  * @returns {Provider}
  */
-export function provide(token: any, {useClass, useValue, useExisting, useFactory, dependencies}: {
+export function provide(token: any, {useClass, useValue, useFactory, dependencies}: {
     useClass?: ClassType<any>,
     useValue?: any,
-    useExisting?: any,
     useFactory?: Function,
     dependencies?: Object[],
 }): Provider {
     return new Provider(token, {
         useClass: useClass,
         useValue: useValue,
-        useExisting: useExisting,
         useFactory: useFactory,
         dependencies: dependencies,
     });
@@ -143,8 +137,6 @@ export class ResolvedFactory {
         let factoryFn: Function;
         if (provider.useClass) {
             factoryFn = () => new provider.useClass();
-        } else if (provider.useExisting) {
-            factoryFn = (instance: any) => instance;
         } else if (provider.useFactory) {
             factoryFn = provider.useFactory;
         } else {

@@ -1119,17 +1119,15 @@ declare module "runtime/di/provider" {
      * @class Provider
      */
     export class Provider {
-        constructor(token: any, {useClass, useValue, useExisting, useFactory, dependencies}: {
+        constructor(token: any, {useClass, useValue, useFactory, dependencies}: {
             useClass?: ClassType<any>;
             useValue?: any;
-            useExisting?: any;
             useFactory?: Function;
             dependencies?: Object[];
         });
         token: any;
         useClass: ClassType<any>;
         useValue: any;
-        useExisting: any;
         useFactory: Function;
         dependencies: Object[];
     }
@@ -1141,16 +1139,14 @@ declare module "runtime/di/provider" {
      * @param {{
      *     useClass?: ClassType<any>,
      *     useValue?: any,
-     *     useExisting?: any,
      *     useFactory?: Function,
      *     dependencies?: Object[],
-     * }} {useClass, useValue, useExisting, useFactory, dependencies}
+     * }} {useClass, useValue, useFactory, dependencies}
      * @returns {Provider}
      */
-    export function provide(token: any, {useClass, useValue, useExisting, useFactory, dependencies}: {
+    export function provide(token: any, {useClass, useValue, useFactory, dependencies}: {
         useClass?: ClassType<any>;
         useValue?: any;
-        useExisting?: any;
         useFactory?: Function;
         dependencies?: Object[];
     }): Provider;
