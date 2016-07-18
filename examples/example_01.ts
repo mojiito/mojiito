@@ -1,35 +1,35 @@
 import { observes } from 'mojito/core';
-import { Injector, Injectable, Inject, Component, bootstrap, Provider } from 'mojito/runtime';
+import { Injector, Injectable, Inject, Component, bootstrap, Provider, ElementRef } from 'mojito/runtime';
 
 
 @Injectable()
-class UsefulService {}
+class UsefulService {
+}
 
 @Injectable()
 class NeedsService {
     constructor( @Inject(UsefulService) public service: UsefulService) {
-        console.log(arguments);
-  }
+    }
 }
 
-var injector = Injector.resolveAndCreate([NeedsService, UsefulService]);
-// console.log(injector);
-console.log(injector.get(NeedsService).service);
+@Component({ selector: '[my-application]' })    
+class App {
+    constructor(
+        @Inject(NeedsService) public service: NeedsService,
+        @Inject(ElementRef) public element: ElementRef
+    ) {
+        console.log(service, element);
+    }
+}
 
-// @Component({ selector: '[my-application]' })    
-// class App {
-//     constructor() {
-//     }
-// }
+@Component({ selector: 'my-component' })
+class TestComponent {
+    private test: App;
+    constructor() {
+    }
+}
 
-// @Component({ selector: 'my-component' })
-// class TestComponent {
-//     private test: App;
-//     constructor() {
-//     }
-// }
-
-// bootstrap(App, [new Provider('test', {useValue: 'test'})]);
+bootstrap(App, [NeedsService, UsefulService]);
 
 
 // Check if metadata is an object

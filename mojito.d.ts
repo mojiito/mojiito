@@ -1699,6 +1699,7 @@ declare module "runtime/runtime" {
     export { bootstrap } from "runtime/bootstrap/bootstrap";
     export * from "runtime/lifecycle/lifecycle_hooks";
     export { Component } from "runtime/component/directive";
+    export { ElementRef } from "runtime/view/element";
     export * from "runtime/di/di";
 }
 declare module "mojito/runtime" {

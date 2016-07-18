@@ -29,15 +29,12 @@ export class ComponentFactory<C> {
 
         let providers = Array.isArray(this._metaRef.providers) ? this._metaRef.providers : [];
         providers = providers.concat([
-            provide(ElementRef, { useValue: hostElement.elementRef })
+            provide(ElementRef, { useValue: hostElement.elementRef }),
+            provide(hostElement, { useClass: this._componentType })
         ]);
         
         let inj = injector.resolveAndCreateChild(providers);
-
-        // ---- REWORK -----
-        // Do injection maybe?
-        let component = new this._componentType();
-        // ---- REWORK END -----
+        let component = inj.get(hostElement);
 
         hostElement.initComponent(component, inj);
 
