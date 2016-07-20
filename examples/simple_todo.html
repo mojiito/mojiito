@@ -1,0 +1,88 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.light_green-lime.min.css" />
+    <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+    <script src="../node_modules/systemjs/dist/system-polyfills.js"></script>
+    <script src="../node_modules/systemjs/dist/system.js"></script>
+    <script src="../mojito.js"></script>
+    <script>
+        // set our baseURL reference path
+        System.config({
+            baseURL: '.',
+            transpiler: 'typescript',
+            map: {
+                'typescript': '../node_modules/typescript/lib/typescript.js'
+            }
+        });
+        System.import('../../node_modules/reflect-metadata/Reflect.ts').catch(err => {
+            console.error(err)
+        });
+        System.import('simple_todo.ts').catch(err => {
+            console.error(err)
+        });
+    </script>
+    <style>
+        .mdl-layout__content {
+            padding: 0 20px;
+        }
+        table {
+            width: 100%;
+        }
+        todo-form, todo-list {
+            display: block;
+        }
+        todo-form + todo-list {
+            padding-top: 40px;
+        }
+    </style>
+</head>
+
+<body todo-app>
+
+    <div class="mdl-layout mdl-layout--fixed-header">
+        <header class="mdl-layout__header">
+            <div class="mdl-layout__header-row">
+                <span class="mdl-layout-title">Todos</span>
+            </div>
+        </header>
+        <main class="mdl-layout__content">
+            <todo-form>
+                <form action="#" todo-form (submit)="submit()">
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="sample3">
+                        <label class="mdl-textfield__label" for="sample3">Enter Todo...</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="sample3">
+                        <label class="mdl-textfield__label" for="sample3">Enter Due Date (DD.MM.YYYY)</label>
+                    </div>
+                    <div>
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Save Todo</button>
+                    </div>
+                </form>
+            </todo-form>
+            <todo-list>
+                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                    <thead>
+                        <tr>
+                            <th class="mdl-data-table__cell--non-numeric">Title</th>
+                            <th>Due date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr todo-item >
+                            <td class="mdl-data-table__cell--non-numeric">Build Mojito</td>
+                            <td>25.10.2016</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </todo-list>
+        </main>
+    </div>
+
+</body>
+
+
+</html>

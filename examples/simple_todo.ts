@@ -1,36 +1,95 @@
 import { observes } from 'mojito/core';
 import { Injector, Injectable, Inject, Component, bootstrap, Provider, ElementRef } from 'mojito/runtime';
 
+console.time('startUp');
+
+class Todo {
+    private _id: string;
+    private _title: string;
+    private _due: Date;
+    private _created: Date;
+    private _updated: Date;
+
+    get id() { return this._id; }
+    get title() { return this._title; }
+    get due() { return this._due; }
+    get created() { return this._created; }
+    get updated() { return this._updated; }
+
+    set title(newTitle: string) {
+        this._title = newTitle;
+        this._updated = new Date();
+    }
+    set due(newDue: Date) {
+        this._due = newDue;
+        this._updated = new Date();
+    }
+
+    constructor(title: string, due: Date) {
+        let date = new Date();
+        this._id = Date.now() + '';
+        this._title = title;
+        this._due = due;
+        this._created = date;
+        this._updated = date;
+    }
+}
 
 @Injectable()
-class UsefulService {
-}
+class TodoStore {
+    private todos: ITodo[] = [];
 
-@Injectable()
-class NeedsService {
-    constructor( @Inject(UsefulService) public service: UsefulService) {
+    add(title: string, due: Date) {
+        this.todos.push(new Todo(title, due));
+    }
+
+    remove(todo: ITodo) {
+
     }
 }
 
-@Component({ selector: '[my-application]' })    
-class App {
-    constructor(
-        @Inject(NeedsService) public service: NeedsService,
-        @Inject(ElementRef) public element: ElementRef
-    ) {
-        console.log(service, element);
+@Component({ selector: '[todo-app]' })    
+class TodoApp {
+    constructor( @Inject(TodoStore) store: TodoStore) {
+        store.add('test', new Date());
+        console.log(store);
     }
 }
 
-@Component({ selector: 'my-component' })
-class TestComponent {
-    private test: App;
-    constructor() {
+@Component({ selector: 'todo-form' })    
+class TodoForm {
+    constructor( @Inject(TodoStore) store: TodoStore) {
+        console.log(store);
+    }
+
+    submit() {
+        // submit
     }
 }
 
-bootstrap(App, [NeedsService, UsefulService]);
+@Component({ selector: 'todo-list' })    
+class TodoList {
+    constructor( @Inject(TodoStore) store: TodoStore) {
+        console.log(store);
+    }
+}
 
+@Component({
+    selector: '[todo-item]',
+    template: `
+        <tr todo-item >
+            <td class="mdl-data-table__cell--non-numeric">{{title}}</td>
+            <td>{{due}}</td>
+        </tr>
+    `
+})    
+class TodoListItem {
+}
+
+
+bootstrap(TodoApp, [TodoStore]);
+
+console.timeEnd('startUp');
 
 // Check if metadata is an object
 // assert(
