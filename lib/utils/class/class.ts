@@ -3,7 +3,7 @@ import { assert } from '../../debug/debug';
 export interface ClassType<T> {
     new (...args: Array<any>): T;
     [propertyName: string]: any;
-    name?: string;
+    name: string;
 }
 
 export function getClassName<T>(klass: ClassType<T>) {
