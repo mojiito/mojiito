@@ -70,7 +70,7 @@ class TodoForm {
 @Component({ selector: 'todo-list' })    
 class TodoList {
     constructor( @Inject(TodoStore) store: TodoStore) {
-        console.log(store);
+        // console.log(store);
     }
 }
 

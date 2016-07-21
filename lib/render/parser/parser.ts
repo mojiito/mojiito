@@ -1,31 +1,38 @@
 import { assert } from '../../debug/debug';
-import { Injectable } from '../../runtime/di/di';
+import { Injectable, Inject } from '../../runtime/di/di';
 import { DOMParser } from '../dom_parser/dom_parser';
 import { doesSelectorMatchElement } from '../../utils/dom/dom';
-import { TypedMap } from '../../core/map/map';
+import { ComponentRegistry } from '../../runtime/component/registry';
+import { ComponentResolver } from '../../runtime/component/resolver';
 
 @Injectable()
 export class Parser {
 
     private _domParser = new DOMParser();
-    private _factories = new TypedMap<string, Function[]>();
 
-    resolveComponent(selector: string, factory: Function) {
-        let factories = this._factories.get(selector);
-        if (Array.isArray(factories)) {
-            assert(!factories.indexOf(factory), `There is already a factory with the selector "${selector}" registered`);
-            factories.push(factory);
-        } else {
-            this._factories.set(selector, [factory]);
-        }
-
+    constructor( @Inject(ComponentResolver) resolver: ComponentResolver) {
+        // console.log(resolver);
+        let selectors = ComponentRegistry.selectors;
+        let index = -1;
         this._domParser.registerElementHook({
             predicate: (element) => {
-                return doesSelectorMatchElement(selector, element);
+                for (let i = 0, max = selectors.length; i < max; i++) {
+                    if (doesSelectorMatchElement(selectors[i], element)) {
+                        index = i;
+                        return true;
+                    }
+                }
+                return false;
             },
-            onParse: (element) => {
-                console.log(element);
+            onBeforeParse: (element) => {
+                let componentType = ComponentRegistry.componentTypes[index];
+                console.log(componentType);
+                return true;
             }
         })
+    }
+
+    parse(root: Element) {
+        this._domParser.parseTree(<HTMLElement>root);
     }
 }

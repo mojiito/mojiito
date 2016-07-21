@@ -1,5 +1,6 @@
 import { ClassType } from '../../utils/class/class';
 import { ViewElement } from '../view/view_element';
+import { ViewContainerRef } from '../view/view_container';
 import { Injector } from '../di/di';
 
 export class ComponentReference<C> {
@@ -14,6 +15,10 @@ export class ComponentReference<C> {
 
     get hostElement(): ViewElement {
         return this._hostElement;
+    }
+
+    get viewContainerRef(): ViewContainerRef {
+        return this._hostElement.viewContainerRef;
     }
 
     get instance(): C {

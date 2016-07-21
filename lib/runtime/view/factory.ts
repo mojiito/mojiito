@@ -1,5 +1,4 @@
 import { ClassType } from '../../utils/class/class';
-import { ViewRef } from './reference';
 import { View } from './view';
 
 export class ViewFactory<V extends View> {

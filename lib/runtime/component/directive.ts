@@ -4,6 +4,7 @@ import { ComponentFactory } from './factory';
 import { ComponentMetadata, ComponentMetadataReference } from './metadata';
 import { Annotations } from '../annotations/annotations';
 import { Injectable } from '../di/di';
+import { ComponentRegistry } from './registry';
 
 /**
  * The component directive allows you to attach behavior (a class) to elements in the DOM
@@ -39,24 +40,9 @@ import { Injectable } from '../di/di';
  */
 export function Component(metadata: ComponentMetadata): ClassDecorator {
     return function (componentClass: ClassType<any>) {
-        registerComponent(componentClass, metadata);
+        Injectable()(componentClass);
+        let metaRef = new ComponentMetadataReference(metadata);
+        Annotations.peek(componentClass).add(metaRef);
+        ComponentRegistry.register(componentClass, metaRef.selector);
     }
-}
-
-/**
- * Function for registering a component class and metadata.
- * Normally you would not call this function directly.
- * Use the {@link Component} class decorator.
- * 
- * @export
- * @template C
- * @param {ClassFactory<C>} componentClass
- * @param {IComponentMetadata} metadata
- * @returns {ComponentFactory<C>}
- */
-export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata) {
-    let metaRef = new ComponentMetadataReference(metadata);
-    Annotations.peek(componentClass).add(metaRef);
-    // Every Component is also injectable
-    Injectable()(componentClass);
 }

@@ -1105,7 +1105,7 @@ declare module "utils/class/class" {
     export interface ClassType<T> {
         new (...args: Array<any>): T;
         [propertyName: string]: any;
-        name?: string;
+        name: string;
     }
     export function getClassName<T>(klass: ClassType<T>): string;
     export function isClassInstance(instance: any): boolean;
@@ -1372,8 +1372,24 @@ declare module "render/dom_parser/dom_parser" {
         registerAttributeHook(hook: IDOMParserAttributeHook): void;
     }
 }
-declare module "render/render" {
-    export * from "render/dom_parser/dom_parser";
+declare module "runtime/component/registry" {
+    import { ClassType } from "utils/class/class";
+    export class ComponentRegistry {
+        private static _componentTypes;
+        private static _selectors;
+        static selectors: string[];
+        static componentTypes: ClassType<any>[];
+        static register(componentType: ClassType<any>, selector: string): void;
+        static bySelector(selector: string): ClassType<any>;
+    }
+}
+declare module "render/parser/parser" {
+    import { ComponentResolver } from "runtime/component/resolver";
+    export class Parser {
+        private _domParser;
+        constructor(resolver: ComponentResolver);
+        parse(root: Element): void;
+    }
 }
 declare module "runtime/view/factory" {
     import { ClassType } from "utils/class/class";
@@ -1385,24 +1401,14 @@ declare module "runtime/view/factory" {
     }
 }
 declare module "runtime/view/view" {
-    import { ViewRef } from "runtime/view/reference";
+    import { ViewElement } from "runtime/view/view_element";
     export class View {
-        private _ref;
         private _parser;
         private _rootElement;
+        private _hostElement;
         rootElement: Element;
-        ref: ViewRef<View>;
-        constructor(element: Element);
+        constructor(element: Element, hostElement: ViewElement);
         parse(): void;
-        destroy(): void;
-    }
-}
-declare module "runtime/view/reference" {
-    import { View } from "runtime/view/view";
-    export class ViewRef<V extends View> {
-        private _view;
-        constructor(_view: V);
-        internalView: V;
         destroy(): void;
     }
 }
@@ -1418,9 +1424,11 @@ declare module "runtime/view/view_container" {
     import { Injector } from "runtime/di/di";
     export class ViewContainerRef {
         private _element;
+        injector: Injector;
         constructor(element: ViewElement);
         createEmbeddedView(): void;
         createComponent<C>(componentFactory: ComponentFactory<C>, injector: Injector, nativeElement: Element): void;
+        parse(): void;
         destroy(): void;
     }
 }
@@ -1442,17 +1450,21 @@ declare module "runtime/view/view_element" {
         constructor(nativeElement: Element);
         initComponent(component: any, injector: Injector): void;
         attachView(view: View, viewIndex: number): void;
+        parseView(viewIndex?: number): void;
+        getView(viewIndex?: number): View;
     }
 }
 declare module "runtime/component/reference" {
     import { ClassType } from "utils/class/class";
     import { ViewElement } from "runtime/view/view_element";
+    import { ViewContainerRef } from "runtime/view/view_container";
     import { Injector } from "runtime/di/di";
     export class ComponentReference<C> {
         private _hostElement;
         private _componentType;
         constructor(hostElement: ViewElement, componentType: ClassType<C>);
         hostElement: ViewElement;
+        viewContainerRef: ViewContainerRef;
         instance: C;
         injector: Injector;
         componentType: ClassType<C>;
@@ -1647,7 +1659,6 @@ declare module "runtime/lifecycle/lifecycle_hooks" {
     }
 }
 declare module "runtime/component/directive" {
-    import { ClassType } from "utils/class/class";
     import { ComponentMetadata } from "runtime/component/metadata";
     /**
      * The component directive allows you to attach behavior (a class) to elements in the DOM
@@ -1682,18 +1693,6 @@ declare module "runtime/component/directive" {
      * @returns {ClassDecorator}
      */
     export function Component(metadata: ComponentMetadata): ClassDecorator;
-    /**
-     * Function for registering a component class and metadata.
-     * Normally you would not call this function directly.
-     * Use the {@link Component} class decorator.
-     *
-     * @export
-     * @template C
-     * @param {ClassFactory<C>} componentClass
-     * @param {IComponentMetadata} metadata
-     * @returns {ComponentFactory<C>}
-     */
-    export function registerComponent<C>(componentClass: ClassType<C>, metadata: ComponentMetadata): void;
 }
 declare module "runtime/runtime" {
     export { bootstrap } from "runtime/bootstrap/bootstrap";

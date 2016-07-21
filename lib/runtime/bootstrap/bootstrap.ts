@@ -4,6 +4,7 @@ import { ComponentResolver } from '../component/resolver';
 import { Provider, Injector } from '../di/di';
 import { ViewContainerRef } from '../view/view_container';
 import { doesSelectorMatchElement } from '../../utils/dom/dom';
+import { Parser } from '../../render/parser/parser';
 
 export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: Array<ClassType<any> | Provider | { [key: string]: any }>, root?: Element): void;
 export function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): void;
@@ -19,6 +20,7 @@ export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: an
 
     let providers = [
         new Provider(ComponentResolver, { useClass: ComponentResolver }),
+        new Provider(Parser, { useClass: Parser })
     ]
     let rootInjector = Injector.resolveAndCreate(providers.concat(customProviders));
     let componentResolver = <ComponentResolver>rootInjector.get(ComponentResolver);
@@ -42,6 +44,5 @@ export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: an
     }
 
     let appRef = factory.create(rootInjector, element);
-
-    console.log(appRef);
+    appRef.viewContainerRef.parse();
 }

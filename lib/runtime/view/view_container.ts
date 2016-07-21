@@ -1,6 +1,5 @@
 import { ComponentFactory } from '../component/factory';
 import { ComponentReference } from '../component/reference';
-import { ViewRef } from './reference';
 import { View } from './view';
 import { ViewFactory } from './factory';
 import { ViewElement } from './view_element';
@@ -11,6 +10,10 @@ export class ViewContainerRef {
 
     private _element: ViewElement;
 
+    get injector(): Injector {
+        return this._element.injector;
+    }
+
     constructor(element: ViewElement) {
         this._element = element;
     }
@@ -20,6 +23,10 @@ export class ViewContainerRef {
 
     // TODO: implement!
     createComponent<C>(componentFactory: ComponentFactory<C>, injector: Injector, nativeElement: Element) { //: ComponentReference<C>{
+    }
+
+    parse() {
+        this._element.parseView();
     }
 
     // TODO: implement!
