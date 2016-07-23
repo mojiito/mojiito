@@ -37,13 +37,13 @@ class Todo {
 
 @Injectable()
 class TodoStore {
-    private todos: ITodo[] = [];
+    private todos: Todo[] = [];
 
     add(title: string, due: Date) {
         this.todos.push(new Todo(title, due));
     }
 
-    remove(todo: ITodo) {
+    remove(todo: Todo) {
 
     }
 }
@@ -52,14 +52,12 @@ class TodoStore {
 class TodoApp {
     constructor( @Inject(TodoStore) store: TodoStore) {
         store.add('test', new Date());
-        console.log(store);
     }
 }
 
 @Component({ selector: 'todo-form' })    
 class TodoForm {
     constructor( @Inject(TodoStore) store: TodoStore) {
-        console.log(store);
     }
 
     submit() {
@@ -70,7 +68,6 @@ class TodoForm {
 @Component({ selector: 'todo-list' })    
 class TodoList {
     constructor( @Inject(TodoStore) store: TodoStore) {
-        // console.log(store);
     }
 }
 
