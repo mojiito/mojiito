@@ -3,7 +3,7 @@
         "declaration": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "target": "ES2015",
+        "target": "ES5",
         "module": "system",
         "noImplicitAny": true,
         "preserveConstEnums": true,
