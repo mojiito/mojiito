@@ -9,9 +9,9 @@ export function stringify(token: any): string {
         return '' + token;
     }    
     
-    if (typeof token === 'function') {
-        return getClassName(token);
-    }
+    // if (typeof token === 'function') {
+    //     return getClassName(token);
+    // }
 
     if (token.name) {
         return token.name;
