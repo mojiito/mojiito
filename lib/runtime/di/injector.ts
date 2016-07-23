@@ -1,6 +1,7 @@
 import { CoreMap } from '../../core/core';
 import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider, resolveProviders } from './provider';
+import { resolveForwardRef } from './forward_ref';
 import { assert } from '../../debug/debug';
 import { stringify } from '../../utils/string/stringify';
 
@@ -114,8 +115,9 @@ export class Injector {
             if (provider.token === token) {
                 let resolvedFactory = provider.resolvedFactory;
                 let resolvedDepts: any[] = [];
+                // console.log('GET', resolvedFactory);
                 for (let j = 0, max = resolvedFactory.dependencies.length; j < max; j++) {
-                    let deptToken = resolvedFactory.dependencies[j];
+                    let deptToken = resolveForwardRef(resolvedFactory.dependencies[j]);
                     let dept = this.get(deptToken);
                     assert(!!dept, `Cannot resolve all parameters for ${stringify(resolvedFactory.factory)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
                     resolvedDepts.push(dept);

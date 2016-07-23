@@ -2,6 +2,7 @@ import { ClassType } from '../../utils/class/class';
 import { Annotations } from '../annotations/annotations';
 import { InjectMetadata, InjectableMetadata } from './metadata';
 import { Injector } from './injector';
+import { resolveForwardRef } from './forward_ref';
 import { assert } from '../../debug/debug';
 import { stringify } from '../../utils/string/stringify';
 
@@ -121,7 +122,7 @@ export function resolveProviders(providers: Array<ClassType<any> | Provider | { 
  * @returns {ResolvedProvider}
  */
 export function resolveProvider(provider: Provider): ResolvedProvider {
-    return new ResolvedProvider(provider.token, ResolvedFactory.resolve(provider));
+    return new ResolvedProvider(provider.token, resolveFactory(provider));
 }
 
 /**
@@ -138,30 +139,9 @@ export class ResolvedFactory {
     private _factoryFn: Function;
     private _dependencies: any[] = [];
 
-    constructor(provider: Provider) {
-        let factoryFn: Function;
-        if (provider.useClass) {
-            let dependencyTokens = Annotations.peek(provider.useClass).get(InjectMetadata);
-            if (Array.isArray(dependencyTokens)) {
-                let isInjectable = !!Annotations.peek(provider.useClass).get(InjectableMetadata);
-                assert(!!isInjectable, `Cannot resolve all parameters for ${stringify(provider.useClass)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
-                for (let i = 0, max = dependencyTokens.length; i < max; i++) {
-                    let dep = dependencyTokens[i];
-                    if (dep instanceof InjectMetadata) {
-                        this._dependencies.push(dep.token);
-                    }
-                }
-            }
-            factoryFn = (dependecies: any[] = []) => {
-                return new (Function.prototype.bind.apply(provider.useClass, [null].concat(dependecies)))
-            };
-        } else if (provider.useFactory) {
-            factoryFn = provider.useFactory;
-        } else {
-            factoryFn = () => provider.useValue;
-        }
-
-        this._factoryFn = factoryFn;
+    constructor(factory: Function, dependencies: any[]) {
+        this._factoryFn = factory;
+        this._dependencies = dependencies;
     }
 
     get factory(): Function {
@@ -171,10 +151,39 @@ export class ResolvedFactory {
     get dependencies(): any[] {
         return this._dependencies || [];
     }
+}
 
-
-
-    static resolve(provider: Provider): ResolvedFactory {
-        return new ResolvedFactory(provider);
+export function resolveFactory(provider: Provider): ResolvedFactory {
+    let factoryFn: Function;
+    let dependencies: any[] = [];
+    if (provider.useClass) {
+        let useClass = resolveForwardRef(provider.useClass);
+        dependencies = dependenciesForClass(useClass);
+        factoryFn = (dependecies: any[] = []) => {
+            // console.log('NEW', useClass, dependecies);
+            return new (Function.prototype.bind.apply(useClass, [null].concat(dependecies)))
+        };
+    } else if (provider.useFactory) {
+        factoryFn = provider.useFactory;
+    } else {
+        factoryFn = () => provider.useValue;
     }
+
+    return new ResolvedFactory(factoryFn, dependencies);
+}
+
+export function dependenciesForClass(annotatedClass: ClassType<any>) {
+    let dependecies: any[] = []
+    let dependencyTokens = Annotations.peek(annotatedClass).get(InjectMetadata);
+    if (Array.isArray(dependencyTokens)) {
+        let isInjectable = !!Annotations.peek(annotatedClass).get(InjectableMetadata);
+        assert(!!isInjectable, `Cannot resolve all parameters for ${stringify(annotatedClass)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
+        for (let i = 0, max = dependencyTokens.length; i < max; i++) {
+            let dep = dependencyTokens[i];
+            if (dep instanceof InjectMetadata) {
+                dependecies.push(dep.token);
+            }
+        }
+    }
+    return dependecies;
 }
