@@ -1,24 +1,19 @@
 import { ClassType } from '../../utils/class/class';
-import { ViewElement } from '../view/view_element';
-import { ViewContainerRef } from '../view/view_container';
+import { HostElement } from '../view/host';
 import { Injector } from '../di/di';
 
 export class ComponentReference<C> {
     // private _view: View;
-    private _hostElement: ViewElement;
+    private _hostElement: HostElement;
     private _componentType: ClassType<C>;
 
-    constructor(hostElement: ViewElement, componentType: ClassType<C>) {
+    constructor(hostElement: HostElement, componentType: ClassType<C>) {
         this._hostElement = hostElement;
         this._componentType = componentType;
     }
 
-    get hostElement(): ViewElement {
+    get hostElement(): HostElement {
         return this._hostElement;
-    }
-
-    get viewContainerRef(): ViewContainerRef {
-        return this._hostElement.viewContainerRef;
     }
 
     get instance(): C {
@@ -31,6 +26,10 @@ export class ComponentReference<C> {
 
     get componentType(): ClassType<C> {
         return this._componentType;
+    }
+
+    parse() {
+        this._hostElement.parse();
     }
 
     destroy() {

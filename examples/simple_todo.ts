@@ -57,7 +57,11 @@ class TodoApp {
 
 @Component({ selector: 'todo-form' })    
 class TodoForm {
-    constructor( @Inject(TodoStore) store: TodoStore) {
+    constructor(
+        @Inject(TodoStore) store: TodoStore,
+        @Inject(ElementRef) element: ElementRef
+    ) {
+        console.log('init TodoForm', element.nativeElement);
     }
 
     submit() {
@@ -67,7 +71,11 @@ class TodoForm {
 
 @Component({ selector: 'todo-list' })    
 class TodoList {
-    constructor( @Inject(TodoStore) store: TodoStore) {
+    constructor(
+        @Inject(TodoStore) store: TodoStore,
+        @Inject(ElementRef) element: ElementRef
+    ) {
+        console.log('init TodoList', element.nativeElement);
     }
 }
 
@@ -81,6 +89,12 @@ class TodoList {
     `
 })    
 class TodoListItem {
+    constructor(
+        @Inject(TodoStore) store: TodoStore,
+        @Inject(ElementRef) element: ElementRef
+    ) {
+        console.log('init TodoItem', element.nativeElement);
+    }
 }
 
 

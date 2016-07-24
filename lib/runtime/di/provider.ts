@@ -160,7 +160,6 @@ export function resolveFactory(provider: Provider): ResolvedFactory {
         let useClass = resolveForwardRef(provider.useClass);
         dependencies = dependenciesForClass(useClass);
         factoryFn = (dependecies: any[] = []) => {
-            // console.log('NEW', useClass, dependecies);
             return new (Function.prototype.bind.apply(useClass, [null].concat(dependecies)))
         };
     } else if (provider.useFactory) {

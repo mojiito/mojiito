@@ -1105,7 +1105,7 @@ declare module "utils/class/class" {
     export interface ClassType<T> {
         new (...args: Array<any>): T;
         [propertyName: string]: any;
-        name: string;
+        name?: string;
     }
     export function getClassName<T>(klass: ClassType<T>): string;
     export function isClassInstance(instance: any): boolean;
@@ -1137,6 +1137,50 @@ declare module "runtime/di/metadata" {
         constructor(token: any);
         toString(): string;
     }
+}
+declare module "runtime/di/forward_ref" {
+    import { ClassType } from "utils/class/class";
+    /**
+     * An interface that a function passed into {@link forwardRef} has to implement.
+     *
+     * ### Example
+     *
+     * {@example core/di/ts/forward_ref/forward_ref.ts region='forward_ref_fn'}
+     * @experimental
+     */
+    export interface ForwardRefFn {
+        (): any;
+    }
+    /**
+     * Allows to refer to references which are not yet defined.
+     *
+     * For instance, `forwardRef` is used when the `token` which we need to refer to for the purposes of
+     * DI is declared,
+     * but not yet defined. It is also used when the `token` which we use when creating a query is not
+     * yet defined.
+     *
+     * ### Example
+     * {@example core/di/ts/forward_ref/forward_ref.ts region='forward_ref'}
+     * @experimental
+     */
+    export function forwardRef(forwardRefFn: ForwardRefFn): ClassType<any>;
+    /**
+     * Lazily retrieves the reference value from a forwardRef.
+     *
+     * Acts as the identity function when given a non-forward-ref value.
+     *
+     * ### Example ([live demo](http://plnkr.co/edit/GU72mJrk1fiodChcmiDR?p=preview))
+     *
+     * ```typescript
+     * var ref = forwardRef(() => "refValue");
+     * expect(resolveForwardRef(ref)).toEqual("refValue");
+     * expect(resolveForwardRef("regularValue")).toEqual("regularValue");
+     * ```
+     *
+     * See: {@link forwardRef}
+     * @experimental
+     */
+    export function resolveForwardRef(type: any): any;
 }
 declare module "runtime/di/provider" {
     import { ClassType } from "utils/class/class";
@@ -1223,11 +1267,12 @@ declare module "runtime/di/provider" {
     export class ResolvedFactory {
         private _factoryFn;
         private _dependencies;
-        constructor(provider: Provider);
+        constructor(factory: Function, dependencies: any[]);
         factory: Function;
         dependencies: any[];
-        static resolve(provider: Provider): ResolvedFactory;
     }
+    export function resolveFactory(provider: Provider): ResolvedFactory;
+    export function dependenciesForClass(annotatedClass: ClassType<any>): any[];
 }
 declare module "runtime/di/injector" {
     import { ClassType } from "utils/class/class";
@@ -1326,6 +1371,7 @@ declare module "runtime/di/di" {
     export { Injectable, Inject } from "runtime/di/decorators";
     export { Injector } from "runtime/di/injector";
     export { Provider, ResolvedProvider, provide } from "runtime/di/provider";
+    export { forwardRef } from "runtime/di/forward_ref";
 }
 declare module "utils/dom/dom" {
     /**
@@ -1347,29 +1393,57 @@ declare module "utils/dom/dom" {
      */
     export function doesSelectorMatchElement(selector: string, element: Element): boolean;
 }
-declare module "render/dom_parser/dom_parser" {
+declare module "render/parser/context" {
+    export class ContextReference {
+        context: any;
+        constructor(context: any);
+    }
+    export class ContextTree {
+        private _tree;
+        constructor(context?: any | any[]);
+        up(): void;
+        down(): void;
+        add(context: any | any[]): void;
+        getUnfiltered(): ContextReference[][];
+        getFiltered(): ContextReference[][];
+        getNearestContextOfType(type: Function | string): any;
+    }
+}
+declare module "render/parser/dom_parser" {
+    import { ContextTree } from "render/parser/context";
     export interface IDOMParserElementHook {
-        predicate: (element: HTMLElement) => boolean;
-        onBeforeParse?: (element: HTMLElement, context: Array<any>) => Object | Function;
-        onParse?: (element: HTMLElement, context: Array<any>) => void;
-        onAfterParse?: (element: HTMLElement, context: Array<any>) => void;
-        onDestroy?: (element: HTMLElement) => void;
+        predicate: (element: Element) => boolean;
+        onBeforeParse?: (element: Element, context: ContextTree) => Object | Function;
+        onParse?: (element: Element, context: ContextTree) => void;
+        onAfterParse?: (element: Element, context: ContextTree) => void;
+        onDestroy?: (element: Element) => void;
     }
     export interface IDOMParserAttributeHook {
         removeAttributeNode?: boolean;
         predicate: (attribute: Attr) => boolean;
-        onBeforeParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => Object | Function;
-        onParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => void;
-        onAfterParse?: (element: HTMLElement, attribute: Attr, context: Array<any>) => void;
-        onDestroy?: (element: HTMLElement, attribute: Attr) => void;
+        onBeforeParse?: (element: Element, attribute: Attr, context: ContextTree) => Object | Function;
+        onParse?: (element: Element, attribute: Attr, context: ContextTree) => void;
+        onAfterParse?: (element: Element, attribute: Attr, context: ContextTree) => void;
+        onDestroy?: (element: Element, attribute: Attr) => void;
     }
     export class DOMParser {
+        static PARSED_ELEMENT_ATTR: string;
         private elementHooks;
         private attributeHooks;
-        parseTree(rootElement?: HTMLElement): void;
-        private parseNode(element, context?);
+        parseTree(rootElement: Element, context?: any | any[], skipRootElement?: boolean): void;
+        private parseNode(element, contextTree, skipRootElement?);
         registerElementHook(hook: IDOMParserElementHook): void;
         registerAttributeHook(hook: IDOMParserAttributeHook): void;
+    }
+}
+declare module "render/parser/hooks/hooks" {
+    import { IDOMParserElementHook, IDOMParserAttributeHook } from "render/parser/dom_parser";
+    export abstract class ParserElementHook implements IDOMParserElementHook {
+        abstract predicate(element: Element): boolean;
+    }
+    export abstract class ParserAttributeHook implements IDOMParserAttributeHook {
+        removeAttributeNode: boolean;
+        abstract predicate(attribute: Attr): boolean;
     }
 }
 declare module "runtime/component/registry" {
@@ -1383,12 +1457,27 @@ declare module "runtime/component/registry" {
         static bySelector(selector: string): ClassType<any>;
     }
 }
+declare module "render/parser/hooks/component" {
+    import { ContextTree } from "render/parser/context";
+    import { ParserElementHook } from "render/parser/hooks/hooks";
+    import { ComponentResolver } from "runtime/component/resolver";
+    import { HostElement } from "runtime/view/host";
+    export class ComponentParserHook extends ParserElementHook {
+        private resolver;
+        private selectors;
+        private lastFoundSelectorIndex;
+        constructor(resolver: ComponentResolver);
+        predicate(element: Element): boolean;
+        onBeforeParse(element: Element, context: ContextTree): Object | Function;
+    }
+    export function _findNextHostFromContext(context: any): HostElement;
+}
 declare module "render/parser/parser" {
     import { ComponentResolver } from "runtime/component/resolver";
     export class Parser {
         private _domParser;
         constructor(resolver: ComponentResolver);
-        parse(root: Element): void;
+        parse(root: Element, context?: any, skipRootElement?: boolean): void;
     }
 }
 declare module "runtime/view/factory" {
@@ -1401,13 +1490,14 @@ declare module "runtime/view/factory" {
     }
 }
 declare module "runtime/view/view" {
-    import { ViewElement } from "runtime/view/view_element";
+    import { HostElement } from "runtime/view/host";
     export class View {
         private _parser;
         private _rootElement;
         private _hostElement;
         rootElement: Element;
-        constructor(element: Element, hostElement: ViewElement);
+        hostElement: HostElement;
+        constructor(element: Element, hostElement: HostElement);
         parse(): void;
         destroy(): void;
     }
@@ -1418,26 +1508,11 @@ declare module "runtime/view/element" {
         constructor(nativeElement: any);
     }
 }
-declare module "runtime/view/view_container" {
-    import { ComponentFactory } from "runtime/component/factory";
-    import { ViewElement } from "runtime/view/view_element";
-    import { Injector } from "runtime/di/di";
-    export class ViewContainerRef {
-        private _element;
-        injector: Injector;
-        constructor(element: ViewElement);
-        createEmbeddedView(): void;
-        createComponent<C>(componentFactory: ComponentFactory<C>, injector: Injector, nativeElement: Element): void;
-        parse(): void;
-        destroy(): void;
-    }
-}
-declare module "runtime/view/view_element" {
-    import { ViewContainerRef } from "runtime/view/view_container";
+declare module "runtime/view/host" {
     import { View } from "runtime/view/view";
     import { ElementRef } from "runtime/view/element";
     import { Injector } from "runtime/di/di";
-    export class ViewElement {
+    export class HostElement {
         private _componentView;
         private _nestedViews;
         private _nativeElement;
@@ -1445,29 +1520,28 @@ declare module "runtime/view/view_element" {
         private _injector;
         component: any;
         elementRef: ElementRef;
-        viewContainerRef: ViewContainerRef;
         injector: Injector;
         constructor(nativeElement: Element);
         initComponent(component: any, injector: Injector): void;
         attachView(view: View, viewIndex: number): void;
         parseView(viewIndex?: number): void;
+        parse(): void;
         getView(viewIndex?: number): View;
     }
 }
 declare module "runtime/component/reference" {
     import { ClassType } from "utils/class/class";
-    import { ViewElement } from "runtime/view/view_element";
-    import { ViewContainerRef } from "runtime/view/view_container";
+    import { HostElement } from "runtime/view/host";
     import { Injector } from "runtime/di/di";
     export class ComponentReference<C> {
         private _hostElement;
         private _componentType;
-        constructor(hostElement: ViewElement, componentType: ClassType<C>);
-        hostElement: ViewElement;
-        viewContainerRef: ViewContainerRef;
+        constructor(hostElement: HostElement, componentType: ClassType<C>);
+        hostElement: HostElement;
         instance: C;
         injector: Injector;
         componentType: ClassType<C>;
+        parse(): void;
         destroy(): void;
     }
 }

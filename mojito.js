@@ -1,3 +1,8 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -22,7 +27,7 @@ System.register("debug/assert/assert", [], function(exports_1, context_1) {
      * @returns void
      */
     function assert(assertion, message, ErrorType) {
-        let CustomError = ErrorType ? ErrorType : Error;
+        var CustomError = ErrorType ? ErrorType : Error;
         if (!assertion) {
             throw new CustomError('Assertion failed: ' + message);
         }
@@ -112,21 +117,21 @@ System.register("debug/logger/logger", [], function(exports_2, context_2) {
              * @export
              * @class Logger
              */
-            class Logger {
+            Logger = (function () {
                 /**
                  * Creates an instance of Logger with a specific private {@link LogLevel}.
                  *
                  * @param {LogLevel} level Specified LogLevel
                  */
-                constructor(level) {
+                function Logger(level) {
                     this.privatelevel = LogLevel.debug;
                     this.privatelevel = level;
                 }
-                log(level, message, type) {
+                Logger.prototype.log = function (level, message, type) {
                     if (level < this.privatelevel || this.privatelevel === LogLevel.none) {
                         return;
                     }
-                    let method = '';
+                    var method = '';
                     switch (type) {
                         case LogType.log:
                             method = 'log';
@@ -146,24 +151,25 @@ System.register("debug/logger/logger", [], function(exports_2, context_2) {
                     if (!!console && typeof console[method] === 'function') {
                         console[method](typeof message === 'function' ? message() : message);
                     }
-                }
-                static log(level, message, type) {
+                };
+                Logger.log = function (level, message, type) {
                     if (!Logger.globalLoggerInstance) {
                         Logger.globalLoggerInstance = new Logger(Logger.globalLevel);
                     }
                     Logger.globalLoggerInstance.log.apply(Logger.globalLoggerInstance, arguments);
-                }
+                };
                 /**
                  * Sets the global {@link LogLevel}
                  *
                  * @static
                  * @param {LogLevel} level The {@link LogLevel} which will be set.
                  */
-                static setGlobalLevel(level) {
+                Logger.setGlobalLevel = function (level) {
                     Logger.globalLoggerInstance.privatelevel = level;
-                }
-            }
-            Logger.globalLevel = LogLevel.debug;
+                };
+                Logger.globalLevel = LogLevel.debug;
+                return Logger;
+            }());
             exports_2("Logger", Logger);
         }
     }
@@ -210,9 +216,9 @@ System.register("core/get/get", ["debug/debug"], function(exports_4, context_4) 
         debug_1.assert(typeof obj !== 'undefined', 'Cannot call get on an undefined object', TypeError);
         debug_1.assert(typeof obj === 'object' || typeof obj === 'function', 'The first argument of the get method has be an object or a function', TypeError);
         debug_1.assert(typeof propertyName === 'string', 'The key provided to get method must be a string', TypeError);
-        const source = obj; // needed for enabled noImplicitAny    
-        const properties = propertyName.split('.');
-        const property = properties.slice(0, 1)[0];
+        var source = obj; // needed for enabled noImplicitAny    
+        var properties = propertyName.split('.');
+        var property = properties.slice(0, 1)[0];
         if (property in obj) {
             return properties.length === 1 ? source[property] : get(source[property], properties.slice(1).join('.'));
         }
@@ -266,17 +272,17 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
              * @export
              * @class CoreArray
              */
-            class CoreArray {
+            CoreArray = (function () {
                 /**
                  * Creates an instance of CoreArray.
                  *
                  * @param {Array<any>} [array] Array to create CoreArray from
                  */
-                constructor(array) {
+                function CoreArray(array) {
                     debug_2.assert(this instanceof CoreArray, 'A CoreArray can only be instantiated with `new` or `CoreArray.create()`');
-                    const source = [];
+                    var source = [];
                     if (Array.isArray(array)) {
-                        for (let i = 0, max = array.length; i < max; i++) {
+                        for (var i = 0, max = array.length; i < max; i++) {
                             source.push(array[i]);
                         }
                     }
@@ -286,54 +292,66 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                         configurable: false
                     });
                 }
-                /**
-                 * Length of the array
-                 *
-                 * @type {number}
-                 */
-                get length() {
-                    const source = meta_1.Meta.peek(this).getProperty('values', 'source');
-                    return source.length >>> 0;
-                }
-                /**
-                 * Length of the array
-                 */
-                set length(value) {
-                    throw new Error('Setting a length of a CoreArray is not allowed');
-                }
-                /**
-                 * Source of the CoreArray
-                 *
-                 * @type {Array<any>}
-                 */
-                get source() {
-                    return meta_1.Meta.peek(this).getProperty('values', 'source');
-                }
-                /**
-                 * Source of the CoreArray
-                 */
-                set source(value) {
-                    throw new Error('Setting the source of a CoreArray is not allowed');
-                }
-                concat(...values) {
-                    for (let index = 0, max = values.length; index < max; index++) {
-                        let element = values[index];
+                Object.defineProperty(CoreArray.prototype, "length", {
+                    /**
+                     * Length of the array
+                     *
+                     * @type {number}
+                     */
+                    get: function () {
+                        var source = meta_1.Meta.peek(this).getProperty('values', 'source');
+                        return source.length >>> 0;
+                    },
+                    /**
+                     * Length of the array
+                     */
+                    set: function (value) {
+                        throw new Error('Setting a length of a CoreArray is not allowed');
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(CoreArray.prototype, "source", {
+                    /**
+                     * Source of the CoreArray
+                     *
+                     * @type {Array<any>}
+                     */
+                    get: function () {
+                        return meta_1.Meta.peek(this).getProperty('values', 'source');
+                    },
+                    /**
+                     * Source of the CoreArray
+                     */
+                    set: function (value) {
+                        throw new Error('Setting the source of a CoreArray is not allowed');
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                CoreArray.prototype.concat = function () {
+                    var values = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        values[_i - 0] = arguments[_i];
+                    }
+                    for (var index = 0, max = values.length; index < max; index++) {
+                        var element = values[index];
                         if (element instanceof CoreArray) {
                             values[index] = element.toArray();
                         }
                     }
-                    const result = this.source.concat.apply(this.source, values);
+                    var result = this.source.concat.apply(this.source, values);
                     return new CoreArray(result);
-                }
+                };
                 /**
                  * Returns the element at a specific position.
                  *
                  * @param {number} index Position of the element
                  * @returns {*} The found element
                  */
-                elementAt(index) {
+                CoreArray.prototype.elementAt = function (index) {
                     return this.source[index];
-                }
+                };
                 /**
                  * Tests whether all elements in the array pass the test
                  * implemented by the provided function.
@@ -342,11 +360,12 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Value to use as this when executing callback.
                  * @returns {boolean} true if every element passes the test, false if not
                  */
-                every(callback, thisArg) {
-                    return this.source.every.call(this.source, (value, index, array) => {
-                        return callback.call(thisArg ? thisArg : this, value, index, this);
+                CoreArray.prototype.every = function (callback, thisArg) {
+                    var _this = this;
+                    return this.source.every.call(this.source, function (value, index, array) {
+                        return callback.call(thisArg ? thisArg : _this, value, index, _this);
                     }, thisArg);
-                }
+                };
                 /**
                  * Creates a new array with all elements that pass the test
                  * implemented by the provided function.
@@ -355,12 +374,13 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Value to use as this when executing callback
                  * @returns {CoreArray} New CoreArray with all elements that pass
                  */
-                filter(callback, thisArg) {
-                    const result = this.source.filter.call(this.source, (value, index, array) => {
-                        return callback.call(thisArg ? thisArg : this, value, index, this);
+                CoreArray.prototype.filter = function (callback, thisArg) {
+                    var _this = this;
+                    var result = this.source.filter.call(this.source, function (value, index, array) {
+                        return callback.call(thisArg ? thisArg : _this, value, index, _this);
                     }, thisArg);
                     return new CoreArray(result);
-                }
+                };
                 /**
                  * Returns an array with just the items with the matched property.
                  * You can pass an optional second argument with the target value.
@@ -371,13 +391,13 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Value to use as this when executing callback
                  * @returns {CoreArray} New CoreArray with all elements that pass
                  */
-                filterBy(key, value, thisArg) {
+                CoreArray.prototype.filterBy = function (key, value, thisArg) {
                     return this.filter(function (elementValue) {
                         return typeof elementValue === 'object' && elementValue[key]
                             && (typeof value === 'undefined' && !!elementValue[key]
                                 || typeof value !== 'undefined' && elementValue[key] === value);
                     }, thisArg);
-                }
+                };
                 /**
                  * Returns a value in the array, if an element in the array
                  * satisfies the provided testing function.
@@ -387,17 +407,18 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Object to use as this when executing callback.
                  * @returns {*} value of the found element or `undefined`
                  */
-                find(predicate, thisArg) {
-                    const source = this.source;
-                    const fn = source['find'];
+                CoreArray.prototype.find = function (predicate, thisArg) {
+                    var _this = this;
+                    var source = this.source;
+                    var fn = source['find'];
                     if (typeof fn === 'function') {
-                        return fn.call(source, (element, index, array) => {
-                            return predicate.call(thisArg ? thisArg : this, element, index, this);
+                        return fn.call(source, function (element, index, array) {
+                            return predicate.call(thisArg ? thisArg : _this, element, index, _this);
                         }, thisArg);
                     }
                     else {
-                        let value;
-                        for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                        var value = void 0;
+                        for (var i = 0, max = source.length >>> 0; i < max; i++) {
                             value = source[i];
                             if (predicate.call(thisArg ? thisArg : this, value, i, this)) {
                                 return value;
@@ -405,7 +426,7 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                         }
                         return undefined;
                     }
-                }
+                };
                 /**
                  * Returns a object in the array, if the property of the
                  * object is equal to the provided value
@@ -414,18 +435,18 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} value value of the property in the object to check for
                  * @returns {*} found object or `undefined`
                  */
-                findBy(propertyName, value) {
-                    const source = this.source;
-                    const fn = source['find'];
-                    let obj;
-                    for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                CoreArray.prototype.findBy = function (propertyName, value) {
+                    var source = this.source;
+                    var fn = source['find'];
+                    var obj;
+                    for (var i = 0, max = source.length >>> 0; i < max; i++) {
                         obj = source[i];
                         if (typeof obj === 'object' && obj[propertyName] === value) {
                             return obj;
                         }
                     }
                     return undefined;
-                }
+                };
                 /**
                  * returns an index in the array, if an element in the array
                  * satisfies the provided testing function.
@@ -435,17 +456,18 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Object to use as this when executing callback.
                  * @returns {number} index of the found element or -1
                  */
-                findIndex(predicate, thisArg) {
-                    const source = this.source;
-                    const fn = source['findIndex'];
+                CoreArray.prototype.findIndex = function (predicate, thisArg) {
+                    var _this = this;
+                    var source = this.source;
+                    var fn = source['findIndex'];
                     if (typeof fn === 'function') {
-                        return fn.call(source, (element, index, array) => {
-                            return predicate.call(thisArg ? thisArg : this, element, index, this);
+                        return fn.call(source, function (element, index, array) {
+                            return predicate.call(thisArg ? thisArg : _this, element, index, _this);
                         }, thisArg);
                     }
                     else {
-                        let value;
-                        for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                        var value = void 0;
+                        for (var i = 0, max = source.length >>> 0; i < max; i++) {
                             value = source[i];
                             if (predicate.call(thisArg ? thisArg : this, value, i, this)) {
                                 return i;
@@ -453,7 +475,7 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                         }
                         return -1;
                     }
-                }
+                };
                 /**
                  * Executes a provided function once per array element.
                  *
@@ -461,20 +483,21 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Value to use as this when executing callback.
                  * @returns {void}
                  */
-                forEach(callback, thisArg) {
-                    const source = this.source;
-                    const fn = source['forEach'];
+                CoreArray.prototype.forEach = function (callback, thisArg) {
+                    var _this = this;
+                    var source = this.source;
+                    var fn = source['forEach'];
                     if (typeof fn === 'function') {
-                        return fn.call(source, (currentValue, index, array) => {
-                            callback.call(thisArg ? thisArg : this, currentValue, index, this);
+                        return fn.call(source, function (currentValue, index, array) {
+                            callback.call(thisArg ? thisArg : _this, currentValue, index, _this);
                         }, thisArg);
                     }
                     else {
-                        for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                        for (var i = 0, max = source.length >>> 0; i < max; i++) {
                             callback.call(thisArg, source[i], i, this);
                         }
                     }
-                }
+                };
                 /**
                  * Determines whether an array includes a certain element, returning true or false as appropriate.
                  *
@@ -482,21 +505,21 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {number} [fromIndex] The position in this array at which to begin searching for searchElement.
                  * @returns {boolean} true if searchElement is found, false if not
                  */
-                includes(searchElement, fromIndex) {
-                    const source = this.source;
-                    const fn = source['includes'];
+                CoreArray.prototype.includes = function (searchElement, fromIndex) {
+                    var source = this.source;
+                    var fn = source['includes'];
                     if (typeof fn === 'function') {
                         return fn.apply(this.source, arguments);
                     }
                     else {
-                        for (let i = fromIndex >>> 0, max = source.length >>> 0; i < max; i++) {
+                        for (var i = fromIndex >>> 0, max = source.length >>> 0; i < max; i++) {
                             if (source[i] === searchElement) {
                                 return true;
                             }
                         }
                         return false;
                     }
-                }
+                };
                 /**
                  * Returns the first index at which a given element can be found in the array, or -1 if it is not present.
                  *
@@ -504,18 +527,18 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {number} [fromIndex] The index to start the search at.
                  * @returns {number} Position of the found element, -1 if not found
                  */
-                indexOf(searchElement, fromIndex) {
+                CoreArray.prototype.indexOf = function (searchElement, fromIndex) {
                     return this.source.indexOf.apply(this.source, arguments);
-                }
+                };
                 /**
                  * Joins all elements of an array into a string.
                  *
                  * @param {string} [separator] Specifies a string to separate each element of the array.
                  * @returns {string} String of the joined elements
                  */
-                join(separator) {
+                CoreArray.prototype.join = function (separator) {
                     return this.source.join.apply(this.source, arguments);
-                }
+                };
                 /**
                  * returns the last index at which a given element can be
                  * found in the array, or -1 if it is not present.
@@ -525,9 +548,9 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {number} [fromIndex] The index at which to start searching backwards.
                  * @returns {number} Position of the found element, -1 if not found
                  */
-                lastIndexOf(searchElement, fromIndex) {
+                CoreArray.prototype.lastIndexOf = function (searchElement, fromIndex) {
                     return this.source.lastIndexOf.apply(this.source, arguments);
-                }
+                };
                 /**
                  * Creates a new array with the results of calling a provided function on every element in this array.
                  *
@@ -535,24 +558,29 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} [thisArg] Value to use as this when executing callback.
                  * @returns {CoreArray} Created array
                  */
-                map(callback, thisArg) {
-                    const result = this.source.concat.call(this.source, (currentValue, index, array) => {
-                        callback.call(thisArg ? thisArg : this, currentValue, index, this);
+                CoreArray.prototype.map = function (callback, thisArg) {
+                    var _this = this;
+                    var result = this.source.concat.call(this.source, function (currentValue, index, array) {
+                        callback.call(thisArg ? thisArg : _this, currentValue, index, _this);
                     }, thisArg);
                     return new CoreArray(result);
-                }
+                };
                 /**
                  * Removes the last element from an array and returns that element.
                  *
                  * @returns {*} Removed element
                  */
-                pop() {
+                CoreArray.prototype.pop = function () {
                     return this.source.pop.apply(this.source, arguments);
-                }
-                push(...elements) {
-                    let length = this.source.push.apply(this.source, arguments);
+                };
+                CoreArray.prototype.push = function () {
+                    var elements = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        elements[_i - 0] = arguments[_i];
+                    }
+                    var length = this.source.push.apply(this.source, arguments);
                     return length;
-                }
+                };
                 /**
                  * Applies a function against an accumulator and each value
                  * of the array (from left-to-right) to reduce it to a single value.
@@ -561,11 +589,12 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} initialValue Value to use as the first argument to the first call of the callback.
                  * @returns {*} The value returned would be that of the last callback invocation.
                  */
-                reduce(callback, initialValue) {
-                    return this.source.reduce.call(this.source, (previousValue, currentValue, currentIndex, array) => {
-                        callback.call(this, previousValue, currentValue, currentIndex, this);
+                CoreArray.prototype.reduce = function (callback, initialValue) {
+                    var _this = this;
+                    return this.source.reduce.call(this.source, function (previousValue, currentValue, currentIndex, array) {
+                        callback.call(_this, previousValue, currentValue, currentIndex, _this);
                     });
-                }
+                };
                 /**
                  * Applies a function against an accumulator and each value
                  * of the array (from right-to-left) has to reduce it to a single value.
@@ -574,29 +603,30 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {*} initialValue Object to use as the first argument to the first call of the callback.
                  * @returns {*} The value returned would be that of the last callback invocation.
                  */
-                reduceRight(callback, initialValue) {
-                    return this.source.reduceRight.call(this.source, (previousValue, currentValue, currentIndex, array) => {
-                        callback.call(this, previousValue, currentValue, currentIndex, this);
+                CoreArray.prototype.reduceRight = function (callback, initialValue) {
+                    var _this = this;
+                    return this.source.reduceRight.call(this.source, function (previousValue, currentValue, currentIndex, array) {
+                        callback.call(_this, previousValue, currentValue, currentIndex, _this);
                     });
-                }
+                };
                 /**
                  * Reverses an array in place.
                  * The first array element becomes the last and the last becomes the first.
                  *
                  * @returns {CoreArray} The reversed array
                  */
-                reverse() {
+                CoreArray.prototype.reverse = function () {
                     return this.source.reverse.apply(this.source, arguments);
-                }
+                };
                 /**
                  * Removes the first element from an array and returns that element.
                  * This method changes the length of the array.
                  *
                  * @returns {*} The first element of the array
                  */
-                shift() {
+                CoreArray.prototype.shift = function () {
                     return this.source.shift.apply(this.source, arguments);
-                }
+                };
                 /**
                  * Returns a shallow copy of a portion of an array into a new array object.
                  *
@@ -604,10 +634,10 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {number} [end] Zero-based index at which to end extraction.
                  * @returns {CoreArray} New sliced array
                  */
-                slice(begin, end) {
-                    const result = this.source.slice.apply(this.source, arguments);
+                CoreArray.prototype.slice = function (begin, end) {
+                    var result = this.source.slice.apply(this.source, arguments);
                     return new CoreArray(result);
-                }
+                };
                 /**
                  * Tests whether some element in the array passes the test
                  * implemented by the provided function.
@@ -615,11 +645,12 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {Function} callback Function to test for each element.
                  * @param {*} [thisArg] Value to use as this when executing callback.
                  */
-                some(callback, thisArg) {
-                    return this.source.some.call(this.source, (currentValue, index, array) => {
-                        callback.call(thisArg ? thisArg : this, currentValue, index, this);
+                CoreArray.prototype.some = function (callback, thisArg) {
+                    var _this = this;
+                    return this.source.some.call(this.source, function (currentValue, index, array) {
+                        callback.call(thisArg ? thisArg : _this, currentValue, index, _this);
                     }, thisArg);
-                }
+                };
                 /**
                  * Sorts the elements of an array in place and returns the array.
                  * The default sort order is according to string Unicode code points.
@@ -627,25 +658,33 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {Function} [compareFunction] Specifies a function that defines the sort order.
                  * @returns {CoreArray} Returns the sorted CoreArray
                  */
-                sort(compareFunction) {
+                CoreArray.prototype.sort = function (compareFunction) {
                     this.source.sort.apply(this, arguments);
                     return this;
-                }
-                splice(start, deleteCount, ...elements) {
-                    const result = this.source.splice.apply(this.source, arguments);
+                };
+                CoreArray.prototype.splice = function (start, deleteCount) {
+                    var elements = [];
+                    for (var _i = 2; _i < arguments.length; _i++) {
+                        elements[_i - 2] = arguments[_i];
+                    }
+                    var result = this.source.splice.apply(this.source, arguments);
                     return new CoreArray(result);
-                }
+                };
                 /**
                  * Converts the CoreArray to a native Array
                  *
                  * @returns {Array<any>} The converted native Array
                  */
-                toArray() {
+                CoreArray.prototype.toArray = function () {
                     return this.source;
-                }
-                unshift(...elements) {
+                };
+                CoreArray.prototype.unshift = function () {
+                    var elements = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        elements[_i - 0] = arguments[_i];
+                    }
                     return this.source.unshift.apply(this.source, arguments);
-                }
+                };
                 /**
                  * Static method to provide functionality for `CoreArray.create()`
                  *
@@ -653,11 +692,12 @@ System.register("core/array/array", ["debug/debug", "core/meta/meta"], function(
                  * @param {Array<any>} [array] Elements to insert initially
                  * @returns {CoreArray} Newly created CoreArray
                  */
-                static create(array) {
+                CoreArray.create = function (array) {
                     debug_2.assert(Array.isArray(array) || typeof array === 'undefined', 'The Array provided to the create method must be an array', TypeError);
                     return new CoreArray(array);
-                }
-            }
+                };
+                return CoreArray;
+            }());
             exports_5("CoreArray", CoreArray);
         }
     }
@@ -680,14 +720,16 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
              * @export
              * @class Meta
              */
-            class Meta {
+            Meta = (function () {
+                function Meta() {
+                }
                 /**
                  * Creates the member on a meta hash
                  *
                  * @param  {string} memberKey The name(key) of the member to be created
                  * @returns {Object} The created member object
                  */
-                createMember(memberKey) {
+                Meta.prototype.createMember = function (memberKey) {
                     debug_3.assert(arguments.length === 1, 'createMember on an meta hash must be called with one arguments: a member key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the createMember method on a meta hash must be a string', TypeError);
                     if (!this.hasMember(memberKey)) {
@@ -700,7 +742,7 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                         return this.getMember(memberKey);
                     }
                     return undefined;
-                }
+                };
                 /**
                  * Checks if the member is already there, otherwise
                  * it will create it. The member gets returned.
@@ -708,12 +750,12 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                  * @param  {string} memberKey The name(key) of the member to be peeked
                  * @returns {Object} The peeked member object
                  */
-                peekMember(memberKey) {
+                Meta.prototype.peekMember = function (memberKey) {
                     debug_3.assert(arguments.length === 1, 'peekMember on an meta hash must be called with one arguments: a member key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the peekMember method on a meta hash must be a string', TypeError);
-                    const member = this.createMember(memberKey);
+                    var member = this.createMember(memberKey);
                     return member ? member : this.getMember(memberKey);
-                }
+                };
                 /**
                  * Returns the member of the meta hash
                  * or `undefined` it does not exist
@@ -721,44 +763,44 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                  * @param  {string} memberKey The name(key) of the member to be returned
                  * @returns {Object} The member object or `undefined`
                  */
-                getMember(memberKey) {
+                Meta.prototype.getMember = function (memberKey) {
                     debug_3.assert(arguments.length === 1, 'getMember on an meta hash must be called with one arguments: a member key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the getMember method on a meta hash must be a string', TypeError);
-                    const source = this; // needed for enabled noImplicitAny
+                    var source = this; // needed for enabled noImplicitAny
                     memberKey = '_' + memberKey;
                     return source[memberKey];
-                }
+                };
                 /**
                  * Checks if the meta hash has a specific member
                  *
                  * @param  {string} memberKey The name(key) of the member to be checked
                  * @returns {boolean} true if member exists, false if not
                  */
-                hasMember(memberKey) {
+                Meta.prototype.hasMember = function (memberKey) {
                     debug_3.assert(arguments.length === 1, 'hasMember on an meta hash must be called with one arguments: a member key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the hasMember method on a meta hash must be a string', TypeError);
                     return !!this.getMember(memberKey);
-                }
+                };
                 /**
                  * Deletes all the properties of a member in the meta hash.
                  *
                  * @param  {string} memberKey The name(key) of the member to be cleared
                  * @returns {boolean} true if clear was successful, false if not
                  */
-                clearMember(memberKey) {
+                Meta.prototype.clearMember = function (memberKey) {
                     debug_3.assert(arguments.length === 1, 'clearMember on an meta hash must be called with one arguments: a member key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the clearMember method on a meta hash must be a string', TypeError);
-                    let member = this.getMember(memberKey);
+                    var member = this.getMember(memberKey);
                     if (member) {
-                        let status = true;
-                        for (let propertyKey in member) {
-                            status = this.deleteProperty(memberKey, propertyKey) ? status : false;
+                        var status_1 = true;
+                        for (var propertyKey in member) {
+                            status_1 = this.deleteProperty(memberKey, propertyKey) ? status_1 : false;
                         }
-                        return status;
+                        return status_1;
                     }
                     // No member to be cleared found -> false
                     return false;
-                }
+                };
                 /**
                  * Sets the property of a member in the meta hash.
                  * If the property does not exist, it will be created.
@@ -770,13 +812,13 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                  * @param  {PropertyDescriptor} [descriptor] The descriptor for defining the property
                  * @returns {*} The applied value
                  */
-                setProperty(memberKey, propertyKey, value, descriptor) {
+                Meta.prototype.setProperty = function (memberKey, propertyKey, value, descriptor) {
                     debug_3.assert(arguments.length === 3 || arguments.length === 4, 'setProperty on an meta hash must be called with three arguments; a member key, a property key and a value; optional you can add a descriptor');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the setProperty method on a meta hash must be a string', TypeError);
                     debug_3.assert(typeof propertyKey === 'string', 'The property key provided to the setProperty method on a meta hash must be a string', TypeError);
                     debug_3.assert(typeof descriptor === 'undefined' || typeof descriptor === 'object', 'The descriptor provided to the setProperty method on a meta hash must be a PropertyDescriptor', TypeError);
-                    let member = this.getMember(memberKey);
-                    let isValueSet = false;
+                    var member = this.getMember(memberKey);
+                    var isValueSet = false;
                     if (!member) {
                         member = this.createMember(memberKey);
                     }
@@ -791,17 +833,17 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                         member[propertyKey] = value;
                     }
                     return value;
-                }
-                setProperties(memberKey, propertyMap, descriptor) {
+                };
+                Meta.prototype.setProperties = function (memberKey, propertyMap, descriptor) {
                     debug_3.assert(arguments.length === 2 || arguments.length === 3, 'setProperties on an meta hash must be called with two arguments; a member key, and a  property map; optional you can add a descriptor');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the setProperty method on a meta hash must be a string', TypeError);
                     debug_3.assert(typeof propertyMap === 'object', 'The propertyMap provided to the setProperties method on a meta hash must be an object', TypeError);
                     debug_3.assert(typeof descriptor === 'undefined' || typeof descriptor === 'object', 'The descriptor provided to the setProperties method on a meta hash must be a PropertyDescriptor', TypeError);
-                    const map = propertyMap;
-                    for (let propertyName in propertyMap) {
+                    var map = propertyMap;
+                    for (var propertyName in propertyMap) {
                         this.setProperty(memberKey, propertyName, map[propertyName], descriptor);
                     }
-                }
+                };
                 /**
                  * Returns the property of a member in the meta hash
                  * or `undefined` if the property or the member do not exist.
@@ -810,13 +852,13 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                  * @param  {string} propertyKey The name(key) of the requeste property
                  * @returns {*} The requested property
                  */
-                getProperty(memberKey, propertyKey) {
+                Meta.prototype.getProperty = function (memberKey, propertyKey) {
                     debug_3.assert(arguments.length === 2, 'getProperty on an meta hash must be called with two arguments; a member key and a property key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the getProperty method on a meta hash must be a string', TypeError);
                     debug_3.assert(typeof propertyKey === 'string', 'The property key provided to the getProperty method on a meta hash must be a string', TypeError);
-                    const member = this.peekMember(memberKey);
+                    var member = this.peekMember(memberKey);
                     return member[propertyKey];
-                }
+                };
                 /**
                  * Checks if the member of the meta hash has a specific property
                  *
@@ -824,12 +866,12 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                  * @param  {string} propertyKey The name(key) of the property to be checked
                  * @returns {boolean} true if the property was found, false if not
                  */
-                hasProperty(memberKey, propertyKey) {
+                Meta.prototype.hasProperty = function (memberKey, propertyKey) {
                     debug_3.assert(arguments.length === 2, 'hasProperty on an meta hash must be called with two arguments; a member key and a property key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the hasProperty method on a meta hash must be a string', TypeError);
                     debug_3.assert(typeof propertyKey === 'string', 'The property key provided to the hasProperty method on a meta hash must be a string', TypeError);
                     return !!this.getProperty(memberKey, propertyKey);
-                }
+                };
                 /**
                  * Deletes a property of a member in the meta hash
                  *
@@ -837,11 +879,11 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                  * @param  {string} propertyKey The name(key) of the property to be deleted
                  * @returns {boolean} true if deletion was successful, false if not
                  */
-                deleteProperty(memberKey, propertyKey) {
+                Meta.prototype.deleteProperty = function (memberKey, propertyKey) {
                     debug_3.assert(arguments.length === 2, 'deleteProperty on an meta hash must be called with two arguments; a member key and a property key');
                     debug_3.assert(typeof memberKey === 'string', 'The member key provided to the deleteProperty method on a meta hash must be a string', TypeError);
                     debug_3.assert(typeof propertyKey === 'string', 'The property key provided to the deleteProperty method on a meta hash must be a string', TypeError);
-                    const source = this; // needed for enabled noImplicitAny
+                    var source = this; // needed for enabled noImplicitAny
                     if (source.hasProperty(memberKey, propertyKey)) {
                         memberKey = '_' + memberKey;
                         source[memberKey][propertyKey] = null;
@@ -849,8 +891,8 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                         return !source[memberKey][propertyKey];
                     }
                     return false;
-                }
-                static extend(obj) {
+                };
+                Meta.extend = function (obj) {
                     var meta = new Meta();
                     Object.defineProperty(obj, Meta.META_FIELD, {
                         writable: false,
@@ -859,19 +901,20 @@ System.register("core/meta/meta", ["debug/debug"], function(exports_6, context_6
                         value: meta
                     });
                     return meta;
-                }
-                static peek(obj) {
+                };
+                Meta.peek = function (obj) {
                     debug_3.assert(arguments.length === 1, 'Meta.peek on an object or array must be called with one arguments; the object or array');
                     debug_3.assert(typeof obj === 'object', 'The object or array provided to the Meta.peek method must be a object or array', TypeError);
-                    const source = obj; // needed for enabled noImplicitAny
-                    let meta = source[Meta.META_FIELD];
+                    var source = obj; // needed for enabled noImplicitAny
+                    var meta = source[Meta.META_FIELD];
                     if (!meta) {
                         meta = Meta.extend(obj);
                     }
                     return meta;
-                }
-            }
-            Meta.META_FIELD = '__mojito_meta__';
+                };
+                Meta.META_FIELD = '__mojito_meta__';
+                return Meta;
+            }());
             exports_6("Meta", Meta);
         }
     }
@@ -887,18 +930,19 @@ System.register("core/iterator/iterator", ["debug/debug"], function(exports_7, c
                 debug_4 = debug_4_1;
             }],
         execute: function() {
-            class Iterator {
-                constructor(source) {
+            Iterator = (function () {
+                function Iterator(source) {
                     this._nextIndex = 0;
                     debug_4.assert(arguments.length === 1, 'CoreIterator must be created with one argument; an iterable object');
                     debug_4.assert(typeof source.length === 'number', 'The source property has to be a iterable object', TypeError);
                     this._source = source;
                 }
-                next() {
-                    let source = this._source;
+                Iterator.prototype.next = function () {
+                    var source = this._source;
                     return this._nextIndex < source.length ? { value: source[this._nextIndex++], done: false } : { done: true };
-                }
-            }
+                };
+                return Iterator;
+            }());
             exports_7("Iterator", Iterator);
         }
     }
@@ -914,10 +958,10 @@ System.register("core/watch/watch", ["core/properties/properties"], function(exp
     }
     exports_8("watchKey", watchKey);
     function watchPath(obj, path) {
-        let parts = path.split('.');
-        let source = obj;
-        for (let i = 0, max = parts.length; i < max; i++) {
-            let part = parts[i];
+        var parts = path.split('.');
+        var source = obj;
+        for (var i = 0, max = parts.length; i < max; i++) {
+            var part = parts[i];
             if (i >= parts.length - 1) {
                 watchKey(obj, part);
             }
@@ -945,12 +989,12 @@ System.register("core/observable/observe", ["debug/assert/assert", "core/meta/me
         assert_2.assert(typeof obj === 'object' || typeof obj === 'function', 'The first parameter provided to the observe function must be an object, array or function', TypeError);
         assert_2.assert(typeof keyOrPath === 'string', 'The key or path provided to the observe function must be a string', TypeError);
         assert_2.assert(typeof callback === 'undefined' || typeof callback === 'function', 'The callback provided to the observe function must be a function', TypeError);
-        let parts = keyOrPath.split('.');
-        let source = obj;
-        for (let i = 0, max = parts.length; i < max; i++) {
-            let part = parts[i];
+        var parts = keyOrPath.split('.');
+        var source = obj;
+        for (var i = 0, max = parts.length; i < max; i++) {
+            var part = parts[i];
             if (i >= parts.length - 1) {
-                let observer = meta_2.Meta.peek(source).getProperty('observers', part);
+                var observer = meta_2.Meta.peek(source).getProperty('observers', part);
                 if (observer instanceof observer_1.Observer) {
                     if (typeof callback === 'function') {
                         observer.subscribe(callback, thisArg);
@@ -1011,19 +1055,21 @@ System.register("core/observable/observableObject", ["core/object/object", "core
                 observe_1 = observe_1_1;
             }],
         execute: function() {
-            class ObservableObject extends object_1.CoreObject {
-                constructor(obj) {
-                    super(obj);
+            ObservableObject = (function (_super) {
+                __extends(ObservableObject, _super);
+                function ObservableObject(obj) {
+                    _super.call(this, obj);
                 }
-                observe(keysOrPaths, callback) {
+                ObservableObject.prototype.observe = function (keysOrPaths, callback) {
                     return observe_1.observe(this, keysOrPaths, callback, this);
-                }
-                unobserve() {
-                }
-                static create(obj) {
+                };
+                ObservableObject.prototype.unobserve = function () {
+                };
+                ObservableObject.create = function (obj) {
                     return new ObservableObject(obj);
-                }
-            }
+                };
+                return ObservableObject;
+            }(object_1.CoreObject));
             exports_11("ObservableObject", ObservableObject);
         }
     }
@@ -1034,7 +1080,7 @@ System.register("core/observable/observer", ["debug/debug", "core/meta/meta"], f
     var debug_5, meta_3;
     var Observer;
     function notifyObservers(obj, key) {
-        let observer = meta_3.Meta.peek(obj).getProperty('observers', key);
+        var observer = meta_3.Meta.peek(obj).getProperty('observers', key);
         if (observer instanceof Observer) {
             observer.notify();
         }
@@ -1049,8 +1095,8 @@ System.register("core/observable/observer", ["debug/debug", "core/meta/meta"], f
                 meta_3 = meta_3_1;
             }],
         execute: function() {
-            class Observer {
-                constructor(callback, thisArg) {
+            Observer = (function () {
+                function Observer(callback, thisArg) {
                     this._callbacks = [];
                     debug_5.assert(arguments.length < 3, 'The observer must be created with none or one or two arguments; optional a callback function and a context');
                     debug_5.assert(typeof callback === 'undefined' || typeof callback === 'function', 'The callback provided to the observer must be a function', TypeError);
@@ -1058,21 +1104,22 @@ System.register("core/observable/observer", ["debug/debug", "core/meta/meta"], f
                         this.subscribe(callback, thisArg);
                     }
                 }
-                subscribe(callback, thisArg) {
+                Observer.prototype.subscribe = function (callback, thisArg) {
                     debug_5.assert(arguments.length === 2, 'The subscribe method must be called with one or two arguments; a callback function and optional a context');
                     debug_5.assert(typeof callback === 'function', 'The callback provided to the subscribe method must be a function', TypeError);
                     this._callbacks.push({ fn: callback, thisArg: thisArg });
-                }
-                unsubscribe() {
-                }
-                notify(thisArg) {
-                    let callbacks = this._callbacks;
-                    for (let i = 0, max = callbacks.length; i < max; i++) {
-                        let callback = callbacks[i];
+                };
+                Observer.prototype.unsubscribe = function () {
+                };
+                Observer.prototype.notify = function (thisArg) {
+                    var callbacks = this._callbacks;
+                    for (var i = 0, max = callbacks.length; i < max; i++) {
+                        var callback = callbacks[i];
                         callback.fn.call(thisArg ? thisArg : callback.thisArg);
                     }
-                }
-            }
+                };
+                return Observer;
+            }());
             exports_12("Observer", Observer);
         }
     }
@@ -1108,8 +1155,8 @@ System.register("core/properties/mandatory_set", ["core/meta/meta", "core/proper
     var __moduleName = context_14 && context_14.id;
     var meta_4, propertyEvents_1;
     function mandatory_set(obj, propertyName, value) {
-        const meta = meta_4.Meta.peek(obj);
-        let oldValue = meta.getProperty('values', propertyName);
+        var meta = meta_4.Meta.peek(obj);
+        var oldValue = meta.getProperty('values', propertyName);
         // Check if new value is different from the old one
         // if not, we do not have to do anything
         if (value === oldValue) {
@@ -1159,10 +1206,10 @@ System.register("core/properties/properties", ["debug/debug", "core/meta/meta", 
             }
             Object.defineProperty(obj, propertyName, {
                 configurable: false,
-                get() {
+                get: function () {
                     return meta_5.Meta.peek(obj).getProperty('values', propertyName);
                 },
-                set(value) {
+                set: function (value) {
                     mandatory_set_1.mandatory_set(obj, propertyName, value);
                 }
             });
@@ -1251,13 +1298,13 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
              * @export
              * @class CoreObject
              */
-            class CoreObject {
+            CoreObject = (function () {
                 /**
                  * Creates an instance of CoreObject.
                  *
                  * @param {Object} [obj] Object or property map to define properties
                  */
-                constructor(obj) {
+                function CoreObject(obj) {
                     debug_7.assert(this instanceof CoreObject, 'A class can only be instantiated with `new`');
                     debug_7.assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the constructor method must be an object', TypeError);
                     set_1.setProperties(this, obj);
@@ -1268,11 +1315,11 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                  * @param {string} propertyName The name(key) of the property
                  * @returns {*} Value of the property
                  */
-                get(propertyName) {
+                CoreObject.prototype.get = function (propertyName) {
                     debug_7.assert(arguments.length === 1, 'get must be called with one argument; a propertyName');
                     debug_7.assert(typeof propertyName === 'string', 'The propertyName to the get method must be a string', TypeError);
                     return get_1.get(this, propertyName);
-                }
+                };
                 /**
                  * Sets the provided key or path on the object to the value.
                  *
@@ -1280,19 +1327,19 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                  * @param {*} value Value to be set on the property
                  * @returns {*} Value which has been set on the property
                  */
-                set(propertyName, value) {
+                CoreObject.prototype.set = function (propertyName, value) {
                     debug_7.assert(arguments.length === 2, 'set must be called with two arguments; a propertyName and value');
                     debug_7.assert(typeof propertyName === 'string', 'The propertyName to the set method must be a string', TypeError);
                     return set_1.set(this, propertyName, value);
-                }
+                };
                 /**
                  * Returns the Meta hash of this CoreObject
                  *
                  * @returns {Meta} The Meta hash/map
                  */
-                getMeta() {
+                CoreObject.prototype.getMeta = function () {
                     return meta_6.Meta.peek(this);
-                }
+                };
                 /**
                  * Static method to provide functionality for `CoreObject.create()`
                  *
@@ -1300,10 +1347,10 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                  * @param {Object} [obj] Object or property map to define properties
                  * @returns {CoreObject} Newly created CoreObject
                  */
-                static create(obj) {
+                CoreObject.create = function (obj) {
                     debug_7.assert(typeof obj === 'object' || typeof obj === 'undefined', 'The object when provided to the create method must be an object', TypeError);
                     return new this(obj);
-                }
+                };
                 /**
                  * Custom defineProperty method for change detection
                  *
@@ -1312,13 +1359,13 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                  * @param {string} propertyName The name(key) of the property to be defined
                  * @param {*} [value] The value to be set on the property
                  */
-                static defineProperty(sourceObject, propertyName, value) {
+                CoreObject.defineProperty = function (sourceObject, propertyName, value) {
                     debug_7.assert(arguments.length === 2 || arguments.length === 3, 'defineProperty must be called with at least two arguments; a sourceObject, a propertyName and optional a value');
                     debug_7.assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperty method must be an object', TypeError);
                     debug_7.assert(typeof propertyName === 'string', 'The propertyName provided to the defineProperty method must be a string', TypeError);
                     debug_7.assert(!(value instanceof meta_6.Meta), 'Defining a meta hash is not allowed');
                     properties_2.defineProperty(sourceObject, propertyName, value);
-                }
+                };
                 /**
                  * Defines all the properties provided in a propertyMap
                  * on the sourceObject.
@@ -1335,17 +1382,17 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                  * @param {Object} [propertyMap] The map with the properties to be defined
                  * @returns {CoreObject} The object with the defined properties
                  */
-                static defineProperties(sourceObject, propertyMap) {
+                CoreObject.defineProperties = function (sourceObject, propertyMap) {
                     debug_7.assert(arguments.length === 1 || arguments.length === 2, 'defineProperties must be called with at least one arguments; a sourceObject and optional a propertyMap');
                     debug_7.assert(typeof sourceObject === 'object', 'The sourceObject provided to the defineProperties method must be an object', TypeError);
                     debug_7.assert(typeof propertyMap === 'undefined' || typeof propertyMap === 'object', 'The propertyMap provided to the defineProperties method must be an object', TypeError);
                     if (propertyMap) {
                         CoreObject.defineProperties(sourceObject);
                     }
-                    const properties = !!propertyMap ? propertyMap : sourceObject;
+                    var properties = !!propertyMap ? propertyMap : sourceObject;
                     // replace every property with a defined one
                     for (var key in properties) {
-                        let value = properties[key];
+                        var value = properties[key];
                         // defining Meta not allowed, skip it            
                         if (value instanceof meta_6.Meta) {
                             continue;
@@ -1357,7 +1404,7 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                         CoreObject.defineProperty(sourceObject, key, value);
                     }
                     return sourceObject;
-                }
+                };
                 /**
                  * Checks if property is already defined by mojito's
                  * defineProperty method.
@@ -1367,13 +1414,14 @@ System.register("core/object/object", ["debug/debug", "core/get/get", "core/set/
                  * @param {string} propertyName The name(key) of the defined property
                  * @returns {boolean} true if property is defined, false if not
                  */
-                static isDefinedProperty(sourceObject, propertyName) {
+                CoreObject.isDefinedProperty = function (sourceObject, propertyName) {
                     debug_7.assert(arguments.length === 2, 'isDefinedProperty must be called with two arguments; a sourceObject and a propertyName');
                     debug_7.assert(typeof sourceObject === 'object', 'The sourceObject provided to the isDefinedProperty method must be an object', TypeError);
                     debug_7.assert(typeof propertyName === 'string', 'The propertyName provided to the isDefinedProperty method must be a string', TypeError);
                     return properties_2.isDefinedProperty(sourceObject, propertyName);
-                }
-            }
+                };
+                return CoreObject;
+            }());
             exports_16("CoreObject", CoreObject);
         }
     }
@@ -1400,9 +1448,9 @@ System.register("core/set/set", ["debug/debug"], function(exports_17, context_17
         debug_8.assert(typeof obj === 'object' || typeof obj === 'function', 'The first argument of the get method has be an object or a function', TypeError);
         debug_8.assert(typeof propertyName === 'string', 'The key provided to get method must be a string', TypeError);
         debug_8.assert(typeof value !== 'undefined', 'Cannot call set with an `undefined` value ', TypeError);
-        const source = obj; // needed for enabled noImplicitAny    
-        const properties = propertyName.split('.');
-        const property = properties.slice(0, 1)[0];
+        var source = obj; // needed for enabled noImplicitAny    
+        var properties = propertyName.split('.');
+        var property = properties.slice(0, 1)[0];
         if (properties.length === 1) {
             source[property] = value;
             return value;
@@ -1456,8 +1504,8 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
              * @class CoreMap
              * @implements {IIterable<any>}
              */
-            class CoreMap {
-                constructor(source) {
+            CoreMap = (function () {
+                function CoreMap(source) {
                     /**
                      * Internal Array where all thoses keys and values are stored.
                      *
@@ -1466,8 +1514,8 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                      */
                     this._source = [];
                     if (Array.isArray(source)) {
-                        for (let i = 0, max = source.length; i < max; i++) {
-                            let item = source[i];
+                        for (var i = 0, max = source.length; i < max; i++) {
+                            var item = source[i];
                             if (item.length === 2) {
                                 this._source.push([item[0], item[1]]);
                             }
@@ -1482,57 +1530,65 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                         }
                     }
                 }
-                /**
-                 * Returns the number of key/value pairs in the Map object.
-                 *
-                 * @readonly
-                 * @type {number}
-                 */
-                get size() {
-                    return this._source.length;
-                }
-                /**
-                 * The value of the length property is 0.
-                 * To fulfill the ES2015 specification the Map must implement
-                 * a length property even if it always returns 0:
-                 * https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map#Properties
-                 *
-                 * @readonly
-                 * @type {number}
-                 */
-                get length() {
-                    debug_9.Logger.log(debug_9.LogLevel.debug, `Don't use length property on CoreMaps!!`, debug_9.LogType.warn);
-                    return 0;
-                }
+                Object.defineProperty(CoreMap.prototype, "size", {
+                    /**
+                     * Returns the number of key/value pairs in the Map object.
+                     *
+                     * @readonly
+                     * @type {number}
+                     */
+                    get: function () {
+                        return this._source.length;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(CoreMap.prototype, "length", {
+                    /**
+                     * The value of the length property is 0.
+                     * To fulfill the ES2015 specification the Map must implement
+                     * a length property even if it always returns 0:
+                     * https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map#Properties
+                     *
+                     * @readonly
+                     * @type {number}
+                     */
+                    get: function () {
+                        debug_9.Logger.log(debug_9.LogLevel.debug, "Don't use length property on CoreMaps!!", debug_9.LogType.warn);
+                        return 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 /**
                  * Removes all key/value pairs from the Map object.
                  */
-                clear() {
+                CoreMap.prototype.clear = function () {
                     this._source = [];
-                }
+                };
                 /**
                  * Removes any value associated to the key and returns the value that Map.has(key) would have previously returned.
                  * Map.prototype.has(key) will return false afterwards.
                  *
                  * @param {*} key The key of the element to remove from the Map object.
                  */
-                delete(key) {
-                    let source = this._source;
-                    for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                CoreMap.prototype.delete = function (key) {
+                    var source = this._source;
+                    for (var i = 0, max = source.length >>> 0; i < max; i++) {
                         if (source[i][0] === key) {
                             source.splice(i, 1);
                             break;
                         }
                     }
-                }
+                };
                 /**
                  * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
                  *
                  * @returns {Iterator<[any,any]>} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
                  */
-                entries() {
+                CoreMap.prototype.entries = function () {
                     return new iterator_1.Iterator(this._source);
-                }
+                };
                 /**
                  * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
                  * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
@@ -1540,49 +1596,49 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                  * @param {(value: any, key: any, map: CoreMap) => void} callbackFn Function to execute for each element.
                  * @param {(Object | Function)} [thisArg] Value to use as this when executing callback.
                  */
-                forEach(callbackFn, thisArg) {
-                    let source = this._source;
-                    for (let i = 0, max = source.length >>> 0; i < max; i++) {
-                        let entry = source[i];
+                CoreMap.prototype.forEach = function (callbackFn, thisArg) {
+                    var source = this._source;
+                    for (var i = 0, max = source.length >>> 0; i < max; i++) {
+                        var entry = source[i];
                         callbackFn.call(thisArg, entry[1], entry[0], this);
                     }
-                }
+                };
                 /**
                  * Returns the value associated to the key, or undefined if there is none.
                  *
                  * @param {*} key The key of the element to return from the Map object.
                  * @returns {*} Value associated to the key, or undefined
                  */
-                get(key) {
-                    let source = this._source;
-                    for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                CoreMap.prototype.get = function (key) {
+                    var source = this._source;
+                    for (var i = 0, max = source.length >>> 0; i < max; i++) {
                         if (key === source[i][0]) {
                             return source[i][1];
                         }
                     }
                     return undefined;
-                }
+                };
                 /**
                  * Returns a boolean asserting whether a value has been associated to the key in the Map object or not.
                  *
                  * @param {*} key The key of the element to test for presence in the Map object.
                  * @returns {boolean} Value associated to the key
                  */
-                has(key) {
+                CoreMap.prototype.has = function (key) {
                     return !!this.get(key);
-                }
+                };
                 /**
                  * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
                  *
                  * @returns {Iterator<any>} Iterator object that contains the keys for each element in the Map object in insertion order
                  */
-                keys() {
-                    let keys = [];
-                    this.forEach((value, key) => {
+                CoreMap.prototype.keys = function () {
+                    var keys = [];
+                    this.forEach(function (value, key) {
                         keys.push(key);
                     });
                     return new iterator_1.Iterator(keys);
-                }
+                };
                 /**
                  * Sets the value for the key in the Map object. Returns the Map object.
                  *
@@ -1590,9 +1646,9 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                  * @param {*} value The value of the element to add to the Map object.
                  * @returns {CoreMap} The Map object
                  */
-                set(key, value) {
-                    let source = this._source;
-                    for (let i = 0, max = source.length >>> 0; i < max; i++) {
+                CoreMap.prototype.set = function (key, value) {
+                    var source = this._source;
+                    for (var i = 0, max = source.length >>> 0; i < max; i++) {
                         if (key === source[i][0]) {
                             source[i][1] = value;
                             return this;
@@ -1600,23 +1656,24 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                     }
                     source.push([key, value]);
                     return this;
-                }
+                };
                 /**
                  * Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
                  *
                  * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
                  */
-                values() {
-                    let keys = [];
-                    this.forEach((value, key) => {
+                CoreMap.prototype.values = function () {
+                    var keys = [];
+                    this.forEach(function (value, key) {
                         keys.push(value);
                     });
                     return new iterator_1.Iterator(keys);
-                }
-                static create(source) {
+                };
+                CoreMap.create = function (source) {
                     return new CoreMap(source);
-                }
-            }
+                };
+                return CoreMap;
+            }());
             exports_18("CoreMap", CoreMap);
             /**
              * Implementation of the ES6 Map as a typed variant.
@@ -1629,9 +1686,10 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
              * @template K
              * @template V
              */
-            class TypedMap extends CoreMap {
-                constructor(source) {
-                    super(source);
+            TypedMap = (function (_super) {
+                __extends(TypedMap, _super);
+                function TypedMap(source) {
+                    _super.call(this, source);
                 }
                 /**
                  * Removes any value associated to the key and returns the value that Map.has(key) would have previously returned.
@@ -1639,17 +1697,17 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                  *
                  * @param {K} key The key of the element to remove from the Map object.
                  */
-                delete(key) {
-                    super.delete(key);
-                }
+                TypedMap.prototype.delete = function (key) {
+                    _super.prototype.delete.call(this, key);
+                };
                 /**
                  * Returns a new Iterator object that contains an array of [key, value] for each element in the Map object in insertion order.
                  *
                  * @returns {Iterator<[K, V]>} Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
                  */
-                entries() {
-                    return super.entries();
-                }
+                TypedMap.prototype.entries = function () {
+                    return _super.prototype.entries.call(this);
+                };
                 /**
                  * Calls callbackFn once for each key-value pair present in the Map object, in insertion order.
                  * If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
@@ -1657,35 +1715,35 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                  * @param {(value: any, key: any, map: TypedMap) => void} callbackFn Function to execute for each element.
                  * @param {(Object | Function)} [thisArg] Value to use as this when executing callback.
                  */
-                forEach(callbackFn, thisArg) {
-                    super.forEach.apply(this, arguments);
-                }
+                TypedMap.prototype.forEach = function (callbackFn, thisArg) {
+                    _super.prototype.forEach.apply(this, arguments);
+                };
                 /**
                  * Returns the value associated to the key, or undefined if there is none.
                  *
                  * @param {K} key The key of the element to return from the Map object.
                  * @returns {V} Value associated to the key, or undefined
                  */
-                get(key) {
-                    return super.get(key);
-                }
+                TypedMap.prototype.get = function (key) {
+                    return _super.prototype.get.call(this, key);
+                };
                 /**
                  * Returns a boolean asserting whether a value has been associated to the key in the Map object or not.
                  *
                  * @param {*} key The key of the element to test for presence in the Map object.
                  * @returns {boolean} Value associated to the key
                  */
-                has(key) {
-                    return super.has(key);
-                }
+                TypedMap.prototype.has = function (key) {
+                    return _super.prototype.has.call(this, key);
+                };
                 /**
                  * Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
                  *
                  * @returns {Iterator<any>} Iterator object that contains the keys for each element in the Map object in insertion order
                  */
-                keys() {
-                    return super.keys();
-                }
+                TypedMap.prototype.keys = function () {
+                    return _super.prototype.keys.call(this);
+                };
                 /**
                  * Sets the value for the key in the Map object. Returns the Map object.
                  *
@@ -1693,21 +1751,22 @@ System.register("core/map/map", ["core/iterator/iterator", "debug/debug"], funct
                  * @param {V} value The value of the element to add to the Map object.
                  * @returns {TypedMap<K,V>} The Map object
                  */
-                set(key, value) {
-                    return super.set(key, value);
-                }
+                TypedMap.prototype.set = function (key, value) {
+                    return _super.prototype.set.call(this, key, value);
+                };
                 /**
                  * Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
                  *
                  * @returns {CoreMapIterator} Iterator object that contains the values for each element in the Map object in insertion order
                  */
-                values() {
-                    return super.values();
-                }
-                static create(source) {
+                TypedMap.prototype.values = function () {
+                    return _super.prototype.values.call(this);
+                };
+                TypedMap.create = function (source) {
                     return new TypedMap(source);
-                }
-            }
+                };
+                return TypedMap;
+            }(CoreMap));
             exports_18("TypedMap", TypedMap);
         }
     }
@@ -1716,17 +1775,21 @@ System.register("core/observable/observes", ["debug/debug", "core/observable/obs
     "use strict";
     var __moduleName = context_19 && context_19.id;
     var debug_10, observe_2, observableObject_1;
-    function observes(...keys) {
+    function observes() {
+        var keys = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            keys[_i - 0] = arguments[_i];
+        }
         debug_10.assert(arguments.length > 0, 'The observes decorator must be called with at least one property key');
         return function (target, propertyKey, descriptor) {
             debug_10.assert(arguments.length === 3, 'The observe decorator callback must be called with three arguments; a target, a propertyKey and a descriptor');
             debug_10.assert(target instanceof observableObject_1.ObservableObject, 'The target provided to the observe decorator callback must be an object and an instace of `ObservableObject`', TypeError);
             debug_10.assert(typeof propertyKey === 'string', 'The property key provided to the observe decorator callback must be a string', TypeError);
             //const source: any = target;  // needed for enabled noImplicitAny
-            const callback = descriptor.value;
+            var callback = descriptor.value;
             debug_10.assert(typeof callback === 'function', 'The callback for the observer has to be a function', TypeError);
-            for (let i = 0, max = keys.length; i < max; i++) {
-                let key = keys[i];
+            for (var i = 0, max = keys.length; i < max; i++) {
+                var key = keys[i];
                 debug_10.assert(typeof key === 'string', 'The keys provided to the observe decorator callback must be strings', TypeError);
                 observe_2.observe(target, key, callback, target);
             }
@@ -1853,51 +1916,51 @@ System.register("runtime/annotations/annotations", ["utils/class/class", "core/m
             }],
         execute: function() {
             debug_11.assert(!!(Reflect && Reflect.defineMetadata), 'reflect-metadata shim is required! Please make sure it is installed.');
-            class Annotations {
-                constructor(classType) {
+            Annotations = (function () {
+                function Annotations(classType) {
                     this._map = new map_2.CoreMap();
                     this._classType = classType;
                 }
-                get(annotationType) {
+                Annotations.prototype.get = function (annotationType) {
                     return this._map.get(annotationType);
-                }
-                getSingle(annotationType) {
-                    let annotations = this.get(annotationType);
+                };
+                Annotations.prototype.getSingle = function (annotationType) {
+                    var annotations = this.get(annotationType);
                     return Array.isArray(annotations) && annotations.length ? annotations[0] : null;
-                }
-                add(annotation) {
-                    debug_11.assert(class_1.isClassInstance(annotation), `Annotation ${annotation} has to be an instance of a class`, TypeError);
-                    let annotations = this.get(annotation['constructor']);
+                };
+                Annotations.prototype.add = function (annotation) {
+                    debug_11.assert(class_1.isClassInstance(annotation), "Annotation " + annotation + " has to be an instance of a class", TypeError);
+                    var annotations = this.get(annotation['constructor']);
                     if (annotations === undefined) {
                         annotations = [];
                         this._map.set(annotation['constructor'], annotations);
                     }
                     annotations.push(annotation);
-                }
-                set(annotation) {
+                };
+                Annotations.prototype.set = function (annotation) {
                     this._map.delete(annotation['constructor']);
                     this.add(annotation);
-                }
-                static peek(classType) {
+                };
+                Annotations.peek = function (classType) {
                     if (this.isAnnotated(classType)) {
                         return Reflect.getMetadata('annotations', classType);
                     }
-                    let annotations = new Annotations(classType);
+                    var annotations = new Annotations(classType);
                     Reflect.defineMetadata('annotations', annotations, classType);
                     return annotations;
-                }
-                static isAnnotated(classType) {
+                };
+                Annotations.isAnnotated = function (classType) {
                     return Reflect.hasMetadata('annotations', classType);
-                }
-            }
+                };
+                return Annotations;
+            }());
             exports_23("Annotations", Annotations);
         }
     }
 });
-System.register("utils/string/stringify", ["utils/class/class"], function(exports_24, context_24) {
+System.register("utils/string/stringify", [], function(exports_24, context_24) {
     "use strict";
     var __moduleName = context_24 && context_24.id;
-    var class_2;
     function stringify(token) {
         if (typeof token === 'string') {
             return token;
@@ -1905,9 +1968,9 @@ System.register("utils/string/stringify", ["utils/class/class"], function(export
         if (token === undefined || token === null) {
             return '' + token;
         }
-        if (typeof token === 'function') {
-            return class_2.getClassName(token);
-        }
+        // if (typeof token === 'function') {
+        //     return getClassName(token);
+        // }
         if (token.name) {
             return token.name;
         }
@@ -1920,10 +1983,7 @@ System.register("utils/string/stringify", ["utils/class/class"], function(export
     }
     exports_24("stringify", stringify);
     return {
-        setters:[
-            function (class_2_1) {
-                class_2 = class_2_1;
-            }],
+        setters:[],
         execute: function() {
         }
     }
@@ -1939,26 +1999,85 @@ System.register("runtime/di/metadata", ["utils/string/stringify"], function(expo
                 stringify_1 = stringify_1_1;
             }],
         execute: function() {
-            class InjectableMetadata {
-                constructor() {
+            InjectableMetadata = (function () {
+                function InjectableMetadata() {
                 }
-                toString() { return `@Injectable()`; }
-            }
+                InjectableMetadata.prototype.toString = function () { return "@Injectable()"; };
+                return InjectableMetadata;
+            }());
             exports_25("InjectableMetadata", InjectableMetadata);
-            class InjectMetadata {
-                constructor(token) {
+            InjectMetadata = (function () {
+                function InjectMetadata(token) {
                     this.token = token;
                 }
-                toString() { return `@Inject(${stringify_1.stringify(this.token)})`; }
-            }
+                InjectMetadata.prototype.toString = function () { return "@Inject(" + stringify_1.stringify(this.token) + ")"; };
+                return InjectMetadata;
+            }());
             exports_25("InjectMetadata", InjectMetadata);
         }
     }
 });
-System.register("runtime/di/provider", ["runtime/annotations/annotations", "runtime/di/metadata", "debug/debug", "utils/string/stringify"], function(exports_26, context_26) {
+System.register("runtime/di/forward_ref", ["utils/string/stringify"], function(exports_26, context_26) {
     "use strict";
     var __moduleName = context_26 && context_26.id;
-    var annotations_1, metadata_1, debug_12, stringify_2;
+    var stringify_2;
+    /**
+     * Allows to refer to references which are not yet defined.
+     *
+     * For instance, `forwardRef` is used when the `token` which we need to refer to for the purposes of
+     * DI is declared,
+     * but not yet defined. It is also used when the `token` which we use when creating a query is not
+     * yet defined.
+     *
+     * ### Example
+     * {@example core/di/ts/forward_ref/forward_ref.ts region='forward_ref'}
+     * @experimental
+     */
+    function forwardRef(forwardRefFn) {
+        forwardRefFn.__forward_ref__ = forwardRef;
+        forwardRefFn.toString = function () { return stringify_2.stringify(this()); };
+        return forwardRefFn;
+    }
+    exports_26("forwardRef", forwardRef);
+    /**
+     * Lazily retrieves the reference value from a forwardRef.
+     *
+     * Acts as the identity function when given a non-forward-ref value.
+     *
+     * ### Example ([live demo](http://plnkr.co/edit/GU72mJrk1fiodChcmiDR?p=preview))
+     *
+     * ```typescript
+     * var ref = forwardRef(() => "refValue");
+     * expect(resolveForwardRef(ref)).toEqual("refValue");
+     * expect(resolveForwardRef("regularValue")).toEqual("regularValue");
+     * ```
+     *
+     * See: {@link forwardRef}
+     * @experimental
+     */
+    function resolveForwardRef(type) {
+        if (typeof type === 'function' && type.hasOwnProperty('__forward_ref__') &&
+            type.__forward_ref__ === forwardRef) {
+            return type();
+        }
+        else {
+            return type;
+        }
+    }
+    exports_26("resolveForwardRef", resolveForwardRef);
+    return {
+        setters:[
+            function (stringify_2_1) {
+                stringify_2 = stringify_2_1;
+            }],
+        execute: function() {
+        }
+    }
+});
+System.register("runtime/di/provider", ["runtime/annotations/annotations", "runtime/di/metadata", "runtime/di/forward_ref", "debug/debug", "utils/string/stringify"], function(exports_27, context_27) {
+    "use strict";
+    var __moduleName = context_27 && context_27.id;
+    var annotations_1, metadata_1, forward_ref_1, debug_12, stringify_3;
     var Provider, ResolvedProvider, ResolvedFactory;
     /**
      * Creates a {@link Provider}.
@@ -1973,7 +2092,8 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
      * }} {useClass, useValue, useFactory, dependencies}
      * @returns {Provider}
      */
-    function provide(token, { useClass, useValue, useFactory, dependencies }) {
+    function provide(token, _a) {
+        var useClass = _a.useClass, useValue = _a.useValue, useFactory = _a.useFactory, dependencies = _a.dependencies;
         return new Provider(token, {
             useClass: useClass,
             useValue: useValue,
@@ -1981,7 +2101,7 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
             dependencies: dependencies,
         });
     }
-    exports_26("provide", provide);
+    exports_27("provide", provide);
     /**
      * Resolves an array of Providers or stuff that can be converted to a Provider
      *
@@ -1991,9 +2111,9 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
      * @returns {ResolvedProvider[]}
      */
     function resolveProviders(providers) {
-        let resolved = [];
-        for (let i = 0, max = providers.length; i < max; i++) {
-            let p = providers[i];
+        var resolved = [];
+        for (var i = 0, max = providers.length; i < max; i++) {
+            var p = providers[i];
             if (p instanceof Provider) {
                 resolved.push(resolveProvider(p));
             }
@@ -2001,15 +2121,15 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
                 resolved.push(resolveProvider(provide(p, { useClass: p })));
             }
             else if (Array.isArray(p)) {
-                resolveProviders(p).map(resolvedP => resolved.push(resolvedP));
+                resolveProviders(p).map(function (resolvedP) { return resolved.push(resolvedP); });
             }
             else {
-                throw new TypeError(`${p} is not a valid provider!`);
+                throw new TypeError(p + " is not a valid provider!");
             }
         }
         return resolved;
     }
-    exports_26("resolveProviders", resolveProviders);
+    exports_27("resolveProviders", resolveProviders);
     /**
      * Resolves a single Provider and returns an ResolvedProvider
      *
@@ -2019,9 +2139,45 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
      * @returns {ResolvedProvider}
      */
     function resolveProvider(provider) {
-        return new ResolvedProvider(provider.token, ResolvedFactory.resolve(provider));
+        return new ResolvedProvider(provider.token, resolveFactory(provider));
     }
-    exports_26("resolveProvider", resolveProvider);
+    exports_27("resolveProvider", resolveProvider);
+    function resolveFactory(provider) {
+        var factoryFn;
+        var dependencies = [];
+        if (provider.useClass) {
+            var useClass_1 = forward_ref_1.resolveForwardRef(provider.useClass);
+            dependencies = dependenciesForClass(useClass_1);
+            factoryFn = function (dependecies) {
+                if (dependecies === void 0) { dependecies = []; }
+                return new (Function.prototype.bind.apply(useClass_1, [null].concat(dependecies)));
+            };
+        }
+        else if (provider.useFactory) {
+            factoryFn = provider.useFactory;
+        }
+        else {
+            factoryFn = function () { return provider.useValue; };
+        }
+        return new ResolvedFactory(factoryFn, dependencies);
+    }
+    exports_27("resolveFactory", resolveFactory);
+    function dependenciesForClass(annotatedClass) {
+        var dependecies = [];
+        var dependencyTokens = annotations_1.Annotations.peek(annotatedClass).get(metadata_1.InjectMetadata);
+        if (Array.isArray(dependencyTokens)) {
+            var isInjectable = !!annotations_1.Annotations.peek(annotatedClass).get(metadata_1.InjectableMetadata);
+            debug_12.assert(!!isInjectable, "Cannot resolve all parameters for " + stringify_3.stringify(annotatedClass) + "! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject");
+            for (var i = 0, max = dependencyTokens.length; i < max; i++) {
+                var dep = dependencyTokens[i];
+                if (dep instanceof metadata_1.InjectMetadata) {
+                    dependecies.push(dep.token);
+                }
+            }
+        }
+        return dependecies;
+    }
+    exports_27("dependenciesForClass", dependenciesForClass);
     return {
         setters:[
             function (annotations_1_1) {
@@ -2030,11 +2186,14 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
             function (metadata_1_1) {
                 metadata_1 = metadata_1_1;
             },
+            function (forward_ref_1_1) {
+                forward_ref_1 = forward_ref_1_1;
+            },
             function (debug_12_1) {
                 debug_12 = debug_12_1;
             },
-            function (stringify_2_1) {
-                stringify_2 = stringify_2_1;
+            function (stringify_3_1) {
+                stringify_3 = stringify_3_1;
             }],
         execute: function() {
             /**
@@ -2043,35 +2202,46 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
              * @export
              * @class Provider
              */
-            class Provider {
-                constructor(token, { useClass, useValue, useFactory, dependencies }) {
+            Provider = (function () {
+                function Provider(token, _a) {
+                    var useClass = _a.useClass, useValue = _a.useValue, useFactory = _a.useFactory, dependencies = _a.dependencies;
                     this.token = token;
                     this.useClass = useClass;
                     this.useValue = useValue;
                     this.useFactory = useFactory;
                     this.dependencies = dependencies;
                 }
-            }
-            exports_26("Provider", Provider);
+                return Provider;
+            }());
+            exports_27("Provider", Provider);
             /**
              * An internal resolved representation of a {@link Provider} used by the {@link Injector}.
              *
              * @export
              * @class ResolvedProvider
              */
-            class ResolvedProvider {
-                constructor(token, resolvedFactory) {
+            ResolvedProvider = (function () {
+                function ResolvedProvider(token, resolvedFactory) {
                     this._token = token;
                     this._resolvedFactory = resolvedFactory;
                 }
-                get token() {
-                    return this._token;
-                }
-                get resolvedFactory() {
-                    return this._resolvedFactory;
-                }
-            }
-            exports_26("ResolvedProvider", ResolvedProvider);
+                Object.defineProperty(ResolvedProvider.prototype, "token", {
+                    get: function () {
+                        return this._token;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ResolvedProvider.prototype, "resolvedFactory", {
+                    get: function () {
+                        return this._resolvedFactory;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                return ResolvedProvider;
+            }());
+            exports_27("ResolvedProvider", ResolvedProvider);
             /**
              * An internal resolved representation of a factory function created by resolving {@link Provider}.
              *
@@ -2081,52 +2251,36 @@ System.register("runtime/di/provider", ["runtime/annotations/annotations", "runt
              * @export
              * @class ResolvedFactory
              */
-            class ResolvedFactory {
-                constructor(provider) {
+            ResolvedFactory = (function () {
+                function ResolvedFactory(factory, dependencies) {
                     this._dependencies = [];
-                    let factoryFn;
-                    if (provider.useClass) {
-                        let dependencyTokens = annotations_1.Annotations.peek(provider.useClass).get(metadata_1.InjectMetadata);
-                        if (Array.isArray(dependencyTokens)) {
-                            let isInjectable = !!annotations_1.Annotations.peek(provider.useClass).get(metadata_1.InjectableMetadata);
-                            debug_12.assert(!!isInjectable, `Cannot resolve all parameters for ${stringify_2.stringify(provider.useClass)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
-                            for (let i = 0, max = dependencyTokens.length; i < max; i++) {
-                                let dep = dependencyTokens[i];
-                                if (dep instanceof metadata_1.InjectMetadata) {
-                                    this._dependencies.push(dep.token);
-                                }
-                            }
-                        }
-                        factoryFn = (dependecies = []) => {
-                            return new (Function.prototype.bind.apply(provider.useClass, [null].concat(dependecies)));
-                        };
-                    }
-                    else if (provider.useFactory) {
-                        factoryFn = provider.useFactory;
-                    }
-                    else {
-                        factoryFn = () => provider.useValue;
-                    }
-                    this._factoryFn = factoryFn;
+                    this._factoryFn = factory;
+                    this._dependencies = dependencies;
                 }
-                get factory() {
-                    return this._factoryFn;
-                }
-                get dependencies() {
-                    return this._dependencies || [];
-                }
-                static resolve(provider) {
-                    return new ResolvedFactory(provider);
-                }
-            }
-            exports_26("ResolvedFactory", ResolvedFactory);
+                Object.defineProperty(ResolvedFactory.prototype, "factory", {
+                    get: function () {
+                        return this._factoryFn;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ResolvedFactory.prototype, "dependencies", {
+                    get: function () {
+                        return this._dependencies || [];
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                return ResolvedFactory;
+            }());
+            exports_27("ResolvedFactory", ResolvedFactory);
         }
     }
 });
-System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "debug/debug", "utils/string/stringify"], function(exports_27, context_27) {
+System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "runtime/di/forward_ref", "debug/debug", "utils/string/stringify"], function(exports_28, context_28) {
     "use strict";
-    var __moduleName = context_27 && context_27.id;
-    var core_2, provider_1, debug_13, stringify_3;
+    var __moduleName = context_28 && context_28.id;
+    var core_2, provider_1, forward_ref_2, debug_13, stringify_4;
     var Injector;
     return {
         setters:[
@@ -2136,11 +2290,14 @@ System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "deb
             function (provider_1_1) {
                 provider_1 = provider_1_1;
             },
+            function (forward_ref_2_1) {
+                forward_ref_2 = forward_ref_2_1;
+            },
             function (debug_13_1) {
                 debug_13 = debug_13_1;
             },
-            function (stringify_3_1) {
-                stringify_3 = stringify_3_1;
+            function (stringify_4_1) {
+                stringify_4 = stringify_4_1;
             }],
         execute: function() {
             /**
@@ -2150,29 +2307,34 @@ System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "deb
              * @export
              * @class Injector
              */
-            class Injector {
+            Injector = (function () {
                 /**
                  * Creates an instance of Injector.
                  *
                  * @param {ResolvedProvider[]} providers
                  * @param {Injector} [parent=null]
                  */
-                constructor(providers, parent = null) {
+                function Injector(providers, parent) {
+                    if (parent === void 0) { parent = null; }
                     this._parent = null;
                     this._providers = [];
                     this._values = new core_2.CoreMap();
                     this._parent = parent;
                     this._providers = providers;
                 }
-                /**
-                 * The parent of this injector
-                 *
-                 * @readonly
-                 * @type {Injector}
-                 */
-                get parent() {
-                    return this._parent || null;
-                }
+                Object.defineProperty(Injector.prototype, "parent", {
+                    /**
+                     * The parent of this injector
+                     *
+                     * @readonly
+                     * @type {Injector}
+                     */
+                    get: function () {
+                        return this._parent || null;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 /**
                  * Turns an array of provider definitions into an array of resolved providers.
                  *
@@ -2180,9 +2342,9 @@ System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "deb
                  * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
                  * @returns {ResolvedProvider[]}
                  */
-                static resolve(providers) {
+                Injector.resolve = function (providers) {
                     return provider_1.resolveProviders(providers);
-                }
+                };
                 /**
                  * Resolves an array of providers and creates an injector from those providers.
                  *
@@ -2191,10 +2353,11 @@ System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "deb
                  * @param {Injector} [parent=null]
                  * @returns
                  */
-                static resolveAndCreate(providers, parent = null) {
-                    let resolvedProviders = Injector.resolve(providers);
+                Injector.resolveAndCreate = function (providers, parent) {
+                    if (parent === void 0) { parent = null; }
+                    var resolvedProviders = Injector.resolve(providers);
                     return Injector.fromResolvedProviders(resolvedProviders, parent);
-                }
+                };
                 /**
                  * Creates an injector from previously resolved providers.
                  *
@@ -2203,48 +2366,50 @@ System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "deb
                  * @param {Injector} [parent=null]
                  * @returns
                  */
-                static fromResolvedProviders(providers, parent = null) {
+                Injector.fromResolvedProviders = function (providers, parent) {
+                    if (parent === void 0) { parent = null; }
                     return new Injector(providers, parent);
-                }
+                };
                 /**
                  * Resolves an array of providers and creates a child injector from those providers.
                  *
                  * @param {(Array<ClassType<any> | Provider | { [key: string]: any }>)} providers
                  * @returns {Injector}
                  */
-                resolveAndCreateChild(providers) {
-                    let resolvedProviders = Injector.resolve(providers);
+                Injector.prototype.resolveAndCreateChild = function (providers) {
+                    var resolvedProviders = Injector.resolve(providers);
                     return this.createChildFromResolved(resolvedProviders);
-                }
+                };
                 /**
                  * Creates a child injector from previously resolved providers.
                  *
                  * @param {ResolvedProvider[]} providers
                  * @returns {Injector}
                  */
-                createChildFromResolved(providers) {
+                Injector.prototype.createChildFromResolved = function (providers) {
                     return Injector.fromResolvedProviders(providers, this);
-                }
+                };
                 /**
                  * Gets the value of the resolved provider matching the token
                  *
                  * @param {*} token
                  * @returns {*}
                  */
-                get(token) {
-                    let value = this._values.get(token);
+                Injector.prototype.get = function (token) {
+                    var value = this._values.get(token);
                     if (value) {
                         return value;
                     }
-                    for (let i = 0, max = this._providers.length; i < max; i++) {
-                        let provider = this._providers[i];
+                    for (var i = 0, max = this._providers.length; i < max; i++) {
+                        var provider = this._providers[i];
                         if (provider.token === token) {
-                            let resolvedFactory = provider.resolvedFactory;
-                            let resolvedDepts = [];
-                            for (let j = 0, max = resolvedFactory.dependencies.length; j < max; j++) {
-                                let deptToken = resolvedFactory.dependencies[j];
-                                let dept = this.get(deptToken);
-                                debug_13.assert(!!dept, `Cannot resolve all parameters for ${stringify_3.stringify(resolvedFactory.factory)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
+                            var resolvedFactory = provider.resolvedFactory;
+                            var resolvedDepts = [];
+                            // console.log('GET', resolvedFactory);
+                            for (var j = 0, max_1 = resolvedFactory.dependencies.length; j < max_1; j++) {
+                                var deptToken = forward_ref_2.resolveForwardRef(resolvedFactory.dependencies[j]);
+                                var dept = this.get(deptToken);
+                                debug_13.assert(!!dept, "Cannot resolve all parameters for " + stringify_4.stringify(resolvedFactory.factory) + "! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject");
                                 resolvedDepts.push(dept);
                             }
                             value = resolvedFactory.factory(resolvedDepts);
@@ -2253,15 +2418,16 @@ System.register("runtime/di/injector", ["core/core", "runtime/di/provider", "deb
                         }
                     }
                     return this._parent ? this._parent.get(token) : null;
-                }
-            }
-            exports_27("Injector", Injector);
+                };
+                return Injector;
+            }());
+            exports_28("Injector", Injector);
         }
     }
 });
-System.register("runtime/di/decorators", ["debug/debug", "runtime/annotations/annotations", "runtime/di/metadata"], function(exports_28, context_28) {
+System.register("runtime/di/decorators", ["debug/debug", "runtime/annotations/annotations", "runtime/di/metadata"], function(exports_29, context_29) {
     "use strict";
-    var __moduleName = context_28 && context_28.id;
+    var __moduleName = context_29 && context_29.id;
     var debug_14, annotations_2, metadata_2;
     function Inject(token) {
         return function (target, propertyKey, parameterIndex) {
@@ -2269,14 +2435,14 @@ System.register("runtime/di/decorators", ["debug/debug", "runtime/annotations/an
             annotations_2.Annotations.peek(target).add(new metadata_2.InjectMetadata(token));
         };
     }
-    exports_28("Inject", Inject);
+    exports_29("Inject", Inject);
     function Injectable() {
         return function (target) {
             debug_14.assert(typeof target === 'function', 'Class decorator @Injectable has to be applied on a class!', TypeError);
             annotations_2.Annotations.peek(target).add(new metadata_2.InjectableMetadata());
         };
     }
-    exports_28("Injectable", Injectable);
+    exports_29("Injectable", Injectable);
     return {
         setters:[
             function (debug_14_1) {
@@ -2298,40 +2464,45 @@ System.register("runtime/di/decorators", ["debug/debug", "runtime/annotations/an
  *
  * TODO: Insert stuff...
  */
-System.register("runtime/di/di", ["runtime/di/decorators", "runtime/di/injector", "runtime/di/provider"], function(exports_29, context_29) {
+System.register("runtime/di/di", ["runtime/di/decorators", "runtime/di/injector", "runtime/di/provider", "runtime/di/forward_ref"], function(exports_30, context_30) {
     "use strict";
-    var __moduleName = context_29 && context_29.id;
+    var __moduleName = context_30 && context_30.id;
     return {
         setters:[
             function (decorators_1_1) {
-                exports_29({
+                exports_30({
                     "Injectable": decorators_1_1["Injectable"],
                     "Inject": decorators_1_1["Inject"]
                 });
             },
             function (injector_1_1) {
-                exports_29({
+                exports_30({
                     "Injector": injector_1_1["Injector"]
                 });
             },
             function (provider_2_1) {
-                exports_29({
+                exports_30({
                     "Provider": provider_2_1["Provider"],
                     "ResolvedProvider": provider_2_1["ResolvedProvider"],
                     "provide": provider_2_1["provide"]
+                });
+            },
+            function (forward_ref_3_1) {
+                exports_30({
+                    "forwardRef": forward_ref_3_1["forwardRef"]
                 });
             }],
         execute: function() {
         }
     }
 });
-System.register("utils/dom/dom", [], function(exports_30, context_30) {
+System.register("utils/dom/dom", [], function(exports_31, context_31) {
     "use strict";
-    var __moduleName = context_30 && context_30.id;
+    var __moduleName = context_31 && context_31.id;
     function convertNodeListToArray(nodeList) {
         return Array.prototype.slice.call(nodeList);
     }
-    exports_30("convertNodeListToArray", convertNodeListToArray);
+    exports_31("convertNodeListToArray", convertNodeListToArray);
     /**
      * Checks if a selector matches an element.
      *
@@ -2341,20 +2512,87 @@ System.register("utils/dom/dom", [], function(exports_30, context_30) {
      * @returns Returns true if selector matches, false if not
      */
     function doesSelectorMatchElement(selector, element) {
-        let results = convertNodeListToArray(element.parentElement.querySelectorAll(selector));
+        var results = convertNodeListToArray(element.parentElement.querySelectorAll(selector));
         return results.length ? results.indexOf(element) !== -1 : false;
     }
-    exports_30("doesSelectorMatchElement", doesSelectorMatchElement);
+    exports_31("doesSelectorMatchElement", doesSelectorMatchElement);
     return {
         setters:[],
         execute: function() {
         }
     }
 });
-System.register("render/dom_parser/dom_parser", ["debug/debug", "runtime/di/di"], function(exports_31, context_31) {
+System.register("render/parser/context", [], function(exports_32, context_32) {
     "use strict";
-    var __moduleName = context_31 && context_31.id;
-    var debug_15, di_1;
+    var __moduleName = context_32 && context_32.id;
+    var ContextReference, ContextTree;
+    return {
+        setters:[],
+        execute: function() {
+            ContextReference = (function () {
+                function ContextReference(context) {
+                    this.context = context;
+                }
+                return ContextReference;
+            }());
+            exports_32("ContextReference", ContextReference);
+            ContextTree = (function () {
+                function ContextTree(context) {
+                    this._tree = [];
+                    if (context) {
+                        this.add(context);
+                    }
+                }
+                ContextTree.prototype.up = function () {
+                    this._tree.shift();
+                    if (!this._tree.length) {
+                        this.down();
+                    }
+                };
+                ContextTree.prototype.down = function () {
+                    this._tree.unshift([]);
+                };
+                ContextTree.prototype.add = function (context) {
+                    var _this = this;
+                    if (Array.isArray(context)) {
+                        context.map(function (context) { return _this.add(context); });
+                    }
+                    else {
+                        if (!this._tree.length) {
+                            this.down();
+                        }
+                        this._tree[0].push(new ContextReference(context));
+                    }
+                };
+                ContextTree.prototype.getUnfiltered = function () {
+                    return this._tree.slice(0);
+                };
+                ContextTree.prototype.getFiltered = function () {
+                    return this._tree.slice(0).filter(function (list) { return !!(Array.isArray(list) && list.length); });
+                };
+                ContextTree.prototype.getNearestContextOfType = function (type) {
+                    for (var i = 0, max = this._tree.length; i < max; i++) {
+                        var list = this._tree[i];
+                        for (var j = 0, max_2 = list.length; j < max_2; j++) {
+                            var context = list[j].context;
+                            if ((typeof type === 'string' && typeof context === type)
+                                || (typeof type === 'function' && context instanceof type)) {
+                                return context;
+                            }
+                        }
+                    }
+                    return null;
+                };
+                return ContextTree;
+            }());
+            exports_32("ContextTree", ContextTree);
+        }
+    }
+});
+System.register("render/parser/dom_parser", ["debug/debug", "runtime/di/di", "render/parser/context"], function(exports_33, context_33) {
+    "use strict";
+    var __moduleName = context_33 && context_33.id;
+    var debug_15, di_1, context_34;
     var DOMParser;
     return {
         setters:[
@@ -2363,149 +2601,277 @@ System.register("render/dom_parser/dom_parser", ["debug/debug", "runtime/di/di"]
             },
             function (di_1_1) {
                 di_1 = di_1_1;
+            },
+            function (context_34_1) {
+                context_34 = context_34_1;
             }],
         execute: function() {
-            let DOMParser = class DOMParser {
-                constructor() {
+            DOMParser = (function () {
+                function DOMParser() {
                     this.elementHooks = [];
                     this.attributeHooks = [];
                 }
-                parseTree(rootElement) {
-                    this.parseNode(rootElement, []);
-                }
-                parseNode(element, context) {
-                    if (!(element instanceof HTMLElement)) {
-                        throw new Error('The property element has to be an HTMLElement');
+                DOMParser.prototype.parseTree = function (rootElement, context, skipRootElement) {
+                    if (typeof context === 'boolean') {
+                        skipRootElement = context;
                     }
-                    if (!Array.isArray(context)) {
-                        context = [];
+                    this.parseNode(rootElement, new context_34.ContextTree(context), skipRootElement);
+                };
+                DOMParser.prototype.parseNode = function (element, contextTree, skipRootElement) {
+                    if (skipRootElement === void 0) { skipRootElement = false; }
+                    if (!(element instanceof Element)) {
+                        throw new Error('The property element has to be an Element');
                     }
+                    contextTree.down();
                     // Skip script and styles elements
-                    const tagName = element.tagName.toUpperCase();
+                    var tagName = element.tagName.toUpperCase();
                     if (tagName.toUpperCase() === 'SCRIPT' || tagName.toUpperCase() === 'STYLES') {
                         return;
                     }
-                    const elementHooks = this.elementHooks;
-                    const parseFunctions = [];
-                    const afterParseFunctions = [];
-                    let localContext = [];
-                    let filteredContext = context.filter((context) => !!context);
-                    for (let i = 0, max = elementHooks.length; i < max; i++) {
-                        var elementHook = elementHooks[i];
-                        if (elementHook.predicate(element)) {
-                            if (elementHook.onBeforeParse) {
-                                try {
-                                    localContext = localContext.concat(elementHook.onBeforeParse(element, filteredContext));
-                                }
-                                catch (ex) {
-                                    debug_15.Logger.log(debug_15.LogLevel.error, ex, debug_15.LogType.error);
-                                }
-                            }
-                            (function (hook, element) {
-                                if (hook.onParse)
-                                    parseFunctions.push((context) => { hook.onParse(element, context); });
-                                if (hook.onAfterParse)
-                                    afterParseFunctions.push((context) => { hook.onAfterParse(element, context); });
-                            })(elementHook, element);
-                        }
+                    var elementHooks = this.elementHooks;
+                    var parseFunctions = [];
+                    var afterParseFunctions = [];
+                    if (element.hasAttribute(DOMParser.PARSED_ELEMENT_ATTR)) {
+                        skipRootElement = true;
                     }
-                    const attributes = element.attributes;
-                    const attributeHooks = this.attributeHooks;
-                    let diff = 0;
-                    for (let i = 0, max = attributes.length; i < max; i++) {
-                        let attribute = attributes[i - diff];
-                        for (let j = 0, max = attributeHooks.length; j < max; j++) {
-                            let attributeHook = attributeHooks[j];
-                            if (attributeHook.predicate(attribute)) {
-                                if (attributeHook.onBeforeParse) {
+                    if (!skipRootElement) {
+                        for (var i = 0, max = elementHooks.length; i < max; i++) {
+                            var elementHook = elementHooks[i];
+                            if (elementHook.predicate(element)) {
+                                if (elementHook.onBeforeParse) {
                                     try {
-                                        localContext = localContext.concat(attributeHook.onBeforeParse(element, attribute, filteredContext));
+                                        contextTree.add(elementHook.onBeforeParse(element, contextTree));
                                     }
                                     catch (ex) {
-                                        debug_15.Logger.log(debug_15.LogLevel.critical, ex, debug_15.LogType.error);
+                                        debug_15.Logger.log(debug_15.LogLevel.error, ex, debug_15.LogType.error);
                                     }
                                 }
-                                if (attributeHook.removeAttributeNode) {
-                                    element.removeAttributeNode(attribute);
-                                    diff++;
-                                }
-                                (function (hook, element, attribute) {
+                                (function (hook, element) {
                                     if (hook.onParse)
-                                        parseFunctions.push((context) => { hook.onParse(element, attribute, context); });
+                                        parseFunctions.push(function (context) { hook.onParse(element, context); });
                                     if (hook.onAfterParse)
-                                        afterParseFunctions.push((context) => { hook.onAfterParse(element, attribute, context); });
-                                })(attributeHook, element, attribute);
+                                        afterParseFunctions.push(function (context) { hook.onAfterParse(element, context); });
+                                })(elementHook, element);
                             }
                         }
-                    }
-                    context.unshift(localContext.length ? localContext : null);
-                    filteredContext = context.filter((context) => !!context);
-                    for (let i = 0, max = parseFunctions.length; i < max; i++) {
-                        parseFunctions[i](filteredContext);
+                        var attributes = element.attributes;
+                        var attributeHooks = this.attributeHooks;
+                        var diff = 0;
+                        for (var i = 0, max = attributes.length; i < max; i++) {
+                            var attribute = attributes[i - diff];
+                            if (attribute.name === DOMParser.PARSED_ELEMENT_ATTR) {
+                                continue;
+                            }
+                            for (var j = 0, max_3 = attributeHooks.length; j < max_3; j++) {
+                                var attributeHook = attributeHooks[j];
+                                if (attributeHook.predicate(attribute)) {
+                                    if (attributeHook.onBeforeParse) {
+                                        try {
+                                            contextTree.add(attributeHook.onBeforeParse(element, attribute, contextTree));
+                                        }
+                                        catch (ex) {
+                                            debug_15.Logger.log(debug_15.LogLevel.critical, ex, debug_15.LogType.error);
+                                        }
+                                    }
+                                    if (attributeHook.removeAttributeNode) {
+                                        element.removeAttributeNode(attribute);
+                                        diff++;
+                                    }
+                                    (function (hook, element, attribute) {
+                                        if (hook.onParse)
+                                            parseFunctions.push(function (context) { hook.onParse(element, attribute, context); });
+                                        if (hook.onAfterParse)
+                                            afterParseFunctions.push(function (context) { hook.onAfterParse(element, attribute, context); });
+                                    })(attributeHook, element, attribute);
+                                }
+                            }
+                        }
+                        for (var i = 0, max = parseFunctions.length; i < max; i++) {
+                            parseFunctions[i](contextTree);
+                        }
                     }
                     // loop through child nodes and recursively parse them       
-                    const nodes = element.childNodes;
-                    for (let i = 0, max = nodes.length; i < max; i++) {
-                        let node = nodes[i];
-                        let nodeType = node.nodeType;
+                    var nodes = element.childNodes;
+                    for (var i = 0, max = nodes.length; i < max; i++) {
+                        var node = nodes[i];
+                        var nodeType = node.nodeType;
                         if (nodeType !== Node.ELEMENT_NODE && nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
                             continue;
                         }
-                        if (node instanceof HTMLElement) {
-                            this.parseNode(node, context);
+                        if (node instanceof Element) {
+                            this.parseNode(node, contextTree);
                         }
                     }
-                    for (let i = 0, max = afterParseFunctions.length; i < max; i++) {
-                        afterParseFunctions[i](filteredContext);
+                    if (!skipRootElement) {
+                        for (var i = 0, max = afterParseFunctions.length; i < max; i++) {
+                            afterParseFunctions[i](contextTree);
+                        }
                     }
-                    context.shift();
-                }
-                registerElementHook(hook) {
+                    element.setAttribute(DOMParser.PARSED_ELEMENT_ATTR, '');
+                    contextTree.up();
+                };
+                DOMParser.prototype.registerElementHook = function (hook) {
                     this.elementHooks.push(hook);
-                }
-                registerAttributeHook(hook) {
+                };
+                DOMParser.prototype.registerAttributeHook = function (hook) {
                     this.attributeHooks.push(hook);
-                }
-            };
-            DOMParser = __decorate([
-                di_1.Injectable(), 
-                __metadata('design:paramtypes', [])
-            ], DOMParser);
-            exports_31("DOMParser", DOMParser);
+                };
+                DOMParser.PARSED_ELEMENT_ATTR = '_mparsed';
+                DOMParser = __decorate([
+                    di_1.Injectable(), 
+                    __metadata('design:paramtypes', [])
+                ], DOMParser);
+                return DOMParser;
+            }());
+            exports_33("DOMParser", DOMParser);
         }
     }
 });
-System.register("runtime/component/registry", [], function(exports_32, context_32) {
+System.register("render/parser/hooks/hooks", [], function(exports_34, context_35) {
     "use strict";
-    var __moduleName = context_32 && context_32.id;
+    var __moduleName = context_35 && context_35.id;
+    var ParserElementHook, ParserAttributeHook;
+    return {
+        setters:[],
+        execute: function() {
+            ParserElementHook = (function () {
+                function ParserElementHook() {
+                }
+                return ParserElementHook;
+            }());
+            exports_34("ParserElementHook", ParserElementHook);
+            ParserAttributeHook = (function () {
+                function ParserAttributeHook() {
+                    this.removeAttributeNode = false;
+                }
+                return ParserAttributeHook;
+            }());
+            exports_34("ParserAttributeHook", ParserAttributeHook);
+        }
+    }
+});
+System.register("runtime/component/registry", [], function(exports_35, context_36) {
+    "use strict";
+    var __moduleName = context_36 && context_36.id;
     var ComponentRegistry;
     return {
         setters:[],
         execute: function() {
-            class ComponentRegistry {
-                static get selectors() { return this._selectors; }
-                static get componentTypes() { return this._componentTypes; }
-                static register(componentType, selector) {
+            ComponentRegistry = (function () {
+                function ComponentRegistry() {
+                }
+                Object.defineProperty(ComponentRegistry, "selectors", {
+                    get: function () { return this._selectors; },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentRegistry, "componentTypes", {
+                    get: function () { return this._componentTypes; },
+                    enumerable: true,
+                    configurable: true
+                });
+                ComponentRegistry.register = function (componentType, selector) {
                     if (this._componentTypes.indexOf(componentType) === -1 && this._selectors.indexOf(selector) === -1) {
                         this._componentTypes.push(componentType);
                         this._selectors.push(selector);
                     }
-                }
-                static bySelector(selector) {
-                    let index = this._selectors.indexOf(selector);
+                };
+                ComponentRegistry.bySelector = function (selector) {
+                    var index = this._selectors.indexOf(selector);
                     return index !== -1 ? this._componentTypes[index] : null;
-                }
-            }
-            ComponentRegistry._componentTypes = [];
-            ComponentRegistry._selectors = [];
-            exports_32("ComponentRegistry", ComponentRegistry);
+                };
+                ComponentRegistry._componentTypes = [];
+                ComponentRegistry._selectors = [];
+                return ComponentRegistry;
+            }());
+            exports_35("ComponentRegistry", ComponentRegistry);
         }
     }
 });
-System.register("render/parser/parser", ["runtime/di/di", "render/dom_parser/dom_parser", "utils/dom/dom", "runtime/component/registry", "runtime/component/resolver"], function(exports_33, context_33) {
+System.register("render/parser/hooks/component", ["debug/debug", "utils/string/stringify", "render/parser/hooks/hooks", "utils/dom/dom", "runtime/component/registry", "runtime/view/host"], function(exports_36, context_37) {
     "use strict";
-    var __moduleName = context_33 && context_33.id;
-    var di_2, dom_parser_1, dom_1, registry_1, resolver_1;
+    var __moduleName = context_37 && context_37.id;
+    var debug_16, stringify_5, hooks_1, dom_1, registry_1, host_1;
+    var ComponentParserHook;
+    function _findNextHostFromContext(context) {
+        if (context instanceof host_1.HostElement) {
+            return context;
+        }
+        if (Array.isArray(context)) {
+            for (var i = 0, max = context.length; i < max; i++) {
+                var cntxt = context[i];
+                if (cntxt instanceof host_1.HostElement) {
+                    return cntxt;
+                }
+                else if (Array.isArray(cntxt)) {
+                    var result = _findNextHostFromContext(cntxt);
+                    if (result instanceof host_1.HostElement) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    exports_36("_findNextHostFromContext", _findNextHostFromContext);
+    return {
+        setters:[
+            function (debug_16_1) {
+                debug_16 = debug_16_1;
+            },
+            function (stringify_5_1) {
+                stringify_5 = stringify_5_1;
+            },
+            function (hooks_1_1) {
+                hooks_1 = hooks_1_1;
+            },
+            function (dom_1_1) {
+                dom_1 = dom_1_1;
+            },
+            function (registry_1_1) {
+                registry_1 = registry_1_1;
+            },
+            function (host_1_1) {
+                host_1 = host_1_1;
+            }],
+        execute: function() {
+            ComponentParserHook = (function (_super) {
+                __extends(ComponentParserHook, _super);
+                function ComponentParserHook(resolver) {
+                    _super.call(this);
+                    this.resolver = resolver;
+                    this.selectors = registry_1.ComponentRegistry.selectors;
+                    this.lastFoundSelectorIndex = -1;
+                }
+                ComponentParserHook.prototype.predicate = function (element) {
+                    for (var i = 0, max = this.selectors.length; i < max; i++) {
+                        if (dom_1.doesSelectorMatchElement(this.selectors[i], element)) {
+                            this.lastFoundSelectorIndex = i;
+                            return true;
+                        }
+                    }
+                    this.lastFoundSelectorIndex = -1;
+                    return false;
+                };
+                ComponentParserHook.prototype.onBeforeParse = function (element, context) {
+                    var componentType = registry_1.ComponentRegistry.componentTypes[this.lastFoundSelectorIndex];
+                    var factory = this.resolver.resolveComponent(componentType);
+                    var parentHost = context.getNearestContextOfType(host_1.HostElement);
+                    debug_16.assert(parentHost instanceof host_1.HostElement, "The found component \"" + stringify_5.stringify(componentType) + "\" on the element " + element + " has no parent host element.\nAre you using the bootstrap function for setting up your project?");
+                    var componentRef = factory.create(parentHost.injector, element);
+                    this.lastFoundSelectorIndex = -1;
+                    return componentRef.hostElement;
+                };
+                return ComponentParserHook;
+            }(hooks_1.ParserElementHook));
+            exports_36("ComponentParserHook", ComponentParserHook);
+        }
+    }
+});
+System.register("render/parser/parser", ["runtime/di/di", "render/parser/dom_parser", "runtime/component/resolver", "render/parser/hooks/component"], function(exports_37, context_38) {
+    "use strict";
+    var __moduleName = context_38 && context_38.id;
+    var di_2, dom_parser_1, resolver_1, component_1;
     var Parser;
     return {
         setters:[
@@ -2515,75 +2881,56 @@ System.register("render/parser/parser", ["runtime/di/di", "render/dom_parser/dom
             function (dom_parser_1_1) {
                 dom_parser_1 = dom_parser_1_1;
             },
-            function (dom_1_1) {
-                dom_1 = dom_1_1;
-            },
-            function (registry_1_1) {
-                registry_1 = registry_1_1;
-            },
             function (resolver_1_1) {
                 resolver_1 = resolver_1_1;
+            },
+            function (component_1_1) {
+                component_1 = component_1_1;
             }],
         execute: function() {
-            let Parser = class Parser {
-                constructor(resolver) {
+            Parser = (function () {
+                function Parser(resolver) {
                     this._domParser = new dom_parser_1.DOMParser();
-                    // console.log(resolver);
-                    let selectors = registry_1.ComponentRegistry.selectors;
-                    let index = -1;
-                    this._domParser.registerElementHook({
-                        predicate: (element) => {
-                            for (let i = 0, max = selectors.length; i < max; i++) {
-                                if (dom_1.doesSelectorMatchElement(selectors[i], element)) {
-                                    index = i;
-                                    return true;
-                                }
-                            }
-                            return false;
-                        },
-                        onBeforeParse: (element) => {
-                            let componentType = registry_1.ComponentRegistry.componentTypes[index];
-                            console.log(componentType);
-                            return true;
-                        }
-                    });
+                    this._domParser.registerElementHook(new component_1.ComponentParserHook(resolver));
                 }
-                parse(root) {
-                    this._domParser.parseTree(root);
-                }
-            };
-            Parser = __decorate([
-                di_2.Injectable(),
-                __param(0, di_2.Inject(resolver_1.ComponentResolver)), 
-                __metadata('design:paramtypes', [resolver_1.ComponentResolver])
-            ], Parser);
-            exports_33("Parser", Parser);
+                Parser.prototype.parse = function (root, context, skipRootElement) {
+                    this._domParser.parseTree(root, context, skipRootElement);
+                };
+                Parser = __decorate([
+                    di_2.Injectable(),
+                    __param(0, di_2.Inject(di_2.forwardRef(function () { return resolver_1.ComponentResolver; }))), 
+                    __metadata('design:paramtypes', [resolver_1.ComponentResolver])
+                ], Parser);
+                return Parser;
+            }());
+            exports_37("Parser", Parser);
         }
     }
 });
-System.register("runtime/view/factory", [], function(exports_34, context_34) {
+System.register("runtime/view/factory", [], function(exports_38, context_39) {
     "use strict";
-    var __moduleName = context_34 && context_34.id;
+    var __moduleName = context_39 && context_39.id;
     var ViewFactory;
     return {
         setters:[],
         execute: function() {
-            class ViewFactory {
-                constructor(viewType) {
+            ViewFactory = (function () {
+                function ViewFactory(viewType) {
                     this._viewType = viewType;
                 }
-                create(element) {
-                    let view = new this._viewType(element);
+                ViewFactory.prototype.create = function (element) {
+                    var view = new this._viewType(element);
                     return view;
-                }
-            }
-            exports_34("ViewFactory", ViewFactory);
+                };
+                return ViewFactory;
+            }());
+            exports_38("ViewFactory", ViewFactory);
         }
     }
 });
-System.register("runtime/view/view", ["render/parser/parser"], function(exports_35, context_35) {
+System.register("runtime/view/view", ["render/parser/parser"], function(exports_39, context_40) {
     "use strict";
-    var __moduleName = context_35 && context_35.id;
+    var __moduleName = context_40 && context_40.id;
     var parser_1;
     var View;
     return {
@@ -2592,83 +2939,63 @@ System.register("runtime/view/view", ["render/parser/parser"], function(exports_
                 parser_1 = parser_1_1;
             }],
         execute: function() {
-            class View {
-                constructor(element, hostElement) {
+            View = (function () {
+                function View(element, hostElement) {
                     this._rootElement = element;
                     this._hostElement = hostElement;
                     this._parser = this._hostElement.injector.get(parser_1.Parser);
-                    console.log(this._hostElement.injector);
+                    // console.log(this._hostElement.injector);
                 }
-                get rootElement() {
-                    return this._rootElement;
-                }
-                parse() {
-                    this._parser.parse(this._rootElement);
-                }
-                destroy() { }
-            }
-            exports_35("View", View);
+                Object.defineProperty(View.prototype, "rootElement", {
+                    get: function () {
+                        return this._rootElement;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(View.prototype, "hostElement", {
+                    get: function () {
+                        return this._hostElement;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                View.prototype.parse = function () {
+                    this._parser.parse(this._rootElement, this._hostElement, true);
+                };
+                View.prototype.destroy = function () { };
+                return View;
+            }());
+            exports_39("View", View);
         }
     }
 });
-System.register("runtime/view/element", [], function(exports_36, context_36) {
+System.register("runtime/view/element", [], function(exports_40, context_41) {
     "use strict";
-    var __moduleName = context_36 && context_36.id;
+    var __moduleName = context_41 && context_41.id;
     var ElementRef;
     return {
         setters:[],
         execute: function() {
-            class ElementRef {
-                constructor(nativeElement) {
+            ElementRef = (function () {
+                function ElementRef(nativeElement) {
                     this.nativeElement = nativeElement;
                 }
-            }
-            exports_36("ElementRef", ElementRef);
+                return ElementRef;
+            }());
+            exports_40("ElementRef", ElementRef);
         }
     }
 });
-System.register("runtime/view/view_container", [], function(exports_37, context_37) {
+System.register("runtime/view/host", ["debug/debug", "runtime/view/view", "runtime/view/element"], function(exports_41, context_42) {
     "use strict";
-    var __moduleName = context_37 && context_37.id;
-    var ViewContainerRef;
-    return {
-        setters:[],
-        execute: function() {
-            class ViewContainerRef {
-                constructor(element) {
-                    this._element = element;
-                }
-                get injector() {
-                    return this._element.injector;
-                }
-                // TODO: implement!    
-                createEmbeddedView() { }
-                // TODO: implement!
-                createComponent(componentFactory, injector, nativeElement) {
-                }
-                parse() {
-                    this._element.parseView();
-                }
-                // TODO: implement!
-                destroy() {
-                }
-            }
-            exports_37("ViewContainerRef", ViewContainerRef);
-        }
-    }
-});
-System.register("runtime/view/view_element", ["debug/debug", "runtime/view/view_container", "runtime/view/view", "runtime/view/element"], function(exports_38, context_38) {
-    "use strict";
-    var __moduleName = context_38 && context_38.id;
-    var debug_16, view_container_1, view_1, element_1;
-    var ViewElement;
+    var __moduleName = context_42 && context_42.id;
+    var debug_17, view_1, element_1;
+    var HostElement;
     return {
         setters:[
-            function (debug_16_1) {
-                debug_16 = debug_16_1;
-            },
-            function (view_container_1_1) {
-                view_container_1 = view_container_1_1;
+            function (debug_17_1) {
+                debug_17 = debug_17_1;
             },
             function (view_1_1) {
                 view_1 = view_1_1;
@@ -2677,82 +3004,116 @@ System.register("runtime/view/view_element", ["debug/debug", "runtime/view/view_
                 element_1 = element_1_1;
             }],
         execute: function() {
-            class ViewElement {
-                constructor(nativeElement) {
+            HostElement = (function () {
+                function HostElement(nativeElement) {
                     this._componentView = null;
                     this._nestedViews = []; // TODO: Implement embedded views
                     this._nativeElement = nativeElement;
                 }
-                get component() { return this._component; }
-                get elementRef() { return new element_1.ElementRef(this._nativeElement); }
-                get viewContainerRef() { return new view_container_1.ViewContainerRef(this); }
-                get injector() { return this._injector; }
+                Object.defineProperty(HostElement.prototype, "component", {
+                    get: function () { return this._component; },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(HostElement.prototype, "elementRef", {
+                    get: function () { return new element_1.ElementRef(this._nativeElement); },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(HostElement.prototype, "injector", {
+                    get: function () { return this._injector; },
+                    enumerable: true,
+                    configurable: true
+                });
                 ;
-                initComponent(component, injector) {
+                HostElement.prototype.initComponent = function (component, injector) {
                     this._component = component;
                     this._injector = injector;
-                    let componentView = new view_1.View(this._nativeElement, this);
+                    var componentView = new view_1.View(this._nativeElement, this);
                     this._componentView = componentView;
-                }
+                };
                 // TODO    
-                attachView(view, viewIndex) { }
-                parseView(viewIndex = -1) {
-                    let view = this.getView(viewIndex);
-                    debug_16.assert(view instanceof view_1.View, `No view with index "${viewIndex}"" found!`);
+                HostElement.prototype.attachView = function (view, viewIndex) { };
+                HostElement.prototype.parseView = function (viewIndex) {
+                    if (viewIndex === void 0) { viewIndex = -1; }
+                    var view = this.getView(viewIndex);
+                    debug_17.assert(view instanceof view_1.View, "No view with index \"" + viewIndex + "\"\" found!");
                     view.parse();
-                }
-                getView(viewIndex = -1) {
+                };
+                HostElement.prototype.parse = function () {
+                    this.parseView(-1);
+                };
+                HostElement.prototype.getView = function (viewIndex) {
+                    if (viewIndex === void 0) { viewIndex = -1; }
                     return viewIndex === -1 ? this._componentView : this._nestedViews[viewIndex];
-                }
-            }
-            exports_38("ViewElement", ViewElement);
+                };
+                return HostElement;
+            }());
+            exports_41("HostElement", HostElement);
         }
     }
 });
-System.register("runtime/component/reference", [], function(exports_39, context_39) {
+System.register("runtime/component/reference", [], function(exports_42, context_43) {
     "use strict";
-    var __moduleName = context_39 && context_39.id;
+    var __moduleName = context_43 && context_43.id;
     var ComponentReference;
     return {
         setters:[],
         execute: function() {
-            class ComponentReference {
-                constructor(hostElement, componentType) {
+            ComponentReference = (function () {
+                function ComponentReference(hostElement, componentType) {
                     this._hostElement = hostElement;
                     this._componentType = componentType;
                 }
-                get hostElement() {
-                    return this._hostElement;
-                }
-                get viewContainerRef() {
-                    return this._hostElement.viewContainerRef;
-                }
-                get instance() {
-                    return this._hostElement.component;
-                }
-                get injector() {
-                    return this._hostElement.injector;
-                }
-                get componentType() {
-                    return this._componentType;
-                }
-                destroy() {
+                Object.defineProperty(ComponentReference.prototype, "hostElement", {
+                    get: function () {
+                        return this._hostElement;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentReference.prototype, "instance", {
+                    get: function () {
+                        return this._hostElement.component;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentReference.prototype, "injector", {
+                    get: function () {
+                        return this._hostElement.injector;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentReference.prototype, "componentType", {
+                    get: function () {
+                        return this._componentType;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                ComponentReference.prototype.parse = function () {
+                    this._hostElement.parse();
+                };
+                ComponentReference.prototype.destroy = function () {
                     // TODO!
-                }
-            }
-            exports_39("ComponentReference", ComponentReference);
+                };
+                return ComponentReference;
+            }());
+            exports_42("ComponentReference", ComponentReference);
         }
     }
 });
-System.register("runtime/component/metadata", ["debug/debug"], function(exports_40, context_40) {
+System.register("runtime/component/metadata", ["debug/debug"], function(exports_43, context_44) {
     "use strict";
-    var __moduleName = context_40 && context_40.id;
-    var debug_17;
+    var __moduleName = context_44 && context_44.id;
+    var debug_18;
     var ComponentMetadataReference;
     return {
         setters:[
-            function (debug_17_1) {
-                debug_17 = debug_17_1;
+            function (debug_18_1) {
+                debug_18 = debug_18_1;
             }],
         execute: function() {
             /**
@@ -2762,34 +3123,33 @@ System.register("runtime/component/metadata", ["debug/debug"], function(exports_
              * @class ComponentMetadataReference
              * @template C
              */
-            class ComponentMetadataReference {
-                constructor(metadata) {
+            ComponentMetadataReference = (function () {
+                function ComponentMetadataReference(metadata) {
                     // Check if metadata is an object
-                    debug_17.assert(typeof metadata === 'object' && !Array.isArray(metadata), `The metadata object must be an object and implement the ComponentMetadata class!`, TypeError);
+                    debug_18.assert(typeof metadata === 'object' && !Array.isArray(metadata), "The metadata object must be an object and implement the ComponentMetadata class!", TypeError);
                     // Check if a selector is specified in the metadata.
                     // Every directive must have a selector
-                    debug_17.assert(typeof metadata.selector === 'string', `The metadata object must specify a selector!`, TypeError);
+                    debug_18.assert(typeof metadata.selector === 'string', "The metadata object must specify a selector!", TypeError);
                     metadata.selector = metadata.selector.trim();
                     // Check if selector contains only one level of dom nodes
                     // Ok: .my-selector
                     // Not allowed: .parent .my-selector
-                    debug_17.assert(metadata.selector.indexOf(' ') === -1, `The selector "${metadata.selector}" specified in the component metadata contains more than one levels of nodes. Only one is allowed!`, SyntaxError);
+                    debug_18.assert(metadata.selector.indexOf(' ') === -1, "The selector \"" + metadata.selector + "\" specified in the component metadata contains more than one levels of nodes. Only one is allowed!", SyntaxError);
                     // Check if selector is valid
-                    debug_17.assert(!!metadata.selector.match(/^([a-z#\-\.\[\]\=\"\']*)+$/), `The selector "${metadata.selector}" specified in the component metadata is not valid`, SyntaxError);
+                    debug_18.assert(!!metadata.selector.match(/^([a-z#\-\.\[\]\=\"\']*)+$/), "The selector \"" + metadata.selector + "\" specified in the component metadata is not valid", SyntaxError);
                     // Parsing the selector string to an array
                     // 'my-element.class1#id[attribute1].class2[attribute2="value"]'
                     // to
                     // ["my-element", ".class1", "#id", "[attribute1]", ".class2", "[attribute2="value"]"]   
-                    let selectorList = metadata.selector.split('.').join(' .').split('#').join(' #').split('[').join(' [').trim().split(' ');
-                    for (let i = 0, max = selectorList.length; i < max; i++) {
-                        let selector = selectorList[i];
+                    var selectorList = metadata.selector.split('.').join(' .').split('#').join(' #').split('[').join(' [').trim().split(' ');
+                    for (var i = 0, max = selectorList.length; i < max; i++) {
+                        var selector = selectorList[i];
                         if (!selector.length) {
                             continue;
                         }
                         // Check if the selector contains element names whicht are not allowed
                         // eg. custom elements without a "-" in it
-                        debug_17.assert(!selector.match(/^\w+(-\w+)*$/) || !(document.createElement(selector) instanceof HTMLUnknownElement), `The selector "${metadata.selector}" specified in the component metadata contains an element name "${selector}" which is not allowed. 
-                If you are using a custom element, there has to be a "-" char in it!)`, SyntaxError);
+                        debug_18.assert(!selector.match(/^\w+(-\w+)*$/) || !(document.createElement(selector) instanceof HTMLUnknownElement), "The selector \"" + metadata.selector + "\" specified in the component metadata contains an element name \"" + selector + "\" which is not allowed. \n                If you are using a custom element, there has to be a \"-\" char in it!)", SyntaxError);
                     }
                     this._selector = metadata.selector;
                     this._actions = metadata.actions;
@@ -2797,30 +3157,51 @@ System.register("runtime/component/metadata", ["debug/debug"], function(exports_
                     this._templateName = metadata.templateName;
                     this._providers = metadata.providers || [];
                 }
-                get selector() {
-                    return this._selector;
-                }
-                get actions() {
-                    return this._actions || null;
-                }
-                get template() {
-                    return this.template || null;
-                }
-                get templateName() {
-                    return this.templateName || null;
-                }
-                get providers() {
-                    return this._providers;
-                }
-            }
-            exports_40("ComponentMetadataReference", ComponentMetadataReference);
+                Object.defineProperty(ComponentMetadataReference.prototype, "selector", {
+                    get: function () {
+                        return this._selector;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentMetadataReference.prototype, "actions", {
+                    get: function () {
+                        return this._actions || null;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentMetadataReference.prototype, "template", {
+                    get: function () {
+                        return this.template || null;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentMetadataReference.prototype, "templateName", {
+                    get: function () {
+                        return this.templateName || null;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ComponentMetadataReference.prototype, "providers", {
+                    get: function () {
+                        return this._providers;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                return ComponentMetadataReference;
+            }());
+            exports_43("ComponentMetadataReference", ComponentMetadataReference);
         }
     }
 });
-System.register("runtime/component/factory", ["runtime/component/reference", "runtime/component/metadata", "runtime/view/view_element", "runtime/view/element", "runtime/annotations/annotations", "runtime/di/di"], function(exports_41, context_41) {
+System.register("runtime/component/factory", ["runtime/component/reference", "runtime/component/metadata", "runtime/view/host", "runtime/view/element", "runtime/annotations/annotations", "runtime/di/di"], function(exports_44, context_45) {
     "use strict";
-    var __moduleName = context_41 && context_41.id;
-    var reference_1, metadata_3, view_element_1, element_2, annotations_3, di_3;
+    var __moduleName = context_45 && context_45.id;
+    var reference_1, metadata_3, host_2, element_2, annotations_3, di_3;
     var ComponentFactory;
     return {
         setters:[
@@ -2830,8 +3211,8 @@ System.register("runtime/component/factory", ["runtime/component/reference", "ru
             function (metadata_3_1) {
                 metadata_3 = metadata_3_1;
             },
-            function (view_element_1_1) {
-                view_element_1 = view_element_1_1;
+            function (host_2_1) {
+                host_2 = host_2_1;
             },
             function (element_2_1) {
                 element_2 = element_2_1;
@@ -2843,35 +3224,41 @@ System.register("runtime/component/factory", ["runtime/component/reference", "ru
                 di_3 = di_3_1;
             }],
         execute: function() {
-            class ComponentFactory {
-                constructor(componentClass) {
+            ComponentFactory = (function () {
+                function ComponentFactory(componentClass) {
                     this._componentType = componentClass;
                     this._metaRef = annotations_3.Annotations.peek(componentClass).get(metadata_3.ComponentMetadataReference)[0];
                 }
-                get metadataReference() {
-                    return this._metaRef;
-                }
-                create(injector, nativeElement) {
-                    let hostElement = new view_element_1.ViewElement(nativeElement);
-                    let providers = Array.isArray(this._metaRef.providers) ? this._metaRef.providers : [];
+                Object.defineProperty(ComponentFactory.prototype, "metadataReference", {
+                    get: function () {
+                        return this._metaRef;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                ComponentFactory.prototype.create = function (injector, nativeElement) {
+                    var _this = this;
+                    var hostElement = new host_2.HostElement(nativeElement);
+                    var providers = Array.isArray(this._metaRef.providers) ? this._metaRef.providers : [];
                     providers = providers.concat([
                         di_3.provide(element_2.ElementRef, { useValue: hostElement.elementRef }),
-                        di_3.provide(hostElement, { useClass: this._componentType })
+                        di_3.provide(hostElement, { useClass: di_3.forwardRef(function () { return _this._componentType; }) })
                     ]);
-                    let inj = injector.resolveAndCreateChild(providers);
-                    let component = inj.get(hostElement);
+                    var inj = injector.resolveAndCreateChild(providers);
+                    var component = inj.get(hostElement);
                     hostElement.initComponent(component, inj);
-                    let ref = new reference_1.ComponentReference(hostElement, this._componentType);
+                    var ref = new reference_1.ComponentReference(hostElement, this._componentType);
                     return ref;
-                }
-            }
-            exports_41("ComponentFactory", ComponentFactory);
+                };
+                return ComponentFactory;
+            }());
+            exports_44("ComponentFactory", ComponentFactory);
         }
     }
 });
-System.register("runtime/component/resolver", ["runtime/di/di", "runtime/component/factory", "runtime/annotations/annotations"], function(exports_42, context_42) {
+System.register("runtime/component/resolver", ["runtime/di/di", "runtime/component/factory", "runtime/annotations/annotations"], function(exports_45, context_46) {
     "use strict";
-    var __moduleName = context_42 && context_42.id;
+    var __moduleName = context_46 && context_46.id;
     var di_4, factory_1, annotations_4;
     var ComponentResolver;
     return {
@@ -2886,67 +3273,77 @@ System.register("runtime/component/resolver", ["runtime/di/di", "runtime/compone
                 annotations_4 = annotations_4_1;
             }],
         execute: function() {
-            let ComponentResolver = class ComponentResolver {
-                resolveComponent(componentClass) {
-                    let factory = annotations_4.Annotations.peek(componentClass).getSingle(factory_1.ComponentFactory);
+            ComponentResolver = (function () {
+                function ComponentResolver() {
+                }
+                ComponentResolver.prototype.resolveComponent = function (componentClass) {
+                    var factory = annotations_4.Annotations.peek(componentClass).getSingle(factory_1.ComponentFactory);
                     if (!(factory instanceof factory_1.ComponentFactory)) {
                         factory = new factory_1.ComponentFactory(componentClass);
                         annotations_4.Annotations.peek(componentClass).set(factory);
                     }
                     return factory;
-                }
-            };
-            ComponentResolver = __decorate([
-                di_4.Injectable(), 
-                __metadata('design:paramtypes', [])
-            ], ComponentResolver);
-            exports_42("ComponentResolver", ComponentResolver);
+                };
+                ComponentResolver = __decorate([
+                    di_4.Injectable(), 
+                    __metadata('design:paramtypes', [])
+                ], ComponentResolver);
+                return ComponentResolver;
+            }());
+            exports_45("ComponentResolver", ComponentResolver);
         }
     }
 });
-System.register("runtime/bootstrap/bootstrap", ["debug/debug", "utils/class/class", "runtime/component/resolver", "runtime/di/di", "utils/dom/dom", "render/parser/parser"], function(exports_43, context_43) {
+System.register("runtime/bootstrap/bootstrap", ["debug/debug", "utils/class/class", "runtime/component/resolver", "runtime/component/reference", "runtime/di/di", "utils/dom/dom", "render/parser/parser"], function(exports_46, context_47) {
     "use strict";
-    var __moduleName = context_43 && context_43.id;
-    var debug_18, class_3, resolver_2, di_5, dom_2, parser_2;
-    function bootstrap(appComponentType, customProviders = [], root = document.body) {
+    var __moduleName = context_47 && context_47.id;
+    var debug_19, class_2, resolver_2, reference_2, di_5, dom_2, parser_2;
+    function bootstrap(appComponentType, customProviders, root) {
+        if (customProviders === void 0) { customProviders = []; }
+        if (root === void 0) { root = document.body; }
         if (customProviders instanceof Element) {
             root = customProviders;
             customProviders = [];
         }
-        debug_18.assert(root instanceof Element, 'Root has to be an Element!', TypeError);
-        debug_18.assert(Array.isArray(customProviders), 'The custom providers must be an array', TypeError);
-        let providers = [
+        debug_19.assert(root instanceof Element, 'Root has to be an Element!', TypeError);
+        debug_19.assert(Array.isArray(customProviders), 'The custom providers must be an array', TypeError);
+        var appRef;
+        var providers = [
             new di_5.Provider(resolver_2.ComponentResolver, { useClass: resolver_2.ComponentResolver }),
-            new di_5.Provider(parser_2.Parser, { useClass: parser_2.Parser })
+            new di_5.Provider(parser_2.Parser, { useClass: parser_2.Parser }),
+            new di_5.Provider(reference_2.ComponentReference, { useValue: appRef })
         ];
-        let rootInjector = di_5.Injector.resolveAndCreate(providers.concat(customProviders));
-        let componentResolver = rootInjector.get(resolver_2.ComponentResolver);
-        let factory = componentResolver.resolveComponent(appComponentType);
-        let element;
-        let selector = factory.metadataReference.selector;
+        var rootInjector = di_5.Injector.resolveAndCreate(providers.concat(customProviders));
+        var componentResolver = rootInjector.get(resolver_2.ComponentResolver);
+        var factory = componentResolver.resolveComponent(appComponentType);
+        var element;
+        var selector = factory.metadataReference.selector;
         if (dom_2.doesSelectorMatchElement(selector, root)) {
             element = root;
         }
         else {
-            let elements = root.querySelectorAll(factory.metadataReference.selector);
-            debug_18.assert(!!elements.length, `We could not find an element matching the selector "${factory.metadataReference.selector}" of the "${class_3.getClassName(appComponentType)}" component provided to the bootstrap function`);
-            debug_18.assert(elements.length === 1, `There are more than one elements matching the selector "${factory.metadataReference.selector}" of the "${class_3.getClassName(appComponentType)}" component provided to the bootstrap function. Mojito only support one element/component per site for bootstraping your app!`);
+            var elements = root.querySelectorAll(factory.metadataReference.selector);
+            debug_19.assert(!!elements.length, "We could not find an element matching the selector \"" + factory.metadataReference.selector + "\" of the \"" + class_2.getClassName(appComponentType) + "\" component provided to the bootstrap function");
+            debug_19.assert(elements.length === 1, "There are more than one elements matching the selector \"" + factory.metadataReference.selector + "\" of the \"" + class_2.getClassName(appComponentType) + "\" component provided to the bootstrap function. Mojito only support one element/component per site for bootstraping your app!");
             element = elements[0];
         }
-        let appRef = factory.create(rootInjector, element);
-        appRef.viewContainerRef.parse();
+        appRef = factory.create(rootInjector, element);
+        appRef.parse();
     }
-    exports_43("bootstrap", bootstrap);
+    exports_46("bootstrap", bootstrap);
     return {
         setters:[
-            function (debug_18_1) {
-                debug_18 = debug_18_1;
+            function (debug_19_1) {
+                debug_19 = debug_19_1;
             },
-            function (class_3_1) {
-                class_3 = class_3_1;
+            function (class_2_1) {
+                class_2 = class_2_1;
             },
             function (resolver_2_1) {
                 resolver_2 = resolver_2_1;
+            },
+            function (reference_2_1) {
+                reference_2 = reference_2_1;
             },
             function (di_5_1) {
                 di_5 = di_5_1;
@@ -2961,9 +3358,9 @@ System.register("runtime/bootstrap/bootstrap", ["debug/debug", "utils/class/clas
         }
     }
 });
-System.register("runtime/lifecycle/lifecycle_hooks", [], function(exports_44, context_44) {
+System.register("runtime/lifecycle/lifecycle_hooks", [], function(exports_47, context_48) {
     "use strict";
-    var __moduleName = context_44 && context_44.id;
+    var __moduleName = context_48 && context_48.id;
     var LifecycleHooks, OnInit, OnChanges, OnRender, OnDestroy;
     return {
         setters:[],
@@ -2974,25 +3371,37 @@ System.register("runtime/lifecycle/lifecycle_hooks", [], function(exports_44, co
                 LifecycleHooks[LifecycleHooks["OnRender"] = 2] = "OnRender";
                 LifecycleHooks[LifecycleHooks["OnDestroy"] = 3] = "OnDestroy";
             })(LifecycleHooks || (LifecycleHooks = {}));
-            exports_44("LifecycleHooks", LifecycleHooks);
-            class OnInit {
-            }
-            exports_44("OnInit", OnInit);
-            class OnChanges {
-            }
-            exports_44("OnChanges", OnChanges);
-            class OnRender {
-            }
-            exports_44("OnRender", OnRender);
-            class OnDestroy {
-            }
-            exports_44("OnDestroy", OnDestroy);
+            exports_47("LifecycleHooks", LifecycleHooks);
+            OnInit = (function () {
+                function OnInit() {
+                }
+                return OnInit;
+            }());
+            exports_47("OnInit", OnInit);
+            OnChanges = (function () {
+                function OnChanges() {
+                }
+                return OnChanges;
+            }());
+            exports_47("OnChanges", OnChanges);
+            OnRender = (function () {
+                function OnRender() {
+                }
+                return OnRender;
+            }());
+            exports_47("OnRender", OnRender);
+            OnDestroy = (function () {
+                function OnDestroy() {
+                }
+                return OnDestroy;
+            }());
+            exports_47("OnDestroy", OnDestroy);
         }
     }
 });
-System.register("runtime/component/directive", ["runtime/component/metadata", "runtime/annotations/annotations", "runtime/di/di", "runtime/component/registry"], function(exports_45, context_45) {
+System.register("runtime/component/directive", ["runtime/component/metadata", "runtime/annotations/annotations", "runtime/di/di", "runtime/component/registry"], function(exports_48, context_49) {
     "use strict";
-    var __moduleName = context_45 && context_45.id;
+    var __moduleName = context_49 && context_49.id;
     var metadata_4, annotations_5, di_6, registry_2;
     /**
      * The component directive allows you to attach behavior (a class) to elements in the DOM
@@ -3029,12 +3438,12 @@ System.register("runtime/component/directive", ["runtime/component/metadata", "r
     function Component(metadata) {
         return function (componentClass) {
             di_6.Injectable()(componentClass);
-            let metaRef = new metadata_4.ComponentMetadataReference(metadata);
+            var metaRef = new metadata_4.ComponentMetadataReference(metadata);
             annotations_5.Annotations.peek(componentClass).add(metaRef);
             registry_2.ComponentRegistry.register(componentClass, metaRef.selector);
         };
     }
-    exports_45("Component", Component);
+    exports_48("Component", Component);
     return {
         setters:[
             function (metadata_4_1) {
@@ -3053,9 +3462,9 @@ System.register("runtime/component/directive", ["runtime/component/metadata", "r
         }
     }
 });
-System.register("runtime/runtime", ["runtime/bootstrap/bootstrap", "runtime/lifecycle/lifecycle_hooks", "runtime/component/directive", "runtime/view/element", "runtime/di/di"], function(exports_46, context_46) {
+System.register("runtime/runtime", ["runtime/bootstrap/bootstrap", "runtime/lifecycle/lifecycle_hooks", "runtime/component/directive", "runtime/view/element", "runtime/di/di"], function(exports_49, context_50) {
     "use strict";
-    var __moduleName = context_46 && context_46.id;
+    var __moduleName = context_50 && context_50.id;
     var exportedNames_1 = {
         'bootstrap': true,
         'Component': true,
@@ -3066,12 +3475,12 @@ System.register("runtime/runtime", ["runtime/bootstrap/bootstrap", "runtime/life
         for(var n in m) {
             if (n !== "default"&& !exportedNames_1.hasOwnProperty(n)) exports[n] = m[n];
         }
-        exports_46(exports);
+        exports_49(exports);
     }
     return {
         setters:[
             function (bootstrap_1_1) {
-                exports_46({
+                exports_49({
                     "bootstrap": bootstrap_1_1["bootstrap"]
                 });
             },
@@ -3079,12 +3488,12 @@ System.register("runtime/runtime", ["runtime/bootstrap/bootstrap", "runtime/life
                 exportStar_2(lifecycle_hooks_1_1);
             },
             function (directive_1_1) {
-                exports_46({
+                exports_49({
                     "Component": directive_1_1["Component"]
                 });
             },
             function (element_3_1) {
-                exports_46({
+                exports_49({
                     "ElementRef": element_3_1["ElementRef"]
                 });
             },
@@ -3095,15 +3504,15 @@ System.register("runtime/runtime", ["runtime/bootstrap/bootstrap", "runtime/life
         }
     }
 });
-System.register("mojito/runtime", ["runtime/runtime"], function(exports_47, context_47) {
+System.register("mojito/runtime", ["runtime/runtime"], function(exports_50, context_51) {
     "use strict";
-    var __moduleName = context_47 && context_47.id;
+    var __moduleName = context_51 && context_51.id;
     function exportStar_3(m) {
         var exports = {};
         for(var n in m) {
             if (n !== "default") exports[n] = m[n];
         }
-        exports_47(exports);
+        exports_50(exports);
     }
     return {
         setters:[
@@ -3114,4 +3523,4 @@ System.register("mojito/runtime", ["runtime/runtime"], function(exports_47, cont
         }
     }
 });
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibW9qaXRvLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsibGliL2RlYnVnL2Fzc2VydC9hc3NlcnQudHMiLCJsaWIvZGVidWcvbG9nZ2VyL2xvZ2dlci50cyIsImxpYi9kZWJ1Zy9kZWJ1Zy50cyIsImxpYi9jb3JlL2dldC9nZXQudHMiLCJsaWIvY29yZS9hcnJheS9hcnJheS50cyIsImxpYi9jb3JlL21ldGEvbWV0YS50cyIsImxpYi9jb3JlL2l0ZXJhdG9yL2l0ZXJhdG9yLnRzIiwibGliL2NvcmUvd2F0Y2gvd2F0Y2gudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmUudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmFibGUudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmFibGVPYmplY3QudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmVyLnRzIiwibGliL2NvcmUvcHJvcGVydGllcy9wcm9wZXJ0eUV2ZW50cy50cyIsImxpYi9jb3JlL3Byb3BlcnRpZXMvbWFuZGF0b3J5X3NldC50cyIsImxpYi9jb3JlL3Byb3BlcnRpZXMvcHJvcGVydGllcy50cyIsImxpYi9jb3JlL29iamVjdC9vYmplY3QudHMiLCJsaWIvY29yZS9zZXQvc2V0LnRzIiwibGliL2NvcmUvbWFwL21hcC50cyIsImxpYi9jb3JlL29ic2VydmFibGUvb2JzZXJ2ZXMudHMiLCJsaWIvY29yZS9jb3JlLnRzIiwibGliL21vaml0by9jb3JlLnRzIiwibGliL3V0aWxzL2NsYXNzL2NsYXNzLnRzIiwibGliL3J1bnRpbWUvYW5ub3RhdGlvbnMvYW5ub3RhdGlvbnMudHMiLCJsaWIvdXRpbHMvc3RyaW5nL3N0cmluZ2lmeS50cyIsImxpYi9ydW50aW1lL2RpL21ldGFkYXRhLnRzIiwibGliL3J1bnRpbWUvZGkvcHJvdmlkZXIudHMiLCJsaWIvcnVudGltZS9kaS9pbmplY3Rvci50cyIsImxpYi9ydW50aW1lL2RpL2RlY29yYXRvcnMudHMiLCJsaWIvcnVudGltZS9kaS9kaS50cyIsImxpYi91dGlscy9kb20vZG9tLnRzIiwibGliL3JlbmRlci9kb21fcGFyc2VyL2RvbV9wYXJzZXIudHMiLCJsaWIvcnVudGltZS9jb21wb25lbnQvcmVnaXN0cnkudHMiLCJsaWIvcmVuZGVyL3BhcnNlci9wYXJzZXIudHMiLCJsaWIvcnVudGltZS92aWV3L2ZhY3RvcnkudHMiLCJsaWIvcnVudGltZS92aWV3L3ZpZXcudHMiLCJsaWIvcnVudGltZS92aWV3L2VsZW1lbnQudHMiLCJsaWIvcnVudGltZS92aWV3L3ZpZXdfY29udGFpbmVyLnRzIiwibGliL3J1bnRpbWUvdmlldy92aWV3X2VsZW1lbnQudHMiLCJsaWIvcnVudGltZS9jb21wb25lbnQvcmVmZXJlbmNlLnRzIiwibGliL3J1bnRpbWUvY29tcG9uZW50L21ldGFkYXRhLnRzIiwibGliL3J1bnRpbWUvY29tcG9uZW50L2ZhY3RvcnkudHMiLCJsaWIvcnVudGltZS9jb21wb25lbnQvcmVzb2x2ZXIudHMiLCJsaWIvcnVudGltZS9ib290c3RyYXAvYm9vdHN0cmFwLnRzIiwibGliL3J1bnRpbWUvbGlmZWN5Y2xlL2xpZmVjeWNsZV9ob29rcy50cyIsImxpYi9ydW50aW1lL2NvbXBvbmVudC9kaXJlY3RpdmUudHMiLCJsaWIvcnVudGltZS9ydW50aW1lLnRzIiwibGliL21vaml0by9ydW50aW1lLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7OztJQUFBOzs7Ozs7O09BT0c7SUFDSCxnQkFBdUIsU0FBa0IsRUFBRSxPQUFlLEVBQUUsU0FBNEI7UUFDcEYsSUFBSSxXQUFXLEdBQUcsU0FBUyxHQUFHLFNBQVMsR0FBRyxLQUFLLENBQUM7UUFDaEQsRUFBRSxDQUFDLENBQUMsQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDO1lBQ2IsTUFBTSxJQUFJLFdBQVcsQ0FBQyxvQkFBb0IsR0FBRyxPQUFPLENBQUMsQ0FBQztRQUMxRCxDQUFDO0lBQ0wsQ0FBQztJQUxELDJCQUtDLENBQUE7Ozs7Ozs7Ozs7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
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibW9qaXRvLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsibGliL2RlYnVnL2Fzc2VydC9hc3NlcnQudHMiLCJsaWIvZGVidWcvbG9nZ2VyL2xvZ2dlci50cyIsImxpYi9kZWJ1Zy9kZWJ1Zy50cyIsImxpYi9jb3JlL2dldC9nZXQudHMiLCJsaWIvY29yZS9hcnJheS9hcnJheS50cyIsImxpYi9jb3JlL21ldGEvbWV0YS50cyIsImxpYi9jb3JlL2l0ZXJhdG9yL2l0ZXJhdG9yLnRzIiwibGliL2NvcmUvd2F0Y2gvd2F0Y2gudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmUudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmFibGUudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmFibGVPYmplY3QudHMiLCJsaWIvY29yZS9vYnNlcnZhYmxlL29ic2VydmVyLnRzIiwibGliL2NvcmUvcHJvcGVydGllcy9wcm9wZXJ0eUV2ZW50cy50cyIsImxpYi9jb3JlL3Byb3BlcnRpZXMvbWFuZGF0b3J5X3NldC50cyIsImxpYi9jb3JlL3Byb3BlcnRpZXMvcHJvcGVydGllcy50cyIsImxpYi9jb3JlL29iamVjdC9vYmplY3QudHMiLCJsaWIvY29yZS9zZXQvc2V0LnRzIiwibGliL2NvcmUvbWFwL21hcC50cyIsImxpYi9jb3JlL29ic2VydmFibGUvb2JzZXJ2ZXMudHMiLCJsaWIvY29yZS9jb3JlLnRzIiwibGliL21vaml0by9jb3JlLnRzIiwibGliL3V0aWxzL2NsYXNzL2NsYXNzLnRzIiwibGliL3J1bnRpbWUvYW5ub3RhdGlvbnMvYW5ub3RhdGlvbnMudHMiLCJsaWIvdXRpbHMvc3RyaW5nL3N0cmluZ2lmeS50cyIsImxpYi9ydW50aW1lL2RpL21ldGFkYXRhLnRzIiwibGliL3J1bnRpbWUvZGkvZm9yd2FyZF9yZWYudHMiLCJsaWIvcnVudGltZS9kaS9wcm92aWRlci50cyIsImxpYi9ydW50aW1lL2RpL2luamVjdG9yLnRzIiwibGliL3J1bnRpbWUvZGkvZGVjb3JhdG9ycy50cyIsImxpYi9ydW50aW1lL2RpL2RpLnRzIiwibGliL3V0aWxzL2RvbS9kb20udHMiLCJsaWIvcmVuZGVyL3BhcnNlci9jb250ZXh0LnRzIiwibGliL3JlbmRlci9wYXJzZXIvZG9tX3BhcnNlci50cyIsImxpYi9yZW5kZXIvcGFyc2VyL2hvb2tzL2hvb2tzLnRzIiwibGliL3J1bnRpbWUvY29tcG9uZW50L3JlZ2lzdHJ5LnRzIiwibGliL3JlbmRlci9wYXJzZXIvaG9va3MvY29tcG9uZW50LnRzIiwibGliL3JlbmRlci9wYXJzZXIvcGFyc2VyLnRzIiwibGliL3J1bnRpbWUvdmlldy9mYWN0b3J5LnRzIiwibGliL3J1bnRpbWUvdmlldy92aWV3LnRzIiwibGliL3J1bnRpbWUvdmlldy9lbGVtZW50LnRzIiwibGliL3J1bnRpbWUvdmlldy9ob3N0LnRzIiwibGliL3J1bnRpbWUvY29tcG9uZW50L3JlZmVyZW5jZS50cyIsImxpYi9ydW50aW1lL2NvbXBvbmVudC9tZXRhZGF0YS50cyIsImxpYi9ydW50aW1lL2NvbXBvbmVudC9mYWN0b3J5LnRzIiwibGliL3J1bnRpbWUvY29tcG9uZW50L3Jlc29sdmVyLnRzIiwibGliL3J1bnRpbWUvYm9vdHN0cmFwL2Jvb3RzdHJhcC50cyIsImxpYi9ydW50aW1lL2xpZmVjeWNsZS9saWZlY3ljbGVfaG9va3MudHMiLCJsaWIvcnVudGltZS9jb21wb25lbnQvZGlyZWN0aXZlLnRzIiwibGliL3J1bnRpbWUvcnVudGltZS50cyIsImxpYi9tb2ppdG8vcnVudGltZS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7OztJQUFBOzs7Ozs7O09BT0c7SUFDSCxnQkFBdUIsU0FBa0IsRUFBRSxPQUFlLEVBQUUsU0FBNEI7UUFDcEYsSUFBSSxXQUFXLEdBQUcsU0FBUyxHQUFHLFNBQVMsR0FBRyxLQUFLLENBQUM7UUFDaEQsRUFBRSxDQUFDLENBQUMsQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDO1lBQ2Is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

@@ -1,10 +1,9 @@
 import { assert } from '../../debug/debug';
-import { ViewContainerRef } from './view_container';
 import { View } from './view';
 import { ElementRef } from './element';
 import { Injector } from '../di/di';
 
-export class ViewElement {
+export class HostElement {
 
     private _componentView: View = null;
     private _nestedViews: View[] = []; // TODO: Implement embedded views
@@ -14,7 +13,6 @@ export class ViewElement {
 
     get component(): any { return this._component; }    
     get elementRef(): ElementRef { return new ElementRef(this._nativeElement); }
-    get viewContainerRef(): ViewContainerRef { return new ViewContainerRef(this); }
     get injector(): Injector { return this._injector; };
 
     constructor(nativeElement: Element) {
@@ -36,6 +34,10 @@ export class ViewElement {
         let view = this.getView(viewIndex);
         assert(view instanceof View, `No view with index "${viewIndex}"" found!`)
         view.parse();
+    }
+
+    parse() {
+        this.parseView(-1);
     }
 
     getView(viewIndex: number = -1) {

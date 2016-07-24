@@ -1,8 +1,8 @@
 import { assert } from '../../debug/debug';
 import { ClassType, getClassName } from '../../utils/class/class';
 import { ComponentResolver } from '../component/resolver';
+import { ComponentReference } from '../component/reference';
 import { Provider, Injector } from '../di/di';
-import { ViewContainerRef } from '../view/view_container';
 import { doesSelectorMatchElement } from '../../utils/dom/dom';
 import { Parser } from '../../render/parser/parser';
 
@@ -18,9 +18,11 @@ export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: an
     assert(root instanceof Element, 'Root has to be an Element!', TypeError);    
     assert(Array.isArray(customProviders), 'The custom providers must be an array', TypeError);
 
+    let appRef: ComponentReference<any>;    
     let providers = [
         new Provider(ComponentResolver, { useClass: ComponentResolver }),
-        new Provider(Parser, { useClass: Parser })
+        new Provider(Parser, { useClass: Parser }),
+        new Provider(ComponentReference, { useValue: appRef })
     ]
     let rootInjector = Injector.resolveAndCreate(providers.concat(customProviders));
     let componentResolver = <ComponentResolver>rootInjector.get(ComponentResolver);
@@ -43,6 +45,6 @@ export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: an
         element = elements[0];
     }
 
-    let appRef = factory.create(rootInjector, element);
-    appRef.viewContainerRef.parse();
+    appRef = factory.create(rootInjector, element);
+    appRef.parse();
 }

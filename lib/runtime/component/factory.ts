@@ -3,11 +3,10 @@ import { doesSelectorMatchElement } from '../../utils/dom/dom';
 import { assert } from '../../debug/debug';
 import { ComponentReference } from './reference';
 import { ComponentMetadataReference } from './metadata';
-import { ViewContainerRef } from '../view/view_container';
-import { ViewElement } from '../view/view_element';
+import { HostElement } from '../view/host';
 import { ElementRef } from '../view/element';
 import { Annotations } from '../annotations/annotations';
-import { Injector, provide } from '../di/di';
+import { Injector, provide, forwardRef } from '../di/di';
 
 export class ComponentFactory<C> {
 
@@ -25,12 +24,12 @@ export class ComponentFactory<C> {
 
     create(injector: Injector, nativeElement: Element): ComponentReference<C> {        
 
-        let hostElement = new ViewElement(nativeElement);
+        let hostElement = new HostElement(nativeElement);
 
         let providers = Array.isArray(this._metaRef.providers) ? this._metaRef.providers : [];
         providers = providers.concat([
             provide(ElementRef, { useValue: hostElement.elementRef }),
-            provide(hostElement, { useClass: this._componentType })
+            provide(hostElement, { useClass: forwardRef(() => this._componentType) })
         ]);
         
         let inj = injector.resolveAndCreateChild(providers);
