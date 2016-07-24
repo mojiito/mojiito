@@ -38,23 +38,3 @@ export class ComponentParserHook extends ParserElementHook {
         return componentRef.hostElement;
     }
 }
-
-export function _findNextHostFromContext(context: any): HostElement {
-    if (context instanceof HostElement) {
-        return context;
-    }
-    if (Array.isArray(context)) {
-        for (let i = 0, max = context.length; i < max; i++) {
-            let cntxt = context[i];
-            if (cntxt instanceof HostElement) {
-                return cntxt;
-            } else if (Array.isArray(cntxt)) {
-                let result = _findNextHostFromContext(cntxt);
-                if (result instanceof HostElement) {
-                    return result;
-                }
-            }
-        }
-    }
-    return null;
-}

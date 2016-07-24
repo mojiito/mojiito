@@ -1461,7 +1461,6 @@ declare module "render/parser/hooks/component" {
     import { ContextTree } from "render/parser/context";
     import { ParserElementHook } from "render/parser/hooks/hooks";
     import { ComponentResolver } from "runtime/component/resolver";
-    import { HostElement } from "runtime/view/host";
     export class ComponentParserHook extends ParserElementHook {
         private resolver;
         private selectors;
@@ -1470,7 +1469,6 @@ declare module "render/parser/hooks/component" {
         predicate(element: Element): boolean;
         onBeforeParse(element: Element, context: ContextTree): Object | Function;
     }
-    export function _findNextHostFromContext(context: any): HostElement;
 }
 declare module "render/parser/parser" {
     import { ComponentResolver } from "runtime/component/resolver";
