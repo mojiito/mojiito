@@ -6,6 +6,7 @@ import { ParserElementHook, ParserAttributeHook } from './hooks';
 import { doesSelectorMatchElement } from '../../../utils/dom/dom';
 import { ComponentRegistry } from '../../../runtime/component/registry';
 import { ComponentResolver } from '../../../runtime/component/resolver';
+import { View } from '../../../runtime/view/view';
 import { HostElement } from '../../../runtime/view/host';
 
 export class ComponentParserHook extends ParserElementHook {
@@ -31,10 +32,11 @@ export class ComponentParserHook extends ParserElementHook {
     onBeforeParse(element: Element, context: ContextTree): Object | Function {
         let componentType = ComponentRegistry.componentTypes[this.lastFoundSelectorIndex];
         let factory = this.resolver.resolveComponent(componentType);
-        let parentHost = context.getNearestContextOfType(HostElement);
-        assert(parentHost instanceof HostElement, `The found component "${stringify(componentType)}" on the element ${element} has no parent host element.\nAre you using the bootstrap function for setting up your project?`);
-        let componentRef = factory.create(parentHost.injector, element);
+        let view: View = context.getNearestContextOfType(View);
+        assert(view instanceof View, `The found view on the element ${element} has to be of the type View!`);
+        assert(view.hostElement instanceof HostElement, `The found component "${stringify(componentType)}" on the element ${element} has no parent host element.\nAre you using the bootstrap function for setting up your project?`);
+        let componentRef = factory.create(view.hostElement.injector, element);
         this.lastFoundSelectorIndex = -1;
-        return componentRef.hostElement;
+        return componentRef.hostElement.getView(-1);
     }
 }

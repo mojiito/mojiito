@@ -4,6 +4,7 @@ import { DOMParser } from './dom_parser';
 import { ComponentResolver } from '../../runtime/component/resolver';
 import { ComponentReference } from '../../runtime/component/reference';
 import { ComponentParserHook } from './hooks/component';
+import { EventParserHook } from './hooks/event';
 
 @Injectable()
 export class Parser {
@@ -14,6 +15,7 @@ export class Parser {
         @Inject(forwardRef(() => ComponentResolver)) resolver: ComponentResolver
     ) {
         this._domParser.registerElementHook(new ComponentParserHook(resolver));
+        this._domParser.registerAttributeHook(new EventParserHook());
     }
 
     parse(root: Element, context?: any, skipRootElement?: boolean) {

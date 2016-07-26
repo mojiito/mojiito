@@ -26,7 +26,7 @@ export class View {
     }
 
     parse() {
-        this._parser.parse(this._rootElement, this._hostElement, true);
+        this._parser.parse(this._rootElement, this, true);
     }
 
     destroy() { }

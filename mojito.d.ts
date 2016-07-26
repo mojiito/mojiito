@@ -1470,6 +1470,16 @@ declare module "render/parser/hooks/component" {
         onBeforeParse(element: Element, context: ContextTree): Object | Function;
     }
 }
+declare module "render/parser/hooks/event" {
+    import { ContextTree } from "render/parser/context";
+    import { ParserAttributeHook } from "render/parser/hooks/hooks";
+    export class EventParserHook extends ParserAttributeHook {
+        removeAttributeNode: boolean;
+        constructor();
+        predicate(attribute: Attr): boolean;
+        onParse(element: Element, attribute: Attr, context: ContextTree): void;
+    }
+}
 declare module "render/parser/parser" {
     import { ComponentResolver } from "runtime/component/resolver";
     export class Parser {

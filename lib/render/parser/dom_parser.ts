@@ -39,7 +39,9 @@ export class DOMParser {
             throw new Error('The property element has to be an Element');
         }
 
-        contextTree.down();
+        if (!skipRootElement)  {
+            contextTree.down();
+        }
         
         // Skip script and styles elements
         const tagName: string = element.tagName.toUpperCase();
@@ -132,8 +134,9 @@ export class DOMParser {
         }
 
         element.setAttribute(DOMParser.PARSED_ELEMENT_ATTR, '');
-        
-        contextTree.up();
+        if (!skipRootElement) {
+            contextTree.up();
+        }
     }
 
     registerElementHook(hook: IDOMParserElementHook): void {
