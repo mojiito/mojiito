@@ -1,5 +1,5 @@
 import { observes } from 'mojito/core';
-import { Injector, Injectable, Inject, Component, bootstrap, Provider, ElementRef } from 'mojito/runtime';
+import { Injector, Injectable, Inject, Component, bootstrap, Provider, ElementRef, HostElement } from 'mojito/runtime';
 
 console.time('startUp');
 
@@ -59,7 +59,8 @@ class TodoApp {
 class TodoForm {
     constructor(
         @Inject(TodoStore) store: TodoStore,
-        @Inject(ElementRef) element: ElementRef
+        @Inject(ElementRef) element: ElementRef,
+        @Inject(HostElement) host: HostElement
     ) {
         console.log('init TodoForm', element.nativeElement);
     }
@@ -75,7 +76,7 @@ class TodoList {
         @Inject(TodoStore) store: TodoStore,
         @Inject(ElementRef) element: ElementRef
     ) {
-        console.log('init TodoList', element.nativeElement);
+        // console.log('init TodoList', element.nativeElement);
     }
 }
 
@@ -93,7 +94,7 @@ class TodoListItem {
         @Inject(TodoStore) store: TodoStore,
         @Inject(ElementRef) element: ElementRef
     ) {
-        console.log('init TodoItem', element.nativeElement);
+        // console.log('init TodoItem', element.nativeElement);
     }
 }
 

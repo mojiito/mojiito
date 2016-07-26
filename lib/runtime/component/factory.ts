@@ -23,18 +23,17 @@ export class ComponentFactory<C> {
     }
 
     create(injector: Injector, nativeElement: Element): ComponentReference<C> {        
-
         let hostElement = new HostElement(nativeElement);
 
         let providers = Array.isArray(this._metaRef.providers) ? this._metaRef.providers : [];
         providers = providers.concat([
             provide(ElementRef, { useValue: hostElement.elementRef }),
+            provide(HostElement, { useValue: hostElement }),
             provide(hostElement, { useClass: forwardRef(() => this._componentType) })
         ]);
         
         let inj = injector.resolveAndCreateChild(providers);
         let component = inj.get(hostElement);
-
         hostElement.initComponent(component, inj);
 
         let ref = new ComponentReference(hostElement, this._componentType);

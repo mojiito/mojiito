@@ -115,7 +115,6 @@ export class Injector {
             if (provider.token === token) {
                 let resolvedFactory = provider.resolvedFactory;
                 let resolvedDepts: any[] = [];
-                // console.log('GET', resolvedFactory);
                 for (let j = 0, max = resolvedFactory.dependencies.length; j < max; j++) {
                     let deptToken = resolveForwardRef(resolvedFactory.dependencies[j]);
                     let dept = this.get(deptToken);

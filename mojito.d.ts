@@ -1118,7 +1118,7 @@ declare module "runtime/annotations/annotations" {
         constructor(classType: ClassType<any>);
         get<A>(annotationType: ClassType<A>): A[];
         getSingle<A>(annotationType: ClassType<A>): A;
-        add<A>(annotation: A): void;
+        add<A>(annotation: A, index?: number): void;
         set<A>(annotation: A): void;
         static peek(classType: ClassType<any>): Annotations;
         static isAnnotated(classType: ClassType<any>): boolean;
@@ -1771,6 +1771,7 @@ declare module "runtime/runtime" {
     export * from "runtime/lifecycle/lifecycle_hooks";
     export { Component } from "runtime/component/directive";
     export { ElementRef } from "runtime/view/element";
+    export { HostElement } from "runtime/view/host";
     export * from "runtime/di/di";
 }
 declare module "mojito/runtime" {

@@ -21,14 +21,18 @@ export class Annotations {
         return Array.isArray(annotations) && annotations.length ? annotations[0] : null;
     }
 
-    add<A>(annotation: A) {
+    add<A>(annotation: A, index?: number) {
         assert(isClassInstance(annotation), `Annotation ${annotation} has to be an instance of a class`, TypeError);
         let annotations = this.get(<ClassType<A>>annotation['constructor']);
         if (annotations === undefined) {
             annotations = [];
             this._map.set(annotation['constructor'],annotations);
         }
-        annotations.push(annotation);
+        if (typeof index === 'number' && index >= 0) {
+            annotations[index] = annotation;
+        } else  {
+            annotations.push(annotation);
+        }
     }
 
     set<A>(annotation: A) {

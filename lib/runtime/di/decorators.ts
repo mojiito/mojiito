@@ -7,7 +7,7 @@ import { InjectableMetadata, InjectMetadata } from './metadata';
 export function Inject<C>(token: any): ParameterDecorator {
     return function (target: ClassType<C>, propertyKey: string | symbol, parameterIndex: number): void {
         assert(typeof token !== 'undefined', 'Parameter decorator @Inject needs a token, please provide one!', TypeError);
-        Annotations.peek(target).add(new InjectMetadata(token));
+        Annotations.peek(target).add(new InjectMetadata(token), parameterIndex);
     }
 }
 
