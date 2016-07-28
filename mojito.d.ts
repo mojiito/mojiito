@@ -1110,19 +1110,28 @@ declare module "utils/class/class" {
     export function getClassName<T>(klass: ClassType<T>): string;
     export function isClassInstance(instance: any): boolean;
 }
-declare module "runtime/annotations/annotations" {
+declare module "runtime/reflect/reflection" {
     import { ClassType } from "utils/class/class";
-    export class Annotations {
-        private _map;
-        private _classType;
-        constructor(classType: ClassType<any>);
-        get<A>(annotationType: ClassType<A>): A[];
-        getSingle<A>(annotationType: ClassType<A>): A;
-        add<A>(annotation: A, index?: number): void;
-        set<A>(annotation: A): void;
-        static peek(classType: ClassType<any>): Annotations;
-        static isAnnotated(classType: ClassType<any>): boolean;
+    import { TypedMap } from "core/map/map";
+    export class ClassReflection {
+        private _properties;
+        private _parameters;
+        private _annotations;
+        properties: {
+            key: string | symbol;
+            value: any;
+        }[];
+        parameters: any[];
+        annotations: TypedMap<ClassType<any>, any>;
+        static peek(classType: ClassType<any>): ClassReflection;
+        static isReflected(classType: ClassType<any>): boolean;
     }
+}
+declare module "utils/decorators/decorators" {
+    import { ClassType } from "utils/class/class";
+    export function createClassDecorator(metadataClass: ClassType<any>): (objOrType: any) => ClassDecorator;
+    export function createParameterDecorator(metadataClass: ClassType<any>): (objOrType: any) => ParameterDecorator;
+    export function createPropertyDecoratory(): (objOrType: any) => ParameterDecorator;
 }
 declare module "utils/string/stringify" {
     export function stringify(token: any): string;
@@ -1137,6 +1146,16 @@ declare module "runtime/di/metadata" {
         constructor(token: any);
         toString(): string;
     }
+}
+declare module "runtime/di/decorators" {
+    export interface InjectableMetadataFactory {
+        (): ClassDecorator;
+    }
+    export var Injectable: InjectableMetadataFactory;
+    export interface InjectMetadataFactory {
+        (token: any): ParameterDecorator;
+    }
+    export var Inject: InjectMetadataFactory;
 }
 declare module "runtime/di/forward_ref" {
     import { ClassType } from "utils/class/class";
@@ -1357,10 +1376,6 @@ declare module "runtime/di/injector" {
         get(token: any): any;
     }
 }
-declare module "runtime/di/decorators" {
-    export function Inject<C>(token: any): ParameterDecorator;
-    export function Injectable(): ClassDecorator;
-}
 declare module "runtime/di/di" {
     /**
      * Mojito's dependency injection basically a simpler version of Angular's DI.
@@ -1461,19 +1476,30 @@ declare module "render/parser/hooks/component" {
     import { ContextTree } from "render/parser/context";
     import { ParserElementHook } from "render/parser/hooks/hooks";
     import { ComponentResolver } from "runtime/component/resolver";
+    import { View } from "runtime/view/view";
     export class ComponentParserHook extends ParserElementHook {
         private resolver;
         private selectors;
         private lastFoundSelectorIndex;
         constructor(resolver: ComponentResolver);
         predicate(element: Element): boolean;
-        onBeforeParse(element: Element, context: ContextTree): Object | Function;
+        onBeforeParse(element: Element, context: ContextTree): View;
     }
 }
 declare module "render/parser/hooks/event" {
     import { ContextTree } from "render/parser/context";
     import { ParserAttributeHook } from "render/parser/hooks/hooks";
     export class EventParserHook extends ParserAttributeHook {
+        removeAttributeNode: boolean;
+        constructor();
+        predicate(attribute: Attr): boolean;
+        onParse(element: Element, attribute: Attr, context: ContextTree): void;
+    }
+}
+declare module "render/parser/hooks/binding" {
+    import { ContextTree } from "render/parser/context";
+    import { ParserAttributeHook } from "render/parser/hooks/hooks";
+    export class BindingParserHook extends ParserAttributeHook {
         removeAttributeNode: boolean;
         constructor();
         predicate(attribute: Attr): boolean;
@@ -1554,154 +1580,55 @@ declare module "runtime/component/reference" {
     }
 }
 declare module "runtime/component/metadata" {
-    import { ClassType } from "utils/class/class";
-    import { Provider } from "runtime/di/di";
-    /**
-     * Specifies the metadata to describe a component class using the {@Component} decorator.
-     *
-     * @export
-     * @abstract
-     * @class ComponentMetadata
-     */
-    export interface ComponentMetadata {
-        /**
-         * Specifies the CSS Selector where the class will be instanciated on.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'button'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'my-button'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: '[my-button]'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: '.btn'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * ```typescript
-         * @Component({
-         *   selector: '#my-button'
-         * })
-         * class MyButton {
-         * }
-         * ```
-         *
-         * @type {string}
-         */
+    import { InjectableMetadata } from "runtime/di/metadata";
+    export class DirectiveMetadata extends InjectableMetadata {
         selector: string;
-        /**
-         * Specifies the actions (events) related to the element.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'button',
-         *   actions: {
-         *     '(click)': 'onClick(event)'
-         *   }
-         * })
-         * class MyButton {
-         *     onClick(event: MouseEvent) {
-         *       // your code
-         *     }
-         * }
-         * ```
-         *
-         * @type {{[key: string]: string}}
-         */
-        actions?: {
+        inputs: string[];
+        outputs: string[];
+        host: {
             [key: string]: string;
         };
-        /**
-         * Defines a template string which will be compiled an applied to the DOM.
-         *
-         * ```typescript
-         * @Component({
-         *   selector: 'custom-tooltip',
-         *   template: `
-         *      <div class="tooltip__body">
-         *          Some text
-         *      </div>
-         *   `
-         * })
-         * class CustomTooltipComponent {
-         *      // your code
-         * }
-         * ```
-         *
-         * @type {string}
-         */
-        template?: string;
-        /**
-         * TODO: CLI Implementation
-         *
-         * @type {string}
-         */
-        templateName?: string;
-        /**
-         * List of provideable classes, providers or provider like objects
-         *
-         * @type {(Array<ClassType<any> | Provider | { [key: string]: any }>)}
-         */
-        providers?: Array<ClassType<any> | Provider | {
-            [key: string]: any;
-        }>;
+        providers: any[];
+        constructor({selector, inputs, outputs, host, providers}?: {
+            selector?: string;
+            inputs?: string[];
+            outputs?: string[];
+            host?: {
+                [key: string]: string;
+            };
+            providers?: any[];
+        });
+        toString(): string;
     }
-    /**
-     * Reference Object containing the component metadata
-     *
-     * @export
-     * @class ComponentMetadataReference
-     * @template C
-     */
-    export class ComponentMetadataReference<C> {
-        private _selector;
-        private _actions;
-        private _template;
-        private _templateName;
-        private _providers;
-        constructor(metadata: ComponentMetadata);
-        selector: string;
-        actions: {
-            [key: string]: string;
-        };
+    export class ComponentMetadata extends DirectiveMetadata {
+        templateUrl: string;
         template: string;
-        templateName: string;
-        providers: Array<ClassType<any> | Provider | {
-            [key: string]: any;
-        }>;
+        styleUrls: string[];
+        styles: string[];
+        constructor({selector, inputs, outputs, host, providers, templateUrl, template, styleUrls, styles}?: {
+            selector?: string;
+            inputs?: string[];
+            outputs?: string[];
+            host?: {
+                [key: string]: string;
+            };
+            providers?: any[];
+            templateUrl?: string;
+            template?: string;
+            styleUrls?: string[];
+            styles?: string[];
+        });
+        toString(): string;
     }
 }
 declare module "runtime/component/factory" {
     import { ClassType } from "utils/class/class";
     import { ComponentReference } from "runtime/component/reference";
-    import { ComponentMetadataReference } from "runtime/component/metadata";
     import { Injector } from "runtime/di/di";
     export class ComponentFactory<C> {
-        private _metaRef;
         private _componentType;
         constructor(componentClass: ClassType<C>);
-        metadataReference: ComponentMetadataReference<C>;
+        componentType: ClassType<C>;
         create(injector: Injector, nativeElement: Element): ComponentReference<C>;
     }
 }
@@ -1740,8 +1667,23 @@ declare module "runtime/lifecycle/lifecycle_hooks" {
         abstract onDestroy(): void;
     }
 }
-declare module "runtime/component/directive" {
-    import { ComponentMetadata } from "runtime/component/metadata";
+declare module "runtime/component/decorators" {
+    export interface ComponentMetadataFactory {
+        (metadata: {
+            selector?: string;
+            inputs?: string[];
+            outputs?: string[];
+            events?: string[];
+            host?: {
+                [key: string]: string;
+            };
+            providers?: any[];
+            templateUrl?: string;
+            template?: string;
+            styleUrls?: string[];
+            styles?: string[];
+        }): ClassDecorator;
+    }
     /**
      * The component directive allows you to attach behavior (a class) to elements in the DOM
      * using a class decorator or the {@link registerDirective} function.
@@ -1774,12 +1716,14 @@ declare module "runtime/component/directive" {
      * @param {ComponentMetadata} metadata Component metadata
      * @returns {ClassDecorator}
      */
-    export function Component(metadata: ComponentMetadata): ClassDecorator;
+    export function Input(): PropertyDecorator;
+    export function Output(bindingPropertyName?: string): PropertyDecorator;
+    export var Component: ComponentMetadataFactory;
 }
 declare module "runtime/runtime" {
     export { bootstrap } from "runtime/bootstrap/bootstrap";
     export * from "runtime/lifecycle/lifecycle_hooks";
-    export { Component } from "runtime/component/directive";
+    export { Component, Input, Output } from "runtime/component/decorators";
     export { ElementRef } from "runtime/view/element";
     export { HostElement } from "runtime/view/host";
     export * from "runtime/di/di";

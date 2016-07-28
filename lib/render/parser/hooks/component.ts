@@ -29,7 +29,7 @@ export class ComponentParserHook extends ParserElementHook {
         return false;
     }
 
-    onBeforeParse(element: Element, context: ContextTree): Object | Function {
+    onBeforeParse(element: Element, context: ContextTree) {//: Object | Function {
         let componentType = ComponentRegistry.componentTypes[this.lastFoundSelectorIndex];
         let factory = this.resolver.resolveComponent(componentType);
         let view: View = context.getNearestContextOfType(View);

@@ -1,5 +1,5 @@
 import { observes } from 'mojito/core';
-import { Injector, Injectable, Inject, Component, bootstrap, Provider, ElementRef, HostElement } from 'mojito/runtime';
+import { Injector, Injectable, Inject, Component, Output, bootstrap, Provider, ElementRef, HostElement } from 'mojito/runtime';
 
 console.time('startUp');
 
@@ -48,7 +48,7 @@ class TodoStore {
     }
 }
 
-@Component({ selector: '[todo-app]' })    
+@Component({ selector: '[todo-app]' })
 class TodoApp {
     constructor( @Inject(TodoStore) store: TodoStore) {
         store.add('test', new Date());
@@ -57,6 +57,7 @@ class TodoApp {
 
 @Component({ selector: 'todo-form' })    
 class TodoForm {
+
     constructor(
         @Inject(TodoStore) store: TodoStore,
         @Inject(ElementRef) element: ElementRef,

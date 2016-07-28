@@ -18,10 +18,23 @@ export class EventParserHook extends ParserAttributeHook {
     }
 
     onParse(element: Element, attribute: Attr, context: ContextTree) {
-        let view = context.getNearestContextOfType(View);
+        let view:View = context.getNearestContextOfType(View);
 
-        console.log(context.getUnfiltered());
-        // console.log(context.getFiltered());
+        assert(view instanceof View, ``);
+        if (context.getUnfiltered()[0].filter(value => value.context === view).length && view.hostElement.getView(-1) === view) {
+            // event is attached on a component
+            // TODOs:
+            // - check if event is a @Output event on the component (if not, throw error)
+            // - check if it is an expression or a method call
+            // - bind onto event
+            console.log("event on component detected", view.hostElement.component);
+        } else {
+            // normal event
+            // TODOs:
+            // - check if it is an expression or a method call
+            // - bind onto event
+            console.log("event detected");
+        }
 
         console.log(view);
         console.log(element, attribute, context);

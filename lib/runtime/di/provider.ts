@@ -1,5 +1,5 @@
 import { ClassType } from '../../utils/class/class';
-import { Annotations } from '../annotations/annotations';
+import { ClassReflection } from '../reflect/reflection';
 import { InjectMetadata, InjectableMetadata } from './metadata';
 import { Injector } from './injector';
 import { resolveForwardRef } from './forward_ref';
@@ -173,9 +173,14 @@ export function resolveFactory(provider: Provider): ResolvedFactory {
 
 export function dependenciesForClass(annotatedClass: ClassType<any>) {
     let dependecies: any[] = []
-    let dependencyTokens = Annotations.peek(annotatedClass).get(InjectMetadata);
+    let dependencyTokens = ClassReflection.peek(annotatedClass).parameters.filter(value => value instanceof InjectMetadata);
     if (Array.isArray(dependencyTokens)) {
-        let isInjectable = !!Annotations.peek(annotatedClass).get(InjectableMetadata);
+        let isInjectable = false;
+        ClassReflection.peek(annotatedClass).annotations.forEach(value => {
+            if (value instanceof InjectableMetadata) {
+                isInjectable = true;
+            }
+        });
         assert(!!isInjectable, `Cannot resolve all parameters for ${stringify(annotatedClass)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
         for (let i = 0, max = dependencyTokens.length; i < max; i++) {
             let dep = dependencyTokens[i];
