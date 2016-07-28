@@ -34,6 +34,38 @@ export class DirectiveMetadata extends InjectableMetadata {
     toString(): string { return `@DirectiveMetadata()`; }
 }
 
+/**
+ * The component directive allows you to attach behavior (a class) to elements in the DOM
+ * using a class decorator or the {@link registerDirective} function.
+ *
+ * A component directive contains metadata (including the elements selector)
+ * and a class which will be attached to the elements.
+ *
+ * Assume this HTML Template or DOM
+ * ```html
+ * <form class="form">
+ *   <div>
+ *     <div my-component>
+ *       <div>
+ *         <div></div>
+ *       </div>
+ *       <div></div>
+ *     </div>
+ *   </div>
+ * </form>
+ * ```
+ *
+ * ```typescript
+ * @Component({ selector: '[my-component]'})
+ * class MyComponent {
+ *  // Your Code
+ * }
+ * ```
+ * 
+ * @export
+ * @class ComponentMetadata
+ * @extends {DirectiveMetadata}
+ */
 export class ComponentMetadata extends DirectiveMetadata {
     templateUrl: string;
     template: string;
@@ -74,3 +106,12 @@ export class ComponentMetadata extends DirectiveMetadata {
     toString(): string { return `@ComponentMetadata()`; }
 }
 
+export class InputMetadata {
+    constructor(public bindingPropertyName?: string) { }
+    toString(): string { return `@InputMetadata(${stringify(this.bindingPropertyName)})`; }
+}
+
+export class OutputMetadata {
+    constructor(public bindingPropertyName?: string) { }
+    toString(): string { return `@OutputMetadata(${stringify(this.bindingPropertyName)})`; }
+}

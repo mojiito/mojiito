@@ -1117,21 +1117,12 @@ declare module "runtime/reflect/reflection" {
         private _properties;
         private _parameters;
         private _annotations;
-        properties: {
-            key: string | symbol;
-            value: any;
-        }[];
+        properties: any[];
         parameters: any[];
         annotations: TypedMap<ClassType<any>, any>;
         static peek(classType: ClassType<any>): ClassReflection;
         static isReflected(classType: ClassType<any>): boolean;
     }
-}
-declare module "utils/decorators/decorators" {
-    import { ClassType } from "utils/class/class";
-    export function createClassDecorator(metadataClass: ClassType<any>): (objOrType: any) => ClassDecorator;
-    export function createParameterDecorator(metadataClass: ClassType<any>): (objOrType: any) => ParameterDecorator;
-    export function createPropertyDecoratory(): (objOrType: any) => ParameterDecorator;
 }
 declare module "utils/string/stringify" {
     export function stringify(token: any): string;
@@ -1146,6 +1137,107 @@ declare module "runtime/di/metadata" {
         constructor(token: any);
         toString(): string;
     }
+}
+declare module "runtime/component/metadata" {
+    import { InjectableMetadata } from "runtime/di/metadata";
+    export class DirectiveMetadata extends InjectableMetadata {
+        selector: string;
+        inputs: string[];
+        outputs: string[];
+        host: {
+            [key: string]: string;
+        };
+        providers: any[];
+        constructor({selector, inputs, outputs, host, providers}?: {
+            selector?: string;
+            inputs?: string[];
+            outputs?: string[];
+            host?: {
+                [key: string]: string;
+            };
+            providers?: any[];
+        });
+        toString(): string;
+    }
+    /**
+     * The component directive allows you to attach behavior (a class) to elements in the DOM
+     * using a class decorator or the {@link registerDirective} function.
+     *
+     * A component directive contains metadata (including the elements selector)
+     * and a class which will be attached to the elements.
+     *
+     * Assume this HTML Template or DOM
+     * ```html
+     * <form class="form">
+     *   <div>
+     *     <div my-component>
+     *       <div>
+     *         <div></div>
+     *       </div>
+     *       <div></div>
+     *     </div>
+     *   </div>
+     * </form>
+     * ```
+     *
+     * ```typescript
+     * @Component({ selector: '[my-component]'})
+     * class MyComponent {
+     *  // Your Code
+     * }
+     * ```
+     *
+     * @export
+     * @class ComponentMetadata
+     * @extends {DirectiveMetadata}
+     */
+    export class ComponentMetadata extends DirectiveMetadata {
+        templateUrl: string;
+        template: string;
+        styleUrls: string[];
+        styles: string[];
+        constructor({selector, inputs, outputs, host, providers, templateUrl, template, styleUrls, styles}?: {
+            selector?: string;
+            inputs?: string[];
+            outputs?: string[];
+            host?: {
+                [key: string]: string;
+            };
+            providers?: any[];
+            templateUrl?: string;
+            template?: string;
+            styleUrls?: string[];
+            styles?: string[];
+        });
+        toString(): string;
+    }
+    export class InputMetadata {
+        bindingPropertyName: string;
+        constructor(bindingPropertyName?: string);
+        toString(): string;
+    }
+    export class OutputMetadata {
+        bindingPropertyName: string;
+        constructor(bindingPropertyName?: string);
+        toString(): string;
+    }
+}
+declare module "runtime/directive/registry" {
+    import { ClassType } from "utils/class/class";
+    export class DirectiveRegistry {
+        private static _directiveTypes;
+        private static _selectors;
+        static selectors: string[];
+        static directiveTypes: ClassType<any>[];
+        static register(directiveType: ClassType<any>, selector: string): void;
+        static bySelector(selector: string): ClassType<any>;
+    }
+}
+declare module "utils/decorators/decorators" {
+    import { ClassType } from "utils/class/class";
+    export function createClassDecorator(metadataClass: ClassType<any>): (objOrType: any) => ClassDecorator;
+    export function createParameterDecorator(metadataClass: ClassType<any>): (objOrType: any) => ParameterDecorator;
+    export function createPropertyDecoratory(metadataClass: ClassType<any>): (objOrType: any) => ParameterDecorator;
 }
 declare module "runtime/di/decorators" {
     export interface InjectableMetadataFactory {
@@ -1291,6 +1383,13 @@ declare module "runtime/di/provider" {
         dependencies: any[];
     }
     export function resolveFactory(provider: Provider): ResolvedFactory;
+    /**
+     * Looks up and returns the dependecies as an array for an annotated class.
+     *
+     * @export
+     * @param {ClassType<any>} annotatedClass
+     * @returns {any[]}
+     */
     export function dependenciesForClass(annotatedClass: ClassType<any>): any[];
 }
 declare module "runtime/di/injector" {
@@ -1461,29 +1560,17 @@ declare module "render/parser/hooks/hooks" {
         abstract predicate(attribute: Attr): boolean;
     }
 }
-declare module "runtime/component/registry" {
-    import { ClassType } from "utils/class/class";
-    export class ComponentRegistry {
-        private static _componentTypes;
-        private static _selectors;
-        static selectors: string[];
-        static componentTypes: ClassType<any>[];
-        static register(componentType: ClassType<any>, selector: string): void;
-        static bySelector(selector: string): ClassType<any>;
-    }
-}
 declare module "render/parser/hooks/component" {
     import { ContextTree } from "render/parser/context";
     import { ParserElementHook } from "render/parser/hooks/hooks";
     import { ComponentResolver } from "runtime/component/resolver";
-    import { View } from "runtime/view/view";
     export class ComponentParserHook extends ParserElementHook {
         private resolver;
         private selectors;
         private lastFoundSelectorIndex;
         constructor(resolver: ComponentResolver);
         predicate(element: Element): boolean;
-        onBeforeParse(element: Element, context: ContextTree): View;
+        onBeforeParse(element: Element, context: ContextTree): Object | Function;
     }
 }
 declare module "render/parser/hooks/event" {
@@ -1579,48 +1666,6 @@ declare module "runtime/component/reference" {
         destroy(): void;
     }
 }
-declare module "runtime/component/metadata" {
-    import { InjectableMetadata } from "runtime/di/metadata";
-    export class DirectiveMetadata extends InjectableMetadata {
-        selector: string;
-        inputs: string[];
-        outputs: string[];
-        host: {
-            [key: string]: string;
-        };
-        providers: any[];
-        constructor({selector, inputs, outputs, host, providers}?: {
-            selector?: string;
-            inputs?: string[];
-            outputs?: string[];
-            host?: {
-                [key: string]: string;
-            };
-            providers?: any[];
-        });
-        toString(): string;
-    }
-    export class ComponentMetadata extends DirectiveMetadata {
-        templateUrl: string;
-        template: string;
-        styleUrls: string[];
-        styles: string[];
-        constructor({selector, inputs, outputs, host, providers, templateUrl, template, styleUrls, styles}?: {
-            selector?: string;
-            inputs?: string[];
-            outputs?: string[];
-            host?: {
-                [key: string]: string;
-            };
-            providers?: any[];
-            templateUrl?: string;
-            template?: string;
-            styleUrls?: string[];
-            styles?: string[];
-        });
-        toString(): string;
-    }
-}
 declare module "runtime/component/factory" {
     import { ClassType } from "utils/class/class";
     import { ComponentReference } from "runtime/component/reference";
@@ -1684,41 +1729,15 @@ declare module "runtime/component/decorators" {
             styles?: string[];
         }): ClassDecorator;
     }
-    /**
-     * The component directive allows you to attach behavior (a class) to elements in the DOM
-     * using a class decorator or the {@link registerDirective} function.
-     *
-     * A component directive contains metadata (including the elements selector)
-     * and a class which will be attached to the elements.
-     *
-     * Assume this HTML Template or DOM
-     * ```html
-     * <form class="form">
-     *   <div>
-     *     <div my-component>
-     *       <div>
-     *         <div></div>
-     *       </div>
-     *       <div></div>
-     *     </div>
-     *   </div>
-     * </form>
-     * ```
-     *
-     * ```typescript
-     * @Component({ selector: '[my-component]'})
-     * class MyComponent {
-     *  // Your Code
-     * }
-     * ```
-     *
-     * @export
-     * @param {ComponentMetadata} metadata Component metadata
-     * @returns {ClassDecorator}
-     */
-    export function Input(): PropertyDecorator;
-    export function Output(bindingPropertyName?: string): PropertyDecorator;
     export var Component: ComponentMetadataFactory;
+    export interface InputMetadataFactory {
+        (bindingPropertyName?: string): PropertyDecorator;
+    }
+    export var Input: InputMetadataFactory;
+    export interface OutputMetadataFactory {
+        (bindingPropertyName?: string): PropertyDecorator;
+    }
+    export var Output: OutputMetadataFactory;
 }
 declare module "runtime/runtime" {
     export { bootstrap } from "runtime/bootstrap/bootstrap";

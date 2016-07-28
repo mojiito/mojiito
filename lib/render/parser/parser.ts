@@ -15,7 +15,7 @@ export class Parser {
     constructor(
         @Inject(forwardRef(() => ComponentResolver)) resolver: ComponentResolver
     ) {
-        // this._domParser.registerElementHook(new ComponentParserHook(resolver));
+        this._domParser.registerElementHook(new ComponentParserHook(resolver));
         this._domParser.registerAttributeHook(new EventParserHook());
         this._domParser.registerAttributeHook(new BindingParserHook());
     }

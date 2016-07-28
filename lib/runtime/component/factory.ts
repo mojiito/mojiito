@@ -18,7 +18,8 @@ export class ComponentFactory<C> {
 
     get componentType():ClassType<C> { return this._componentType; }
 
-    create(injector: Injector, nativeElement: Element) {//: ComponentReference<C> {        
+    create(injector: Injector, nativeElement: Element): ComponentReference<C> {
+        console.log(ClassReflection.peek(this._componentType));
         let hostElement = new HostElement(nativeElement);
         let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata)
         let providers = Array.isArray(metadata.providers) ? metadata.providers : [];
@@ -31,7 +32,7 @@ export class ComponentFactory<C> {
         let inj = injector.resolveAndCreateChild(providers);
         let component = inj.get(hostElement);
         hostElement.initComponent(component, inj);
-
+        
         let ref = new ComponentReference(hostElement, this._componentType);
         return ref;
     }

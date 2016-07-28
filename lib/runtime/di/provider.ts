@@ -171,7 +171,14 @@ export function resolveFactory(provider: Provider): ResolvedFactory {
     return new ResolvedFactory(factoryFn, dependencies);
 }
 
-export function dependenciesForClass(annotatedClass: ClassType<any>) {
+/**
+ * Looks up and returns the dependecies as an array for an annotated class.
+ * 
+ * @export
+ * @param {ClassType<any>} annotatedClass
+ * @returns {any[]}
+ */
+export function dependenciesForClass(annotatedClass: ClassType<any>): any[] {
     let dependecies: any[] = []
     let dependencyTokens = ClassReflection.peek(annotatedClass).parameters.filter(value => value instanceof InjectMetadata);
     if (Array.isArray(dependencyTokens)) {

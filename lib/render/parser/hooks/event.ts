@@ -27,16 +27,16 @@ export class EventParserHook extends ParserAttributeHook {
             // - check if event is a @Output event on the component (if not, throw error)
             // - check if it is an expression or a method call
             // - bind onto event
-            console.log("event on component detected", view.hostElement.component);
+            // console.log("event on component detected", view.hostElement.component);
         } else {
             // normal event
             // TODOs:
             // - check if it is an expression or a method call
             // - bind onto event
-            console.log("event detected");
+            // console.log("event detected");
         }
 
-        console.log(view);
-        console.log(element, attribute, context);
+        // console.log(view);
+        // console.log(element, attribute, context);
     }
 }

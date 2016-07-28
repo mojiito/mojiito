@@ -4,14 +4,14 @@ import { Injectable, Inject, forwardRef } from '../../../runtime/di/di';
 import { ContextTree } from '../context';
 import { ParserElementHook, ParserAttributeHook } from './hooks';
 import { doesSelectorMatchElement } from '../../../utils/dom/dom';
-import { ComponentRegistry } from '../../../runtime/component/registry';
+import { DirectiveRegistry } from '../../../runtime/directive/registry';
 import { ComponentResolver } from '../../../runtime/component/resolver';
 import { View } from '../../../runtime/view/view';
 import { HostElement } from '../../../runtime/view/host';
 
 export class ComponentParserHook extends ParserElementHook {
 
-    private selectors = ComponentRegistry.selectors;
+    private selectors = DirectiveRegistry.selectors;
     private lastFoundSelectorIndex = -1;
 
     constructor(private resolver: ComponentResolver) {
@@ -29,8 +29,9 @@ export class ComponentParserHook extends ParserElementHook {
         return false;
     }
 
-    onBeforeParse(element: Element, context: ContextTree) {//: Object | Function {
-        let componentType = ComponentRegistry.componentTypes[this.lastFoundSelectorIndex];
+    onBeforeParse(element: Element, context: ContextTree): Object | Function {
+        console.log(element);
+        let componentType = DirectiveRegistry.directiveTypes[this.lastFoundSelectorIndex];
         let factory = this.resolver.resolveComponent(componentType);
         let view: View = context.getNearestContextOfType(View);
         assert(view instanceof View, `The found view on the element ${element} has to be of the type View!`);
