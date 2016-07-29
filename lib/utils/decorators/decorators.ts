@@ -31,7 +31,7 @@ export function createParameterDecorator(metadataClass: ClassType<any>): (objOrT
 export function createPropertyDecoratory(metadataClass: ClassType<any>): (objOrType: any) => ParameterDecorator {
     return function (objOrType: any): ParameterDecorator {
         return function (target: Object, propertyKey: string | symbol): void {
-            ClassReflection.peek(<ClassType<any>>target.constructor).properties.push(new metadataClass(objOrType || propertyKey));
+            ClassReflection.peek(<ClassType<any>>target.constructor).properties.set(propertyKey, new metadataClass(objOrType || propertyKey));
         }
     }
 }

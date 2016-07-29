@@ -7,7 +7,7 @@ assert(!!(Reflect && Reflect.defineMetadata), 'reflect-metadata shim is required
 
 export class ClassReflection {
 
-    private _properties: any[] = [];
+    private _properties = new TypedMap<string | symbol, any>();
     private _parameters: any[] = [];
     private _annotations = new TypedMap<ClassType<any>, any>();
 

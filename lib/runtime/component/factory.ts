@@ -12,15 +12,15 @@ export class ComponentFactory<C> {
 
     private _componentType: ClassType<C>;
     
-    constructor(componentClass: ClassType<C>) {
-        this._componentType = componentClass;
+    constructor(componentType: ClassType<C>) {
+        this._componentType = componentType;
     }
 
     get componentType():ClassType<C> { return this._componentType; }
 
     create(injector: Injector, nativeElement: Element): ComponentReference<C> {
-        console.log(ClassReflection.peek(this._componentType));
-        let hostElement = new HostElement(nativeElement);
+        let parentHostElement = injector.get(HostElement);
+        let hostElement = new HostElement(nativeElement, parentHostElement);
         let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata)
         let providers = Array.isArray(metadata.providers) ? metadata.providers : [];
         providers = providers.concat([

@@ -1117,7 +1117,7 @@ declare module "runtime/reflect/reflection" {
         private _properties;
         private _parameters;
         private _annotations;
-        properties: any[];
+        properties: TypedMap<string | symbol, any>;
         parameters: any[];
         annotations: TypedMap<ClassType<any>, any>;
         static peek(classType: ClassType<any>): ClassReflection;
@@ -1573,6 +1573,30 @@ declare module "render/parser/hooks/component" {
         onBeforeParse(element: Element, context: ContextTree): Object | Function;
     }
 }
+declare module "runtime/async/events" {
+    export class EventEmitter<T> {
+        private _subscriptions;
+        subscribe(generatorOrNext?: any, error?: any, complete?: any): EventSubscription<T>;
+        subscribe(subscription: EventSubscription<T>): EventSubscription<T>;
+        emit(value?: T): void;
+        error(error: any): void;
+        complete(): void;
+        unsubscribe(subscription: EventSubscription<T>): void;
+        private _call(fnName, ...args);
+    }
+    export class EventSubscription<T> {
+        emitter: EventEmitter<T>;
+        private _subscriber;
+        private _complete;
+        private _error;
+        subscriber: (value?: T) => void;
+        complete: () => void;
+        error: (error: any) => void;
+        isSubscribed: boolean;
+        constructor(emitter: EventEmitter<T>, generatorOrNext?: (value?: T) => void, error?: () => void, complete?: (error: any) => void);
+        unsubscribe(): void;
+    }
+}
 declare module "render/parser/hooks/event" {
     import { ContextTree } from "render/parser/context";
     import { ParserAttributeHook } from "render/parser/hooks/hooks";
@@ -1639,10 +1663,12 @@ declare module "runtime/view/host" {
         private _nativeElement;
         private _component;
         private _injector;
+        private _parent;
         component: any;
         elementRef: ElementRef;
         injector: Injector;
-        constructor(nativeElement: Element);
+        parent: HostElement;
+        constructor(nativeElement: Element, parent?: HostElement);
         initComponent(component: any, injector: Injector): void;
         attachView(view: View, viewIndex: number): void;
         parseView(viewIndex?: number): void;
@@ -1672,7 +1698,7 @@ declare module "runtime/component/factory" {
     import { Injector } from "runtime/di/di";
     export class ComponentFactory<C> {
         private _componentType;
-        constructor(componentClass: ClassType<C>);
+        constructor(componentType: ClassType<C>);
         componentType: ClassType<C>;
         create(injector: Injector, nativeElement: Element): ComponentReference<C>;
     }
@@ -1746,6 +1772,7 @@ declare module "runtime/runtime" {
     export { ElementRef } from "runtime/view/element";
     export { HostElement } from "runtime/view/host";
     export * from "runtime/di/di";
+    export { EventEmitter } from "runtime/async/events";
 }
 declare module "mojito/runtime" {
     export * from "runtime/runtime";

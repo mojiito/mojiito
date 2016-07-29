@@ -1,5 +1,5 @@
 import { observes } from 'mojito/core';
-import { Injector, Injectable, Inject, Component, Output, Input, bootstrap, Provider, ElementRef, HostElement } from 'mojito/runtime';
+import { Injector, Injectable, Inject, Component, Output, Input, bootstrap, Provider, ElementRef, HostElement, EventEmitter } from 'mojito/runtime';
 
 console.time('startUp');
 
@@ -58,7 +58,7 @@ class TodoApp {
 @Component({ selector: 'todo-form' })    
 class TodoForm {
     @Input('hero')  hero: any;
-    @Output() submit:any = null;
+    @Output() submit: any = new EventEmitter();;
 
     constructor(
         @Inject(TodoStore) store: TodoStore,

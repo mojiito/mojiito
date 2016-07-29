@@ -10,13 +10,16 @@ export class HostElement {
     private _nativeElement: Element;
     private _component: any;
     private _injector: Injector;
+    private _parent: HostElement = null;
 
     get component(): any { return this._component; }    
     get elementRef(): ElementRef { return new ElementRef(this._nativeElement); }
     get injector(): Injector { return this._injector; };
+    get parent(): HostElement { return this._parent; }
 
-    constructor(nativeElement: Element) {
+    constructor(nativeElement: Element, parent?: HostElement) {
         this._nativeElement = nativeElement;
+        this._parent = parent || null;
     }
 
     initComponent(component: any, injector: Injector) {
