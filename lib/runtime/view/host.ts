@@ -12,7 +12,8 @@ export class HostElement {
     private _injector: Injector;
     private _parent: HostElement = null;
 
-    get component(): any { return this._component; }    
+    get component(): any { return this._component; }  
+    get componentView(): View { return this.getView(-1); }
     get elementRef(): ElementRef { return new ElementRef(this._nativeElement); }
     get injector(): Injector { return this._injector; };
     get parent(): HostElement { return this._parent; }

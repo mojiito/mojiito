@@ -1,7 +1,9 @@
+import { assert } from '../../debug/assert/assert';
 import { Parser } from '../../render/parser/parser';
 import { ViewFactory } from './factory';
 import { Injector } from '../di/di';
 import { HostElement } from './host';
+import { ElementRef } from './element';
 
 
 export class View {
@@ -9,6 +11,7 @@ export class View {
     private _parser: Parser;  
     private _rootElement: Element;
     private _hostElement: HostElement;
+    private _templateVars: { [key: string]: ElementRef } = {};
 
     get rootElement(): Element {
         return this._rootElement;
@@ -16,6 +19,10 @@ export class View {
 
     get hostElement(): HostElement {
         return this._hostElement;
+    }
+
+    get templateVars() {
+        return this._templateVars;
     }
 
     constructor(element: Element, hostElement: HostElement) {
@@ -27,6 +34,20 @@ export class View {
 
     parse() {
         this._parser.parse(this._rootElement, this, true);
+    }
+
+    addTemplateVar(key: string, element: Element) {
+        assert(!(this._templateVars[key] instanceof ElementRef), `There is already a template variable "${key}" set on this view!`);
+        this._templateVars[key] = new ElementRef(element);
+    }
+
+    getTemplateVar(key: string, hostLookup = true): ElementRef {
+        let hostView = this.hostElement.getView(-1);
+        let element = this._templateVars[key] || null;
+        if (hostLookup && !(element instanceof ElementRef) && hostView !== this) {
+            element = hostView.getTemplateVar(key);
+        }
+        return element;
     }
 
     destroy() { }

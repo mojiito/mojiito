@@ -1597,6 +1597,53 @@ declare module "runtime/async/events" {
         unsubscribe(): void;
     }
 }
+declare module "render/parser/expression_parser/operators" {
+    declare var _default: string[];
+    export default _default;
+}
+declare module "render/parser/expression_parser/tokenizer" {
+    export enum ExpressionTokenType {
+        Variable = 0,
+        Function = 1,
+        Operator = 2,
+    }
+    export class ExpressionToken {
+        private _type;
+        private _expression;
+        private _key;
+        type: ExpressionTokenType;
+        expression: string;
+        key: string;
+        constructor(expression: string, type: ExpressionTokenType);
+        static create(tokenString: string): ExpressionToken;
+    }
+    export class ExpressionTokenizer {
+        private expression;
+        private _tokenList;
+        constructor(expression: string);
+        tokenize(): ExpressionToken[];
+    }
+}
+declare module "render/parser/expression_parser/executable" {
+    import { ExpressionToken } from "render/parser/expression_parser/tokenizer";
+    export class Executable {
+        private fn;
+        private contexts;
+        constructor(fn: Function, contexts: Object | Function[]);
+        execute(): any;
+        static fromTokenList(tokenList: ExpressionToken[], requestContextForToken: (token: ExpressionToken) => Function | Object): Executable;
+    }
+}
+declare module "render/parser/expression_parser/parser" {
+    import { ExpressionToken } from "render/parser/expression_parser/tokenizer";
+    import { Executable } from "render/parser/expression_parser/executable";
+    export class ExpressionParser {
+        private expession;
+        private _tokenizer;
+        constructor(expession: string);
+        parse(requestContextForToken: (token: ExpressionToken) => Function | Object): Executable;
+    }
+}
 declare module "render/parser/hooks/event" {
     import { ContextTree } from "render/parser/context";
     import { ParserAttributeHook } from "render/parser/hooks/hooks";
@@ -1644,23 +1691,30 @@ declare module "runtime/view/factory" {
         create(element: Element): V;
     }
 }
-declare module "runtime/view/view" {
-    import { HostElement } from "runtime/view/host";
-    export class View {
-        private _parser;
-        private _rootElement;
-        private _hostElement;
-        rootElement: Element;
-        hostElement: HostElement;
-        constructor(element: Element, hostElement: HostElement);
-        parse(): void;
-        destroy(): void;
-    }
-}
 declare module "runtime/view/element" {
     export class ElementRef {
         nativeElement: any;
         constructor(nativeElement: any);
+    }
+}
+declare module "runtime/view/view" {
+    import { HostElement } from "runtime/view/host";
+    import { ElementRef } from "runtime/view/element";
+    export class View {
+        private _parser;
+        private _rootElement;
+        private _hostElement;
+        private _templateVars;
+        rootElement: Element;
+        hostElement: HostElement;
+        templateVars: {
+            [key: string]: ElementRef;
+        };
+        constructor(element: Element, hostElement: HostElement);
+        parse(): void;
+        addTemplateVar(key: string, element: Element): void;
+        getTemplateVar(key: string, hostLookup?: boolean): ElementRef;
+        destroy(): void;
     }
 }
 declare module "runtime/view/host" {
@@ -1675,6 +1729,7 @@ declare module "runtime/view/host" {
         private _injector;
         private _parent;
         component: any;
+        componentView: View;
         elementRef: ElementRef;
         injector: Injector;
         parent: HostElement;

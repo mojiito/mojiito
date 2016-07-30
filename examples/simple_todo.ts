@@ -53,12 +53,16 @@ class TodoApp {
     constructor( @Inject(TodoStore) store: TodoStore) {
         store.add('test', new Date());
     }
+
+    submitForm() {
+        console.log("asdfasf");
+    }
 }
 
 @Component({ selector: 'todo-form' })    
 class TodoForm {
     @Input('hero')  hero: any;
-    @Output() submit: any = new EventEmitter();;
+    @Output() submitter = new EventEmitter();;
 
     constructor(
         @Inject(TodoStore) store: TodoStore,
@@ -68,7 +72,7 @@ class TodoForm {
     }
 
     submitForm() {
-        console.log('submitForm', arguments);
+        this.submitter.emit();
     }
 
     setTitle() {

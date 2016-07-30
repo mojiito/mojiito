@@ -8,6 +8,8 @@ import { View } from '../../../runtime/view/view';
 import { ClassReflection } from '../../../runtime/reflect/reflection';
 import { OutputMetadata } from '../../../runtime/component/metadata';
 import { EventEmitter } from '../../../runtime/async/events';
+import { ExpressionParser } from '../expression_parser/parser';
+import { ExpressionTokenType } from '../expression_parser/tokenizer';
 
 export class EventParserHook extends ParserAttributeHook {
 
@@ -28,50 +30,52 @@ export class EventParserHook extends ParserAttributeHook {
         let attrName = attribute.name;
         let eventType: string;
         let eventExpression = attribute.value;
+
+        assert(view instanceof View, `There is no view, directive or component found for this event ${attribute.name}="${attribute.value}"`);
+
         if (attrName.indexOf('on-') !== -1) {
             eventType = attrName.split('on-')[1];
         } else {
             eventType = attrName.match(/\w+(-\w+)*/)[0];
         }
 
-        assert(/\w+\(\w*(,\w+)*\)/.test(eventExpression), `The source "${attribute.value}" of the event "${attribute.name}" is not a valid expression!`);
-        assert(view instanceof View, `There is no view, directive or component found for this event ${attribute.name}="${attribute.value}"`);
+        let isComponentEvent = context.getUnfiltered()[0].filter(value => value.context === view).length
+            && view.hostElement.getView(-1) === view;
 
-        let methodName = eventExpression.match(/\w+/)[0];
-        let handler: ClassType<any>
-        if (
-            context.getUnfiltered()[0].filter(value => value.context === view).length
-            && view.hostElement.getView(-1) === view
-        ) {
-            handler = host.parent && host.parent.component;
-            assert(!!handler, `There is no parent component to call when the event "${attribute.name}" fires!`);
-            assert(typeof handler[methodName] === 'function', `The parent component has no method "${attribute.value} for the "${attribute.name}" event`);
-            
-            // event is attached on a component
+        let exprParser = new ExpressionParser(eventExpression);
+        let executable = exprParser.parse((token) => {
+            if (token.type === ExpressionTokenType.Function) {
+                assert(typeof (isComponentEvent ? host.parent.component : host.component)[token.key] === 'function', `There is no method ${token.key} defined on your component or directive`);
+                return isComponentEvent ? host.parent.component : host.component;
+            } else if (token.type === ExpressionTokenType.Variable) {
+                if (!isComponentEvent && view.getTemplateVar(token.key, false)) {
+                    return view.templateVars;
+                }
+                if (!isComponentEvent && host.componentView.getTemplateVar(token.key, false)) {
+                    return host.componentView.templateVars;
+                }
+                if (isComponentEvent && host.parent.componentView.getTemplateVar(token.key, false)) {
+                    return host.parent.componentView.templateVars;
+                }
+                return isComponentEvent ? host.parent.component : host.component;
+            }
+            return null;
+        });
+
+        if (isComponentEvent) {
             ClassReflection.peek(view.hostElement.component.constructor).properties.forEach((value, key) => {
                 if (value instanceof OutputMetadata && (<OutputMetadata>value).bindingPropertyName === eventType) {
                     let emitter: EventEmitter<any> = (<any>host.component)[key];
                     if (emitter instanceof EventEmitter) {
-                        emitter.subscribe((...args: any[]) => {
-                            handler[methodName].apply(handler, args);
+                        emitter.subscribe((args: any[]) => {
+                            executable.execute();
                         });
                     }
                 }
             })
-        } else {
-            handler = host.component;
-            assert(!!handler, `There is no component to call when the event "${attribute.name}" fires!`);
-            assert(typeof handler[methodName] === 'function', `The parent component has no method "${attribute.value} for the "${attribute.name}" event`);
-            // normal event
-            let emitter = new EventEmitter();
-
-            emitter.subscribe((...args: any[]) => {
-                handler[methodName].apply(handler, args);
-            })
-            // view.hostElement.component            
-
+        } else {      
             element.addEventListener(eventType, event => {
-                emitter.emit();
+                executable.execute();
             });
         }
     }
