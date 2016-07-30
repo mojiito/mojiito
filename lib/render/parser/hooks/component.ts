@@ -30,7 +30,6 @@ export class ComponentParserHook extends ParserElementHook {
     }
 
     onBeforeParse(element: Element, context: ContextTree): Object | Function {
-        console.log(element);
         let componentType = DirectiveRegistry.directiveTypes[this.lastFoundSelectorIndex];
         let factory = this.resolver.resolveComponent(componentType);
         let view: View = context.getNearestContextOfType(View);

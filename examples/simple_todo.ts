@@ -65,11 +65,18 @@ class TodoForm {
         @Inject(ElementRef) element: ElementRef,
         @Inject(HostElement) host: HostElement
     ) {
-        console.log('init TodoForm', element.nativeElement);
     }
 
-    submit1() {
-        // submit
+    submitForm() {
+        console.log('submitForm', arguments);
+    }
+
+    setTitle() {
+        console.log('setTitle', arguments);
+    }
+
+    setDate() {
+        console.log('setDate', arguments);
     }
 }
 
@@ -79,7 +86,6 @@ class TodoList {
         @Inject(TodoStore) store: TodoStore,
         @Inject(ElementRef) element: ElementRef
     ) {
-        // console.log('init TodoList', element.nativeElement);
     }
 }
 
@@ -97,7 +103,6 @@ class TodoListItem {
         @Inject(TodoStore) store: TodoStore,
         @Inject(ElementRef) element: ElementRef
     ) {
-        // console.log('init TodoItem', element.nativeElement);
     }
 }
 

@@ -1617,6 +1617,16 @@ declare module "render/parser/hooks/binding" {
         onParse(element: Element, attribute: Attr, context: ContextTree): void;
     }
 }
+declare module "render/parser/hooks/template_variable" {
+    import { ContextTree } from "render/parser/context";
+    import { ParserAttributeHook } from "render/parser/hooks/hooks";
+    export class TemplateVariableParserHook extends ParserAttributeHook {
+        removeAttributeNode: boolean;
+        constructor();
+        predicate(attribute: Attr): boolean;
+        onParse(element: Element, attribute: Attr, context: ContextTree): void;
+    }
+}
 declare module "render/parser/parser" {
     import { ComponentResolver } from "runtime/component/resolver";
     export class Parser {

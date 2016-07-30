@@ -8,7 +8,7 @@ export class EventEmitter<T> {
         if (generatorOrNext instanceof EventSubscription) {
             this._subscriptions.push(generatorOrNext);
         } else {
-            let subscription = new EventSubscription(generatorOrNext, error, complete);
+            let subscription = new EventSubscription(this, generatorOrNext, error, complete);
             this._subscriptions.push(subscription);
             return subscription;
         }

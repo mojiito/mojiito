@@ -1,7 +1,7 @@
-export class ExpressionCompiler {
+export class ExpressionParser {
     constructor(private expession: string) {}
 
-    compile() {
+    parse() {
 
     }
 
@@ -9,3 +9,12 @@ export class ExpressionCompiler {
 
     }
 }
+
+
+/*
+
+fn()
+fn(asd)
+fn(asd,asf)
+
+*/
