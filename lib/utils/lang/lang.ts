@@ -157,6 +157,43 @@ export function isEmpty(value: any): boolean {
     return false;
 }
 
+export function isPresent(value: any): boolean {
+    return value !== undefined && value !== null;
+}
+
+export function isBlank(value: any): boolean {
+    return value === undefined || value === null;
+}
+
+export function getMapKey<T>(value: T): T {
+    return value;
+}
+
+export function looseIdentical(a: any, b: any): boolean {
+    return a === b || typeof a === 'number' && typeof b === 'number' && isNaN(a) && isNaN(b);
+}
+
+declare var Symbol: any;
+var _symbolIterator: any = null;
+export function getSymbolIterator(): string | symbol {
+    if (isBlank(_symbolIterator)) {
+        if (isPresent((<any>window).Symbol) && isPresent(Symbol.iterator)) {
+            _symbolIterator = Symbol.iterator;
+        } else {
+            // es6-shim specific logic
+            var keys = Object.getOwnPropertyNames(Map.prototype);
+            for (var i = 0; i < keys.length; ++i) {
+                var key = keys[i];
+                if (key !== 'entries' && key !== 'size' &&
+                    (Map as any).prototype[key] === Map.prototype['entries']) {
+                    _symbolIterator = key;
+                }
+            }
+        }
+    }
+    return _symbolIterator;
+}
+
 /**
  * Check if value is a primitive
  * 

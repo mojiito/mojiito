@@ -1,4 +1,4 @@
-export { bootstrap } from './bootstrap/bootstrap';
+export { bootstrap, Application } from './application/application';
 export * from './lifecycle/lifecycle_hooks';
 export { Component, Input, Output } from './component/decorators';
 export { ElementRef } from './view/element';

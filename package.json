@@ -37,6 +37,7 @@
     "watch": "^0.17.1"
   },
   "dependencies": {
+    "es6-shim": "^0.35.1",
     "reflect-metadata": "^0.1.3"
   }
 }

@@ -19,8 +19,11 @@ export class ComponentFactory<C> {
     get componentType():ClassType<C> { return this._componentType; }
 
     create(injector: Injector, nativeElement: Element): ComponentReference<C> {
-        let parentHostElement = injector.get(HostElement);
+        let parentHostElement: HostElement = injector.get(HostElement);
         let hostElement = new HostElement(nativeElement, parentHostElement);
+        if (parentHostElement instanceof HostElement) {
+            parentHostElement.registerChild(hostElement);
+        }
         let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata)
         let providers = Array.isArray(metadata.providers) ? metadata.providers : [];
         providers = providers.concat([

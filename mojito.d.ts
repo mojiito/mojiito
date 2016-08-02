@@ -151,6 +151,194 @@ declare module "utils/class/class" {
     export function getClassName<T>(klass: ClassType<T>): string;
     export function isClassInstance(instance: any): boolean;
 }
+declare module "utils/lang/lang" {
+    /**
+     * Check if value is an array (not object)
+     *
+     * @function isArray
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isArray(value: any): boolean;
+    /**
+     * Check if value is an object (not array)
+     *
+     * @function isObject
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isObject(value: any): boolean;
+    /**
+     * Check if value is a boolean
+     *
+     * @function isBoolean
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isBoolean(value: any): boolean;
+    /**
+     * Check if value is a number (int or float)
+     *
+     * @function isNumber
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isNumber(value: any): boolean;
+    /**
+     * Check if value is a float
+     *
+     * isFloat(0)       // false
+     * isFloat(1)       // false
+     * isFloat(1.1)     // true
+     * isInt(-1)        // false
+     * isInt(-1.1)      // true
+     *
+     * @function isFloat
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isFloat(value: any): boolean;
+    /**
+     * Check if value is a integer
+     *
+     * isInt(0)         // true
+     * isInt(1)         // true
+     * isInt(1.1)       // false
+     * isInt(-1)        // true
+     * isInt(-1.1)      // false
+     *
+     * @function isInt
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isInt(value: any): boolean;
+    /**
+     * Check if value is a string
+     *
+     * @function isString
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isString(value: any): boolean;
+    /**
+     * Check if value is a function
+     *
+     * @function isFunction
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isFunction(value: any): boolean;
+    /**
+     * Check if value is a symbol
+     *
+     * @function isSymbol
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isSymbol(value: any): boolean;
+    /**
+     * Check if value is defined
+     *
+     * @function isDefined
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isDefined(value: any): boolean;
+    /**
+     * Check if value is `null`
+     *
+     * @function isNull
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isNull(value: any): boolean;
+    /**
+     * Verifies that a value is `undefined`, `null`
+     * or an empty string, empty array, or an empty object
+     *
+     * isEmpty();                // true
+     * isEmpty(null);            // true
+     * isEmpty(undefined);       // true
+     * isEmpty('');              // true
+     * isEmpty([]);              // true
+     * isEmpty({});              // false
+     * isEmpty('Adam Hawkins');  // false
+     * isEmpty([0,1,2]);         // false
+     *
+     * @function isEmpty
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isEmpty(value: any): boolean;
+    export function isPresent(value: any): boolean;
+    export function isBlank(value: any): boolean;
+    export function getMapKey<T>(value: T): T;
+    export function looseIdentical(a: any, b: any): boolean;
+    export function getSymbolIterator(): string | symbol;
+    /**
+     * Check if value is a primitive
+     *
+     * isPrimitive(null)          // true
+     * isPrimitive(undefined)     // true
+     * isPrimitive('string')      // true
+     * isPrimitive(1)             // true
+     * isPrimitive(1.1)           // true
+     * isPrimitive(true)          // true
+     * isPrimitive([0,1,2])       // false
+     * isPrimitive({})            // false
+     * isPrimitive(function(){})  // false
+     *
+     * @function isPrimitive
+     * @param  {any} value
+     * @returns boolean
+     */
+    export function isPrimitive(value: any): boolean;
+    /**
+     * Typeof proxy function for real array detection
+     *
+     * @function typeOf
+     * @param  {any} value
+     * @returns string
+     */
+    export function typeOf(value: any): string;
+}
+declare module "utils/dom/dom" {
+    /**
+     * Converts the array-like NodeList (NodeListOf) to a real array
+     *
+     * @export
+     * @template T
+     * @param {NodeListOf<T>} nodeList
+     * @returns {Array<T>} Converted Array
+     */
+    export function convertNodeListToArray<T extends Node>(nodeList: NodeListOf<T>): Array<T>;
+    /**
+     * Checks if a selector matches an element.
+     *
+     * @export
+     * @param {string} selector
+     * @param {Element} element
+     * @returns Returns true if selector matches, false if not
+     */
+    export function doesSelectorMatchElement(selector: string, element: Element): boolean;
+}
+declare module "utils/string/endswith" {
+    export function endsWith(str: string, searchString: string, position?: number): boolean;
+}
+declare module "utils/string/kebab" {
+    export function toKebabCase(str: string): string;
+}
+declare module "utils/string/stringify" {
+    export function stringify(token: any): string;
+}
+declare module "utils/utils" {
+    export * from "utils/class/class";
+    export * from "utils/lang/lang";
+    export * from "utils/dom/dom";
+    export * from "utils/string/endswith";
+    export * from "utils/string/kebab";
+    export * from "utils/string/stringify";
+}
 declare module "core/iterator/iterator" {
     export interface IIteratorItem<T> {
         value?: T;
@@ -429,9 +617,6 @@ declare module "core/reflect/reflection" {
         static peek(classType: ClassType<any>): ClassReflection;
         static isReflected(classType: ClassType<any>): boolean;
     }
-}
-declare module "utils/string/stringify" {
-    export function stringify(token: any): string;
 }
 declare module "core/di/metadata" {
     export class InjectableMetadata {
@@ -793,25 +978,32 @@ declare module "core/di/di" {
     export { Provider, ResolvedProvider, provide } from "core/di/provider";
     export { forwardRef } from "core/di/forward_ref";
 }
-declare module "utils/dom/dom" {
-    /**
-     * Converts the array-like NodeList (NodeListOf) to a real array
-     *
-     * @export
-     * @template T
-     * @param {NodeListOf<T>} nodeList
-     * @returns {Array<T>} Converted Array
-     */
-    export function convertNodeListToArray<T extends Node>(nodeList: NodeListOf<T>): Array<T>;
-    /**
-     * Checks if a selector matches an element.
-     *
-     * @export
-     * @param {string} selector
-     * @param {Element} element
-     * @returns Returns true if selector matches, false if not
-     */
-    export function doesSelectorMatchElement(selector: string, element: Element): boolean;
+declare module "core/component/decorators" {
+    export interface ComponentMetadataFactory {
+        (metadata: {
+            selector?: string;
+            inputs?: string[];
+            outputs?: string[];
+            events?: string[];
+            host?: {
+                [key: string]: string;
+            };
+            providers?: any[];
+            templateUrl?: string;
+            template?: string;
+            styleUrls?: string[];
+            styles?: string[];
+        }): ClassDecorator;
+    }
+    export var Component: ComponentMetadataFactory;
+    export interface InputMetadataFactory {
+        (bindingPropertyName?: string): PropertyDecorator;
+    }
+    export var Input: InputMetadataFactory;
+    export interface OutputMetadataFactory {
+        (bindingPropertyName?: string): PropertyDecorator;
+    }
+    export var Output: OutputMetadataFactory;
 }
 declare module "render/parser/context" {
     export class ContextReference {
@@ -854,6 +1046,13 @@ declare module "render/parser/dom_parser" {
         private parseNode(element, contextTree, skipRootElement?);
         registerElementHook(hook: IDOMParserElementHook): void;
         registerAttributeHook(hook: IDOMParserAttributeHook): void;
+    }
+}
+declare module "core/component/resolver" {
+    import { ClassType } from "utils/class/class";
+    import { ComponentFactory } from "core/component/factory";
+    export class ComponentResolver {
+        resolveComponent<C>(componentClass: ClassType<C>): ComponentFactory<C>;
     }
 }
 declare module "render/parser/hooks/hooks" {
@@ -966,8 +1165,83 @@ declare module "core/view/factory" {
         create(element: Element): V;
     }
 }
+declare module "core/change_detection/change_detector" {
+    export abstract class ChangeDetector {
+        abstract markForCheck(): void;
+        abstract detach(): void;
+        abstract detectChanges(): void;
+        abstract checkNoChanges(): void;
+        abstract reattach(): void;
+    }
+}
+declare module "core/change_detection/constants" {
+    /**
+     * Describes within the change detector which strategy will be used the next time change
+     * detection is triggered.
+     * @stable
+     */
+    export enum ChangeDetectionStrategy {
+        /**
+         * `OnPush` means that the change detector's mode will be set to `CheckOnce` during hydration.
+         */
+        OnPush = 0,
+        /**
+         * `Default` means that the change detector's mode will be set to `CheckAlways` during hydration.
+         */
+        Default = 1,
+    }
+    /**
+     * Describes the status of the detector.
+     */
+    export enum ChangeDetectorStatus {
+        /**
+         * `CheckedOnce` means that after calling detectChanges the mode of the change detector
+         * will become `Checked`.
+         */
+        CheckOnce = 0,
+        /**
+         * `Checked` means that the change detector should be skipped until its mode changes to
+         * `CheckOnce`.
+         */
+        Checked = 1,
+        /**
+         * `CheckAlways` means that after calling detectChanges the mode of the change detector
+         * will remain `CheckAlways`.
+         */
+        CheckAlways = 2,
+        /**
+         * `Detached` means that the change detector sub tree is not a part of the main tree and
+         * should be skipped.
+         */
+        Detached = 3,
+        /**
+         * `Errored` means that the change detector encountered an error checking a binding
+         * or calling a directive lifecycle method and is now in an inconsistent state. Change
+         * detectors in this state will no longer detect changes.
+         */
+        Errored = 4,
+        /**
+         * `Destroyed` means that the change detector is destroyed.
+         */
+        Destroyed = 5,
+    }
+    /**
+     * List of possible {@link ChangeDetectionStrategy} values.
+     */
+    export var CHANGE_DETECTION_STRATEGY_VALUES: ChangeDetectionStrategy[];
+    /**
+     * List of possible {@link ChangeDetectorStatus} values.
+     */
+    export var CHANGE_DETECTOR_STATUS_VALUES: ChangeDetectorStatus[];
+    export function isDefaultChangeDetectionStrategy(changeDetectionStrategy: ChangeDetectionStrategy): boolean;
+}
+declare module "core/change_detection/change_detection" {
+    export { ChangeDetector } from "core/change_detection/change_detector";
+    export { CHANGE_DETECTION_STRATEGY_VALUES, CHANGE_DETECTOR_STATUS_VALUES, ChangeDetectionStrategy, ChangeDetectorStatus } from "core/change_detection/constants";
+}
 declare module "core/view/view" {
     import { HostElement } from "core/view/host";
+    import { ChangeDetectorStatus } from "core/change_detection/change_detection";
     export class View {
         private _parser;
         private _rootElement;
@@ -978,7 +1252,7 @@ declare module "core/view/view" {
         templateVars: {
             [key: string]: Element;
         };
-        constructor(element: Element, hostElement: HostElement);
+        constructor(element: Element, hostElement: HostElement, cdStatus?: ChangeDetectorStatus);
         parse(): void;
         addTemplateVar(key: string, element: Element): void;
         getTemplateVar(key: string, hostLookup?: boolean): Element;
@@ -995,24 +1269,36 @@ declare module "core/view/host" {
     import { View } from "core/view/view";
     import { ElementRef } from "core/view/element";
     import { Injector } from "core/di/di";
-    export class HostElement {
+    import { ChangeDetector, ChangeDetectorStatus } from "core/change_detection/change_detection";
+    export class HostElement implements ChangeDetector {
         private _componentView;
         private _nestedViews;
         private _nativeElement;
         private _component;
         private _injector;
         private _parent;
+        private _children;
+        private _cdStatus;
+        private _cdDefaultStatus;
         component: any;
         componentView: View;
         elementRef: ElementRef;
         injector: Injector;
         parent: HostElement;
-        constructor(nativeElement: Element, parent?: HostElement);
+        cdStatus: ChangeDetectorStatus;
+        constructor(nativeElement: Element, parent?: HostElement, cdStatus?: ChangeDetectorStatus);
         initComponent(component: any, injector: Injector): void;
         attachView(view: View, viewIndex: number): void;
+        registerChild(childHost: HostElement): void;
         parseView(viewIndex?: number): void;
         parse(): void;
         getView(viewIndex?: number): View;
+        markForCheck(): void;
+        detach(): void;
+        detectChanges(): void;
+        detectChildChanges(): void;
+        checkNoChanges(): void;
+        reattach(): void;
     }
 }
 declare module "core/component/reference" {
@@ -1042,20 +1328,31 @@ declare module "core/component/factory" {
         create(injector: Injector, nativeElement: Element): ComponentReference<C>;
     }
 }
-declare module "core/component/resolver" {
-    import { ClassType } from "utils/class/class";
-    import { ComponentFactory } from "core/component/factory";
-    export class ComponentResolver {
-        resolveComponent<C>(componentClass: ClassType<C>): ComponentFactory<C>;
-    }
+declare module "core/component/component" {
+    export * from "core/component/decorators";
+    export * from "core/component/factory";
+    export * from "core/component/metadata";
+    export * from "core/component/reference";
+    export * from "core/component/resolver";
 }
-declare module "core/bootstrap/bootstrap" {
-    import { ClassType } from "utils/class/class";
-    import { Provider } from "core/di/di";
+declare module "core/application/application" {
+    import { ClassType } from "utils/utils";
+    import { Injector, Provider } from "core/di/di";
+    import { ComponentFactory, ComponentReference } from "core/component/component";
+    export var DEFAULT_PROVIDERS: Provider[];
     export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: Array<ClassType<any> | Provider | {
         [key: string]: any;
-    }>, root?: Element): void;
-    export function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): void;
+    }>, root?: Element): Application;
+    export function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): Application;
+    export class Application {
+        private _appComponent;
+        private _injector;
+        injector: Injector;
+        appComponent: ComponentReference<any>;
+        constructor(injector: Injector);
+        bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root?: Element): ComponentReference<C>;
+        tick(): void;
+    }
 }
 declare module "core/lifecycle/lifecycle_hooks" {
     export enum LifecycleHooks {
@@ -1077,35 +1374,8 @@ declare module "core/lifecycle/lifecycle_hooks" {
         abstract onDestroy(): void;
     }
 }
-declare module "core/component/decorators" {
-    export interface ComponentMetadataFactory {
-        (metadata: {
-            selector?: string;
-            inputs?: string[];
-            outputs?: string[];
-            events?: string[];
-            host?: {
-                [key: string]: string;
-            };
-            providers?: any[];
-            templateUrl?: string;
-            template?: string;
-            styleUrls?: string[];
-            styles?: string[];
-        }): ClassDecorator;
-    }
-    export var Component: ComponentMetadataFactory;
-    export interface InputMetadataFactory {
-        (bindingPropertyName?: string): PropertyDecorator;
-    }
-    export var Input: InputMetadataFactory;
-    export interface OutputMetadataFactory {
-        (bindingPropertyName?: string): PropertyDecorator;
-    }
-    export var Output: OutputMetadataFactory;
-}
 declare module "core/core" {
-    export { bootstrap } from "core/bootstrap/bootstrap";
+    export { bootstrap, Application } from "core/application/application";
     export * from "core/lifecycle/lifecycle_hooks";
     export { Component, Input, Output } from "core/component/decorators";
     export { ElementRef } from "core/view/element";
@@ -1118,166 +1388,6 @@ declare module "mojito/core" {
 }
 declare module "mojito/debug" {
     export * from "debug/debug";
-}
-declare module "utils/types/types" {
-    /**
-     * Check if value is an array (not object)
-     *
-     * @function isArray
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isArray(value: any): boolean;
-    /**
-     * Check if value is an object (not array)
-     *
-     * @function isObject
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isObject(value: any): boolean;
-    /**
-     * Check if value is a boolean
-     *
-     * @function isBoolean
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isBoolean(value: any): boolean;
-    /**
-     * Check if value is a number (int or float)
-     *
-     * @function isNumber
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isNumber(value: any): boolean;
-    /**
-     * Check if value is a float
-     *
-     * isFloat(0)       // false
-     * isFloat(1)       // false
-     * isFloat(1.1)     // true
-     * isInt(-1)        // false
-     * isInt(-1.1)      // true
-     *
-     * @function isFloat
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isFloat(value: any): boolean;
-    /**
-     * Check if value is a integer
-     *
-     * isInt(0)         // true
-     * isInt(1)         // true
-     * isInt(1.1)       // false
-     * isInt(-1)        // true
-     * isInt(-1.1)      // false
-     *
-     * @function isInt
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isInt(value: any): boolean;
-    /**
-     * Check if value is a string
-     *
-     * @function isString
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isString(value: any): boolean;
-    /**
-     * Check if value is a function
-     *
-     * @function isFunction
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isFunction(value: any): boolean;
-    /**
-     * Check if value is a symbol
-     *
-     * @function isSymbol
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isSymbol(value: any): boolean;
-    /**
-     * Check if value is defined
-     *
-     * @function isDefined
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isDefined(value: any): boolean;
-    /**
-     * Check if value is `null`
-     *
-     * @function isNull
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isNull(value: any): boolean;
-    /**
-     * Verifies that a value is `undefined`, `null`
-     * or an empty string, empty array, or an empty object
-     *
-     * isEmpty();                // true
-     * isEmpty(null);            // true
-     * isEmpty(undefined);       // true
-     * isEmpty('');              // true
-     * isEmpty([]);              // true
-     * isEmpty({});              // false
-     * isEmpty('Adam Hawkins');  // false
-     * isEmpty([0,1,2]);         // false
-     *
-     * @function isEmpty
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isEmpty(value: any): boolean;
-    /**
-     * Check if value is a primitive
-     *
-     * isPrimitive(null)          // true
-     * isPrimitive(undefined)     // true
-     * isPrimitive('string')      // true
-     * isPrimitive(1)             // true
-     * isPrimitive(1.1)           // true
-     * isPrimitive(true)          // true
-     * isPrimitive([0,1,2])       // false
-     * isPrimitive({})            // false
-     * isPrimitive(function(){})  // false
-     *
-     * @function isPrimitive
-     * @param  {any} value
-     * @returns boolean
-     */
-    export function isPrimitive(value: any): boolean;
-    /**
-     * Typeof proxy function for real array detection
-     *
-     * @function typeOf
-     * @param  {any} value
-     * @returns string
-     */
-    export function typeOf(value: any): string;
-}
-declare module "utils/string/endswith" {
-    export function endsWith(str: string, searchString: string, position?: number): boolean;
-}
-declare module "utils/string/kebab" {
-    export function toKebabCase(str: string): string;
-}
-declare module "utils/utils" {
-    export * from "utils/class/class";
-    export * from "utils/types/types";
-    export * from "utils/dom/dom";
-    export * from "utils/string/endswith";
-    export * from "utils/string/kebab";
-    export * from "utils/string/stringify";
 }
 declare module "mojito/utils" {
     export * from "utils/utils";

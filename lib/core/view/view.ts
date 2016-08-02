@@ -3,6 +3,7 @@ import { Parser } from '../../render/parser/parser';
 import { ViewFactory } from './factory';
 import { Injector } from '../di/di';
 import { HostElement } from './host';
+import { ChangeDetector, ChangeDetectorStatus } from '../change_detection/change_detection';
 
 
 export class View {
@@ -12,23 +13,14 @@ export class View {
     private _hostElement: HostElement;
     private _templateVars: { [key: string]: Element } = {};
 
-    get rootElement(): Element {
-        return this._rootElement;
-    }
+    get rootElement(): Element { return this._rootElement; }
+    get hostElement(): HostElement {  return this._hostElement; }
+    get templateVars() { return this._templateVars; }
 
-    get hostElement(): HostElement {
-        return this._hostElement;
-    }
-
-    get templateVars() {
-        return this._templateVars;
-    }
-
-    constructor(element: Element, hostElement: HostElement) {
+    constructor(element: Element, hostElement: HostElement, cdStatus?: ChangeDetectorStatus) {
         this._rootElement = element;
         this._hostElement = hostElement;
         this._parser = this._hostElement.injector.get(Parser);
-        // console.log(this._hostElement.injector);
     }
 
     parse() {
@@ -50,4 +42,5 @@ export class View {
     }
 
     destroy() { }
+
 }
