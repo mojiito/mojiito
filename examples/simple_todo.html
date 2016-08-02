@@ -51,7 +51,7 @@
             <todo-form (onSubmit)="submitForm($event)">
                 <form action="#" todo-form (submit)="submitForm(title.value, date.value)">
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" #title (input)="titleText=title.value" type="text" id="sample3">
+                        <input class="mdl-textfield__input" #title type="text" id="sample3">
                         <label class="mdl-textfield__label" for="sample3">Enter Todo...</label>
                     </div>
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -59,7 +59,7 @@
                         <label class="mdl-textfield__label" for="sample3">Enter Due Date (DD.MM.YYYY)</label>
                     </div>
                     <div>
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Save Todo</button>
+                        <button [disabled]="!title.value || !date.value" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Save Todo</button>
                     </div>
                 </form>
             </todo-form>

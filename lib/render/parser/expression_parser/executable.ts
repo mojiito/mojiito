@@ -13,7 +13,6 @@ export class Executable {
         while (match = pattern.exec(expression)) {
             const token = expression.substr(match.index, pattern.lastIndex - match.index);
             contexts.push(requestContextForToken(token.split('.')[0]));
-            console.log(token, contexts);
             executableString += expression.substr(lastIndex, match.index - lastIndex) + 'arguments['+(contexts.length-1)+'].' + token ;
             lastIndex = pattern.lastIndex;
         }
@@ -27,5 +26,3 @@ export class Executable {
         return this._executableFn.apply(this._executableFn, this._contexts);
     }
 }
-
-(<any>window).Executable = Executable;

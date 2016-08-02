@@ -40,8 +40,8 @@ export class EventParserHook extends ParserAttributeHook {
 
         eventType = eventType.toLowerCase();
 
-        let isComponentEvent = context.getUnfiltered()[0].filter(value => value.context === view).length
-            && view.hostElement.getView(-1) === view;
+        let isComponent = context.getUnfiltered()[0].filter(value => value.context === view).length
+            && view.hostElement.componentView === view;
         
         let eventContextObject: {$event: any} = {
             $event: {}
@@ -55,25 +55,25 @@ export class EventParserHook extends ParserAttributeHook {
             }
 
             // Check for template var in view
-            if (!isComponentEvent && view !== host.componentView && view.getTemplateVar(token, false)) {
+            if (!isComponent && view !== host.componentView && view.getTemplateVar(token, false)) {
                 return view.templateVars;
             }
             
             // Check for template var in component view
-            if (!isComponentEvent && host.componentView.getTemplateVar(token, false)) {
+            if (!isComponent && host.componentView.getTemplateVar(token, false)) {
                 return host.componentView.templateVars;
             }
             
             // Check for template var in parent component view
-            if (isComponentEvent && host.parent.componentView.getTemplateVar(token, false)) {
+            if (isComponent && host.parent.componentView.getTemplateVar(token, false)) {
                 return host.parent.componentView.templateVars;
             }
 
             // Check for var or method in 
-            return isComponentEvent ? host.parent.component : host.component;
+            return isComponent ? host.parent.component : host.component;
 
         });
-        if (isComponentEvent) {
+        if (isComponent) {
             ClassReflection.peek(view.hostElement.component.constructor).properties.forEach((value, key) => {
                 if (value instanceof OutputMetadata && (<OutputMetadata>value).bindingPropertyName.toLowerCase() === eventType) {
                     let emitter: EventEmitter<any> = (<any>host.component)[key];
