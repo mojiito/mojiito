@@ -1,4 +1,4 @@
-import { CoreMap } from '../../core/core';
+import { CoreMap } from '../map/map';
 import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider, resolveProviders } from './provider';
 import { resolveForwardRef } from './forward_ref';

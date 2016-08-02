@@ -1,8 +1,8 @@
 import { assert } from '../../debug/debug';
-import { Injectable, Inject, forwardRef } from '../../runtime/di/di';
+import { Injectable, Inject, forwardRef } from '../../core/di/di';
 import { DOMParser } from './dom_parser';
-import { ComponentResolver } from '../../runtime/component/resolver';
-import { ComponentReference } from '../../runtime/component/reference';
+import { ComponentResolver } from '../../core/component/resolver';
+import { ComponentReference } from '../../core/component/reference';
 import { ComponentParserHook } from './hooks/component';
 import { EventParserHook } from './hooks/event';
 import { BindingParserHook } from './hooks/binding';

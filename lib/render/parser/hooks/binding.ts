@@ -1,9 +1,9 @@
 import { assert } from '../../../debug/debug';
 import { stringify } from '../../../utils/string/stringify';
-import { Injectable, Inject, forwardRef } from '../../../runtime/di/di';
+import { Injectable, Inject, forwardRef } from '../../../core/di/di';
 import { ContextTree } from '../context';
 import { ParserAttributeHook } from './hooks';
-import { View } from '../../../runtime/view/view';
+import { View } from '../../../core/view/view';
 import { ExpressionParser } from '../expression_parser/parser';
 
 export class BindingParserHook extends ParserAttributeHook {

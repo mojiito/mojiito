@@ -1,13 +1,13 @@
 import { assert } from '../../../debug/debug';
 import { stringify } from '../../../utils/string/stringify';
 import { ClassType } from '../../../utils/class/class';
-import { Injectable, Inject, forwardRef } from '../../../runtime/di/di';
+import { Injectable, Inject, forwardRef } from '../../../core/di/di';
 import { ContextTree } from '../context';
 import { ParserAttributeHook } from './hooks';
-import { View } from '../../../runtime/view/view';
-import { ClassReflection } from '../../../runtime/reflect/reflection';
-import { OutputMetadata } from '../../../runtime/component/metadata';
-import { EventEmitter } from '../../../runtime/async/events';
+import { View } from '../../../core/view/view';
+import { ClassReflection } from '../../../core/reflect/reflection';
+import { OutputMetadata } from '../../../core/component/metadata';
+import { EventEmitter } from '../../../core/async/events';
 import { ExpressionParser } from '../expression_parser/parser';
 
 export class EventParserHook extends ParserAttributeHook {

@@ -1,13 +1,13 @@
 import { assert } from '../../../debug/debug';
 import { stringify } from '../../../utils/string/stringify';
-import { Injectable, Inject, forwardRef } from '../../../runtime/di/di';
+import { Injectable, Inject, forwardRef } from '../../../core/di/di';
 import { ContextTree } from '../context';
 import { ParserElementHook, ParserAttributeHook } from './hooks';
 import { doesSelectorMatchElement } from '../../../utils/dom/dom';
-import { DirectiveRegistry } from '../../../runtime/directive/registry';
-import { ComponentResolver } from '../../../runtime/component/resolver';
-import { View } from '../../../runtime/view/view';
-import { HostElement } from '../../../runtime/view/host';
+import { DirectiveRegistry } from '../../../core/directive/registry';
+import { ComponentResolver } from '../../../core/component/resolver';
+import { View } from '../../../core/view/view';
+import { HostElement } from '../../../core/view/host';
 
 export class ComponentParserHook extends ParserElementHook {
 

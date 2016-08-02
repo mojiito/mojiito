@@ -1,7 +1,4 @@
 import { assert } from './../../debug/debug';
-import { CoreObject } from '../object/object';
-import { CoreArray } from '../array/array';
-
 /**
  * The meta object contains information about computed property descriptors,
  * values of defined properties as well as any watched properties and other information.
@@ -202,23 +199,7 @@ export class Meta {
         }
         return false;
     }
-    
-    /**
-     * Creates a new Meta instance and extends a CoreObject with it.
-     * 
-     * @static
-     * @param  {CoreObject} obj The CoreObject where the meta will be created on
-     * @returns {Meta} The created meta object
-     */
-    static extend(obj: CoreObject): Meta;
-    /**
-     * Creates a new Meta instance and extends a CoreArray with it.
-     * 
-     * @static
-     * @param  {CoreArray} array The CoreArray where the meta will be created on
-     * @returns {Meta} The created meta object
-     */
-    static extend(array: CoreArray): Meta;
+
     /**
      * Creates a new Meta instance and extends an Object with it.
      * 
@@ -240,24 +221,6 @@ export class Meta {
         return meta;
     }
     
-    /**
-     * Retrieves the meta hash for a CoreObject.
-     * If the object has no meta yet, a new one will be created
-     * 
-     * @static
-     * @param  {CoreObject} obj The CoreObject where to peek for a meta hash
-     * @returns {Meta} The peeked or created meta object
-     */
-    static peek(obj: CoreObject): Meta;
-    /**
-     * Retrieves the meta hash for a CoreArray.
-     * If the object has no meta yet, a new one will be created
-     * 
-     * @static
-     * @param  {CoreArray} obj The CoreArray where to peek for a meta hash
-     * @returns {Meta} The peeked or created meta object
-     */
-    static peek(array: CoreArray): Meta;
     /**
      * Retrieves the meta hash for an array.
      * If the array has no meta yet, a new one will be created

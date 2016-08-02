@@ -2,7 +2,7 @@ import { assert } from '../../../debug/debug';
 import { stringify } from '../../../utils/string/stringify';
 import { ContextTree } from '../context';
 import { ParserAttributeHook } from './hooks';
-import { View } from '../../../runtime/view/view';
+import { View } from '../../../core/view/view';
 
 
 export class TemplateVariableParserHook extends ParserAttributeHook {

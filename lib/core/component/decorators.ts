@@ -1,6 +1,6 @@
 import { assert } from '../../debug/debug';
 import { ClassType } from '../../utils/class/class';
-import { createClassDecorator, createPropertyDecoratory } from '../../utils/decorators/decorators';
+import { createClassDecorator, createPropertyDecoratory } from '../decorators/decorators';
 import { ComponentMetadata, InputMetadata, OutputMetadata } from './metadata';
 import { Injectable } from '../di/di';
 

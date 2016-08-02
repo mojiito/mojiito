@@ -1,8 +1,8 @@
 import { assert } from '../../debug/debug';
 import { ObservableObject } from './observableObject';
-import { CoreArray } from '../../core/array/array';
-import { Meta } from '../../core/meta/meta';
-import { watchKey } from '../../core/watch/watch';
+import { CoreArray } from '../array/array';
+import { Meta } from '../meta/meta';
+import { watchKey } from '../watch/watch';
 
 export interface IObserver {
 

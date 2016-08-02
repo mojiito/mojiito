@@ -1,8 +1,7 @@
-export { get } from './get/get';
-export { set } from './set/set';
-export { Meta } from './meta/meta';
-export { CoreObject } from './object/object';
-export { CoreArray } from './array/array';
-export { CoreMap, TypedMap } from './map/map';
-export { observes } from './observable/observes';
-export { ObservableObject } from './observable/observableObject';
+export { bootstrap } from './bootstrap/bootstrap';
+export * from './lifecycle/lifecycle_hooks';
+export { Component, Input, Output } from './component/decorators';
+export { ElementRef } from './view/element';
+export { HostElement } from './view/host';
+export * from './di/di';
+export { EventEmitter } from './async/events.ts';

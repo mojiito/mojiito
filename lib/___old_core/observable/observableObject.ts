@@ -1,6 +1,6 @@
-import { get } from '../../core/get/get';
-import { CoreObject } from '../../core/object/object';
-import { CoreArray } from '../../core/array/array';
+import { get } from '../get/get';
+import { CoreObject } from '../object/object';
+import { CoreArray } from '../array/array';
 
 import { observe } from './observe';
 import { IObservable } from './observable';

@@ -15,6 +15,8 @@
     "files": [
         "./typings.d.ts",
         "./mojito/core.ts",
-        "./mojito/runtime.ts"
+        "./mojito/render.ts",
+        "./mojito/debug.ts",
+        "./mojito/utils.ts"
     ]
 }

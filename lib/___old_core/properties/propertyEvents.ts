@@ -1,4 +1,4 @@
-import { notifyObservers } from '../../core/observable/observer';
+import { notifyObservers } from '../observable/observer';
 
 export function propertyWillChange(obj: Object, key: string, newValue: any, oldValue?: any): void;
 export function propertyWillChange(array: Array<any>, key: string, newValue: any, oldValue?: any): void;

@@ -1,3 +1,6 @@
 export * from './class/class';
-export { endsWith } from './string/endswith';
-export { toKebabCase } from './string/kebab';
+export * from './types/types';
+export * from './dom/dom';
+export * from './string/endswith';
+export * from './string/kebab';
+export * from './string/stringify';

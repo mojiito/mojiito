@@ -1,5 +1,5 @@
 import { Logger, LogLevel, LogType } from '../../debug/debug';
-import { Injectable } from '../../runtime/di/di';
+import { Injectable } from '../../core/di/di';
 import { ContextTree } from './context';
 
 export interface IDOMParserElementHook {

@@ -1,5 +1,5 @@
 import { assert } from './../../debug/debug';
-import { createClassDecorator, createParameterDecorator } from '../../utils/decorators/decorators';
+import { createClassDecorator, createParameterDecorator } from '../decorators/decorators';
 import { ClassType, getClassName } from '../../utils/class/class';
 import { InjectableMetadata, InjectMetadata } from './metadata';
 
