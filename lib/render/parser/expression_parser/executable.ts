@@ -1,26 +1,31 @@
-import { ExpressionTokenizer, ExpressionToken, ExpressionTokenType } from './tokenizer';
-
 export class Executable {
-    constructor(private fn: Function, private contexts: Object | Function[]) {}
+
+    private _executableFn: Function;
+    private _contexts: Function | Object[] = [];
+
+    constructor(expression: string, requestContextForToken: (token: string) => Function | Object) {
+        let pattern = /\$?\b\w+(\.\w+)*\b/g;
+        var executableString = "";
+
+        let lastIndex = 0;
+        let match: RegExpExecArray;
+        let contexts: any[] = [];
+        while (match = pattern.exec(expression)) {
+            const token = expression.substr(match.index, pattern.lastIndex - match.index);
+            contexts.push(requestContextForToken(token.split('.')[0]));
+            console.log(token, contexts);
+            executableString += expression.substr(lastIndex, match.index - lastIndex) + 'arguments['+(contexts.length-1)+'].' + token ;
+            lastIndex = pattern.lastIndex;
+        }
+        executableString += expression.substr(lastIndex, expression.length);
+        
+        this._executableFn = Function(executableString);
+        this._contexts = contexts;
+    }
 
     execute() {
-        return this.fn.apply(this.fn, this.contexts);
-    }
-    
-    static fromTokenList(tokenList: ExpressionToken[], requestContextForToken: (token: ExpressionToken) => Function | Object): Executable {
-        let definitionString = '';
-        let executableString = '';
-        let contexts: any[] = [];
-        for (let i = 0, max = tokenList.length; i < max; i++) {
-            let token = tokenList[i];
-            if (token.type === ExpressionTokenType.Function || token.type === ExpressionTokenType.Variable) {
-                definitionString += `var expr_${i} = Function('return this.${token.expression}');`;
-                executableString += `expr_${i}.apply(arguments[${i}], [])`;
-                contexts.push(requestContextForToken(token));
-            } else if(token.type === ExpressionTokenType.Operator) {
-                executableString += token.expression;
-            }
-        }
-        return new Executable(Function(definitionString + executableString), contexts);
+        return this._executableFn.apply(this._executableFn, this._contexts);
     }
 }
+
+(<any>window).Executable = Executable;

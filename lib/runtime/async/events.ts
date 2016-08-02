@@ -2,7 +2,7 @@ export class EventEmitter<T> {
 
     private _subscriptions: EventSubscription<T>[] = [];
 
-    subscribe(generatorOrNext?: any, error?: any, complete?: any): EventSubscription<T>;
+    subscribe(generatorOrNext?: (value?: T) => void, error?: any, complete?: any): EventSubscription<T>;
     subscribe(subscription: EventSubscription<T>): EventSubscription<T>;
     subscribe(generatorOrNext?: any, error?: any, complete?: any): EventSubscription<T> {
         if (generatorOrNext instanceof EventSubscription) {

@@ -48,14 +48,14 @@
             </div>
         </header>
         <main class="mdl-layout__content">
-            <todo-form (submitter)="submitForm()">
-                <form action="#" todo-form (submit)="submitForm()">
+            <todo-form (onSubmit)="submitForm($event)">
+                <form action="#" todo-form (submit)="submitForm(title.value, date.value)">
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" #title (input)="setTitle()" type="text" id="sample3">
+                        <input class="mdl-textfield__input" #title (input)="titleText=title.value" type="text" id="sample3">
                         <label class="mdl-textfield__label" for="sample3">Enter Todo...</label>
                     </div>
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" data-ref-date (input)="setDate()" type="text" id="sample3">
+                        <input class="mdl-textfield__input" data-ref-date type="text" id="sample3">
                         <label class="mdl-textfield__label" for="sample3">Enter Due Date (DD.MM.YYYY)</label>
                     </div>
                     <div>

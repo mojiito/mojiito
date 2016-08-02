@@ -9,7 +9,6 @@ import { ClassReflection } from '../../../runtime/reflect/reflection';
 import { OutputMetadata } from '../../../runtime/component/metadata';
 import { EventEmitter } from '../../../runtime/async/events';
 import { ExpressionParser } from '../expression_parser/parser';
-import { ExpressionTokenType } from '../expression_parser/tokenizer';
 
 export class EventParserHook extends ParserAttributeHook {
 
@@ -23,7 +22,7 @@ export class EventParserHook extends ParserAttributeHook {
         return !!attribute.name.match(/^\(\w+(-\w+)*\)|on-\w+(-\w+)*|data-on-\w+(-\w+)*$/);
     }
 
-    onParse(element: Element, attribute: Attr, context: ContextTree) {
+    onAfterParse(element: Element, attribute: Attr, context: ContextTree) {
         let view: View = context.getNearestContextOfType(View);
         let host = view.hostElement;
         
@@ -39,35 +38,50 @@ export class EventParserHook extends ParserAttributeHook {
             eventType = attrName.match(/\w+(-\w+)*/)[0];
         }
 
+        eventType = eventType.toLowerCase();
+
         let isComponentEvent = context.getUnfiltered()[0].filter(value => value.context === view).length
             && view.hostElement.getView(-1) === view;
+        
+        let eventContextObject: {$event: any} = {
+            $event: {}
+        }
 
         let exprParser = new ExpressionParser(eventExpression);
         let executable = exprParser.parse((token) => {
-            if (token.type === ExpressionTokenType.Function) {
-                assert(typeof (isComponentEvent ? host.parent.component : host.component)[token.key] === 'function', `There is no method ${token.key} defined on your component or directive`);
-                return isComponentEvent ? host.parent.component : host.component;
-            } else if (token.type === ExpressionTokenType.Variable) {
-                if (!isComponentEvent && view.getTemplateVar(token.key, false)) {
-                    return view.templateVars;
-                }
-                if (!isComponentEvent && host.componentView.getTemplateVar(token.key, false)) {
-                    return host.componentView.templateVars;
-                }
-                if (isComponentEvent && host.parent.componentView.getTemplateVar(token.key, false)) {
-                    return host.parent.componentView.templateVars;
-                }
-                return isComponentEvent ? host.parent.component : host.component;
-            }
-            return null;
-        });
 
+            if (token === '$event') {
+                return eventContextObject;
+            }
+
+            // Check for template var in view
+            if (!isComponentEvent && view !== host.componentView && view.getTemplateVar(token, false)) {
+                return view.templateVars;
+            }
+            
+            // Check for template var in component view
+            if (!isComponentEvent && host.componentView.getTemplateVar(token, false)) {
+                return host.componentView.templateVars;
+            }
+            
+            // Check for template var in parent component view
+            if (isComponentEvent && host.parent.componentView.getTemplateVar(token, false)) {
+                return host.parent.componentView.templateVars;
+            }
+
+            // Check for var or method in 
+            return isComponentEvent ? host.parent.component : host.component;
+
+        });
         if (isComponentEvent) {
             ClassReflection.peek(view.hostElement.component.constructor).properties.forEach((value, key) => {
-                if (value instanceof OutputMetadata && (<OutputMetadata>value).bindingPropertyName === eventType) {
+                if (value instanceof OutputMetadata && (<OutputMetadata>value).bindingPropertyName.toLowerCase() === eventType) {
                     let emitter: EventEmitter<any> = (<any>host.component)[key];
                     if (emitter instanceof EventEmitter) {
-                        emitter.subscribe((args: any[]) => {
+                        emitter.subscribe((event: any) => {
+                            if (event) {
+                                eventContextObject.$event = event;
+                            }
                             executable.execute();
                         });
                     }
@@ -75,6 +89,9 @@ export class EventParserHook extends ParserAttributeHook {
             })
         } else {      
             element.addEventListener(eventType, event => {
+                if (event) {
+                    eventContextObject.$event = event;
+                }
                 executable.execute();
             });
         }

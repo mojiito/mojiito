@@ -18,6 +18,7 @@ export class TemplateVariableParserHook extends ParserAttributeHook {
     }
 
     onParse(element: Element, attribute: Attr, context: ContextTree) {
+        console.log(element);
         let view: View = context.getNearestContextOfType(View);
         let parts = attribute.name.split('-');
         let name = parts[parts.length - 1].match(/\w+/)[0];
