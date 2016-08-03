@@ -3,10 +3,12 @@ import { ClassType } from '../../utils/class/class';
 import { createClassDecorator, createPropertyDecoratory } from '../decorators/decorators';
 import { ComponentMetadata, InputMetadata, OutputMetadata } from './metadata';
 import { Injectable } from '../di/di';
+import { ChangeDetectionStrategy } from '../change_detection/change_detection';
 
 
 export interface ComponentMetadataFactory {
     (metadata: {
+        changeDetection?: ChangeDetectionStrategy,
         selector?: string,
         inputs?: string[],
         outputs?: string[],

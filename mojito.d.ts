@@ -629,8 +629,331 @@ declare module "core/di/metadata" {
         toString(): string;
     }
 }
+declare module "core/change_detection/change_detector" {
+    export abstract class ChangeDetector {
+        abstract markForCheck(): void;
+        abstract detach(): void;
+        abstract detectChanges(): void;
+        abstract checkNoChanges(): void;
+        abstract reattach(): void;
+    }
+}
+declare module "core/change_detection/differs/iterable" {
+    import { ChangeDetector } from "core/change_detection/change_detector";
+    export interface TrackByFn {
+        (index: number, item: any): any;
+    }
+    export function isListLikeIterable(obj: any): boolean;
+    export function areIterablesEqual(a: any, b: any, comparator: Function): boolean;
+    export function iterateListLike(obj: any, fn: Function): void;
+    export class IterableDifferFactory {
+        constructor();
+        supports(obj: Object): boolean;
+        create(cdRef: ChangeDetector, trackByFn?: TrackByFn): IterableDiffer;
+    }
+    /**
+     * @stable
+     */
+    export class IterableDiffer {
+        private _trackByFn;
+        private _length;
+        private _collection;
+        private _linkedRecords;
+        private _unlinkedRecords;
+        private _previousItHead;
+        private _itHead;
+        private _itTail;
+        private _additionsHead;
+        private _additionsTail;
+        private _movesHead;
+        private _movesTail;
+        private _removalsHead;
+        private _removalsTail;
+        private _identityChangesHead;
+        private _identityChangesTail;
+        constructor(_trackByFn?: TrackByFn);
+        collection: any;
+        length: number;
+        forEachItem(fn: Function): void;
+        forEachPreviousItem(fn: Function): void;
+        forEachAddedItem(fn: Function): void;
+        forEachMovedItem(fn: Function): void;
+        forEachRemovedItem(fn: Function): void;
+        forEachIdentityChange(fn: Function): void;
+        diff(collection: any): IterableDiffer;
+        onDestroy(): void;
+        check(collection: any): boolean;
+        isDirty: boolean;
+        /**
+         * Reset the state of the change objects to show no changes. This means set previousKey to
+         * currentKey, and clear all of the queues (additions, moves, removals).
+         * Set the previousIndexes of moved and added items to their currentIndexes
+         * Reset the list of additions, moves and removals
+         *
+         * @internal
+         */
+        _reset(): void;
+        /**
+         * This is the core function which handles differences between collections.
+         *
+         * - `record` is the record which we saw at this position last time. If null then it is a new
+         *   item.
+         * - `item` is the current item in the collection
+         * - `index` is the position of the item in the collection
+         *
+         * @internal
+         */
+        _mismatch(record: CollectionChangeRecord, item: any, itemTrackBy: any, index: number): CollectionChangeRecord;
+        /**
+         * This check is only needed if an array contains duplicates. (Short circuit of nothing dirty)
+         *
+         * Use case: `[a, a]` => `[b, a, a]`
+         *
+         * If we did not have this check then the insertion of `b` would:
+         *   1) evict first `a`
+         *   2) insert `b` at `0` index.
+         *   3) leave `a` at index `1` as is. <-- this is wrong!
+         *   3) reinsert `a` at index 2. <-- this is wrong!
+         *
+         * The correct behavior is:
+         *   1) evict first `a`
+         *   2) insert `b` at `0` index.
+         *   3) reinsert `a` at index 1.
+         *   3) move `a` at from `1` to `2`.
+         *
+         *
+         * Double check that we have not evicted a duplicate item. We need to check if the item type may
+         * have already been removed:
+         * The insertion of b will evict the first 'a'. If we don't reinsert it now it will be reinserted
+         * at the end. Which will show up as the two 'a's switching position. This is incorrect, since a
+         * better way to think of it is as insert of 'b' rather then switch 'a' with 'b' and then add 'a'
+         * at the end.
+         *
+         * @internal
+         */
+        _verifyReinsertion(record: CollectionChangeRecord, item: any, itemTrackBy: any, index: number): CollectionChangeRecord;
+        /**
+         * Get rid of any excess {@link CollectionChangeRecord}s from the previous collection
+         *
+         * - `record` The first excess {@link CollectionChangeRecord}.
+         *
+         * @internal
+         */
+        _truncate(record: CollectionChangeRecord): void;
+        /** @internal */
+        _reinsertAfter(record: CollectionChangeRecord, prevRecord: CollectionChangeRecord, index: number): CollectionChangeRecord;
+        /** @internal */
+        _moveAfter(record: CollectionChangeRecord, prevRecord: CollectionChangeRecord, index: number): CollectionChangeRecord;
+        /** @internal */
+        _addAfter(record: CollectionChangeRecord, prevRecord: CollectionChangeRecord, index: number): CollectionChangeRecord;
+        /** @internal */
+        _insertAfter(record: CollectionChangeRecord, prevRecord: CollectionChangeRecord, index: number): CollectionChangeRecord;
+        /** @internal */
+        _remove(record: CollectionChangeRecord): CollectionChangeRecord;
+        /** @internal */
+        _unlink(record: CollectionChangeRecord): CollectionChangeRecord;
+        /** @internal */
+        _addToMoves(record: CollectionChangeRecord, toIndex: number): CollectionChangeRecord;
+        /** @internal */
+        _addToRemovals(record: CollectionChangeRecord): CollectionChangeRecord;
+        /** @internal */
+        _addIdentityChange(record: CollectionChangeRecord, item: any): CollectionChangeRecord;
+        toString(): string;
+    }
+    /**
+     * @stable
+     */
+    export class CollectionChangeRecord {
+        item: any;
+        trackById: any;
+        currentIndex: number;
+        previousIndex: number;
+        /** @internal */
+        _nextPrevious: CollectionChangeRecord;
+        /** @internal */
+        _prev: CollectionChangeRecord;
+        /** @internal */
+        _next: CollectionChangeRecord;
+        /** @internal */
+        _prevDup: CollectionChangeRecord;
+        /** @internal */
+        _nextDup: CollectionChangeRecord;
+        /** @internal */
+        _prevRemoved: CollectionChangeRecord;
+        /** @internal */
+        _nextRemoved: CollectionChangeRecord;
+        /** @internal */
+        _nextAdded: CollectionChangeRecord;
+        /** @internal */
+        _nextMoved: CollectionChangeRecord;
+        /** @internal */
+        _nextIdentityChange: CollectionChangeRecord;
+        constructor(item: any, trackById: any);
+        toString(): string;
+    }
+}
+declare module "core/change_detection/differs/keyvalue" {
+    import { ChangeDetector } from "core/change_detection/change_detector";
+    /**
+     * @license
+     * Copyright Google Inc. All Rights Reserved.
+     *
+     * Use of this source code is governed by an MIT-style license that can be
+     * found in the LICENSE file at https://angular.io/license
+     *
+     * Modified by Thomas Pink for the usage in Mojito
+     */
+    /**
+     * Factory for creating a KeyValueDiffer
+     *
+     * @export
+     * @class DefaultKeyValueDifferFactory
+     */
+    export class KeyValueDifferFactory {
+        constructor();
+        supports(obj: any): boolean;
+        create(cdRef: ChangeDetector): KeyValueDiffer;
+    }
+    /**
+     * Key-Value Differ for Objects and Maps
+     *
+     * @export
+     * @class KeyValueDiffer
+     */
+    export class KeyValueDiffer {
+        private _records;
+        private _mapHead;
+        private _previousMapHead;
+        private _changesHead;
+        private _changesTail;
+        private _additionsHead;
+        private _additionsTail;
+        private _removalsHead;
+        private _removalsTail;
+        isDirty: boolean;
+        forEachItem(fn: (r: KeyValueChangeRecord) => void): void;
+        forEachPreviousItem(fn: (r: KeyValueChangeRecord) => void): void;
+        forEachChangedItem(fn: (r: KeyValueChangeRecord) => void): void;
+        forEachAddedItem(fn: (r: KeyValueChangeRecord) => void): void;
+        forEachRemovedItem(fn: (r: KeyValueChangeRecord) => void): void;
+        diff(map: Map<any, any> | {
+            [k: string]: any;
+        }): any;
+        onDestroy(): void;
+        check(map: Map<any, any> | {
+            [k: string]: any;
+        }): boolean;
+        /** @internal */
+        _reset(): void;
+        /** @internal */
+        _truncate(lastRecord: KeyValueChangeRecord, record: KeyValueChangeRecord): void;
+        private _maybeAddToChanges(record, newValue);
+        /** @internal */
+        _isInRemovals(record: KeyValueChangeRecord): boolean;
+        /** @internal */
+        _addToRemovals(record: KeyValueChangeRecord): void;
+        /** @internal */
+        _removeFromSeq(prev: KeyValueChangeRecord, record: KeyValueChangeRecord): void;
+        /** @internal */
+        _removeFromRemovals(record: KeyValueChangeRecord): void;
+        /** @internal */
+        _addToAdditions(record: KeyValueChangeRecord): void;
+        /** @internal */
+        _addToChanges(record: KeyValueChangeRecord): void;
+        toString(): string;
+        private _forEach<K, V>(obj, callback);
+    }
+    export class KeyValueChangeRecord {
+        key: any;
+        previousValue: any;
+        currentValue: any;
+        /** @internal */
+        _nextPrevious: KeyValueChangeRecord;
+        /** @internal */
+        _next: KeyValueChangeRecord;
+        /** @internal */
+        _nextAdded: KeyValueChangeRecord;
+        /** @internal */
+        _nextRemoved: KeyValueChangeRecord;
+        /** @internal */
+        _prevRemoved: KeyValueChangeRecord;
+        /** @internal */
+        _nextChanged: KeyValueChangeRecord;
+        constructor(key: any);
+        toString(): string;
+    }
+}
+declare module "core/change_detection/constants" {
+    /**
+     * Describes within the change detector which strategy will be used the next time change
+     * detection is triggered.
+     * @stable
+     */
+    export enum ChangeDetectionStrategy {
+        /**
+         * `OnPush` means that the change detector's mode will be set to `CheckOnce` during hydration.
+         */
+        OnPush = 0,
+        /**
+         * `Default` means that the change detector's mode will be set to `CheckAlways` during hydration.
+         */
+        Default = 1,
+    }
+    /**
+     * Describes the status of the detector.
+     */
+    export enum ChangeDetectorStatus {
+        /**
+         * `CheckedOnce` means that after calling detectChanges the mode of the change detector
+         * will become `Checked`.
+         */
+        CheckOnce = 0,
+        /**
+         * `Checked` means that the change detector should be skipped until its mode changes to
+         * `CheckOnce`.
+         */
+        Checked = 1,
+        /**
+         * `CheckAlways` means that after calling detectChanges the mode of the change detector
+         * will remain `CheckAlways`.
+         */
+        CheckAlways = 2,
+        /**
+         * `Detached` means that the change detector sub tree is not a part of the main tree and
+         * should be skipped.
+         */
+        Detached = 3,
+        /**
+         * `Errored` means that the change detector encountered an error checking a binding
+         * or calling a directive lifecycle method and is now in an inconsistent state. Change
+         * detectors in this state will no longer detect changes.
+         */
+        Errored = 4,
+        /**
+         * `Destroyed` means that the change detector is destroyed.
+         */
+        Destroyed = 5,
+    }
+    /**
+     * List of possible {@link ChangeDetectionStrategy} values.
+     */
+    export var CHANGE_DETECTION_STRATEGY_VALUES: ChangeDetectionStrategy[];
+    /**
+     * List of possible {@link ChangeDetectorStatus} values.
+     */
+    export var CHANGE_DETECTOR_STATUS_VALUES: ChangeDetectorStatus[];
+    export function isDefaultChangeDetectionStrategy(changeDetectionStrategy: ChangeDetectionStrategy): boolean;
+}
+declare module "core/change_detection/change_detection" {
+    import { IterableDiffer, IterableDifferFactory } from "core/change_detection/differs/iterable";
+    import { KeyValueDiffer, KeyValueDifferFactory } from "core/change_detection/differs/keyvalue";
+    export { ChangeDetector } from "core/change_detection/change_detector";
+    export { CHANGE_DETECTION_STRATEGY_VALUES, CHANGE_DETECTOR_STATUS_VALUES, ChangeDetectionStrategy, ChangeDetectorStatus } from "core/change_detection/constants";
+    export { IterableDiffer, IterableDifferFactory, KeyValueDiffer, KeyValueDifferFactory };
+}
 declare module "core/component/metadata" {
     import { InjectableMetadata } from "core/di/metadata";
+    import { ChangeDetectionStrategy } from "core/change_detection/change_detection";
     export class DirectiveMetadata extends InjectableMetadata {
         selector: string;
         inputs: string[];
@@ -683,11 +1006,13 @@ declare module "core/component/metadata" {
      * @extends {DirectiveMetadata}
      */
     export class ComponentMetadata extends DirectiveMetadata {
+        changeDetection: ChangeDetectionStrategy;
         templateUrl: string;
         template: string;
         styleUrls: string[];
         styles: string[];
-        constructor({selector, inputs, outputs, host, providers, templateUrl, template, styleUrls, styles}?: {
+        constructor({changeDetection, selector, inputs, outputs, host, providers, templateUrl, template, styleUrls, styles}?: {
+            changeDetection?: ChangeDetectionStrategy;
             selector?: string;
             inputs?: string[];
             outputs?: string[];
@@ -979,8 +1304,10 @@ declare module "core/di/di" {
     export { forwardRef } from "core/di/forward_ref";
 }
 declare module "core/component/decorators" {
+    import { ChangeDetectionStrategy } from "core/change_detection/change_detection";
     export interface ComponentMetadataFactory {
         (metadata: {
+            changeDetection?: ChangeDetectionStrategy;
             selector?: string;
             inputs?: string[];
             outputs?: string[];
@@ -1165,80 +1492,6 @@ declare module "core/view/factory" {
         create(element: Element): V;
     }
 }
-declare module "core/change_detection/change_detector" {
-    export abstract class ChangeDetector {
-        abstract markForCheck(): void;
-        abstract detach(): void;
-        abstract detectChanges(): void;
-        abstract checkNoChanges(): void;
-        abstract reattach(): void;
-    }
-}
-declare module "core/change_detection/constants" {
-    /**
-     * Describes within the change detector which strategy will be used the next time change
-     * detection is triggered.
-     * @stable
-     */
-    export enum ChangeDetectionStrategy {
-        /**
-         * `OnPush` means that the change detector's mode will be set to `CheckOnce` during hydration.
-         */
-        OnPush = 0,
-        /**
-         * `Default` means that the change detector's mode will be set to `CheckAlways` during hydration.
-         */
-        Default = 1,
-    }
-    /**
-     * Describes the status of the detector.
-     */
-    export enum ChangeDetectorStatus {
-        /**
-         * `CheckedOnce` means that after calling detectChanges the mode of the change detector
-         * will become `Checked`.
-         */
-        CheckOnce = 0,
-        /**
-         * `Checked` means that the change detector should be skipped until its mode changes to
-         * `CheckOnce`.
-         */
-        Checked = 1,
-        /**
-         * `CheckAlways` means that after calling detectChanges the mode of the change detector
-         * will remain `CheckAlways`.
-         */
-        CheckAlways = 2,
-        /**
-         * `Detached` means that the change detector sub tree is not a part of the main tree and
-         * should be skipped.
-         */
-        Detached = 3,
-        /**
-         * `Errored` means that the change detector encountered an error checking a binding
-         * or calling a directive lifecycle method and is now in an inconsistent state. Change
-         * detectors in this state will no longer detect changes.
-         */
-        Errored = 4,
-        /**
-         * `Destroyed` means that the change detector is destroyed.
-         */
-        Destroyed = 5,
-    }
-    /**
-     * List of possible {@link ChangeDetectionStrategy} values.
-     */
-    export var CHANGE_DETECTION_STRATEGY_VALUES: ChangeDetectionStrategy[];
-    /**
-     * List of possible {@link ChangeDetectorStatus} values.
-     */
-    export var CHANGE_DETECTOR_STATUS_VALUES: ChangeDetectorStatus[];
-    export function isDefaultChangeDetectionStrategy(changeDetectionStrategy: ChangeDetectionStrategy): boolean;
-}
-declare module "core/change_detection/change_detection" {
-    export { ChangeDetector } from "core/change_detection/change_detector";
-    export { CHANGE_DETECTION_STRATEGY_VALUES, CHANGE_DETECTOR_STATUS_VALUES, ChangeDetectionStrategy, ChangeDetectorStatus } from "core/change_detection/constants";
-}
 declare module "core/view/view" {
     import { HostElement } from "core/view/host";
     import { ChangeDetectorStatus } from "core/change_detection/change_detection";
@@ -1280,6 +1533,8 @@ declare module "core/view/host" {
         private _children;
         private _cdStatus;
         private _cdDefaultStatus;
+        private _iterableDiffer;
+        private _keyValueDiffer;
         component: any;
         componentView: View;
         elementRef: ElementRef;
@@ -1347,6 +1602,7 @@ declare module "core/application/application" {
     export class Application {
         private _appComponent;
         private _injector;
+        private _runningTick;
         injector: Injector;
         appComponent: ComponentReference<any>;
         constructor(injector: Injector);

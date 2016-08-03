@@ -31,6 +31,7 @@ export class Application {
 
     private _appComponent: ComponentReference<any>;    
     private _injector: Injector;
+    private _runningTick = false;
 
     get injector() { return this._injector; }
     get appComponent() { return this._appComponent; }
@@ -77,7 +78,10 @@ export class Application {
     }    
     
     tick() {
+        assert(!this._runningTick, `Tick is already running. You may call tick recursivly!`);
+        this._runningTick = true;
         assert(!!this._appComponent, `Please call "bootstrap" before the first tick!`);
         this._appComponent.hostElement.detectChanges();
+        this._runningTick = false;
     }
 }

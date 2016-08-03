@@ -49,8 +49,12 @@ class TodoStore {
 
 @Component({ selector: '[todo-app]' })
 class TodoApp {
+
+    private test = false;    
+
     constructor( @Inject(TodoStore) store: TodoStore) {
         store.add('test', new Date());
+        this.test = true;
     }
 }
 

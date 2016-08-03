@@ -1,6 +1,7 @@
 import { assert } from '../../debug/debug';
 import { stringify } from '../../utils/string/stringify';
 import { InjectableMetadata } from '../di/metadata';
+import { ChangeDetectionStrategy } from '../change_detection/change_detection';
 
 export class DirectiveMetadata extends InjectableMetadata {
     selector: string;
@@ -110,6 +111,8 @@ export class DirectiveMetadata extends InjectableMetadata {
  * @extends {DirectiveMetadata}
  */
 export class ComponentMetadata extends DirectiveMetadata {
+    changeDetection: ChangeDetectionStrategy;
+    
     templateUrl: string;
     template: string;
 
@@ -118,6 +121,7 @@ export class ComponentMetadata extends DirectiveMetadata {
 
     constructor(
         {
+            changeDetection,
             selector, 
             inputs, 
             outputs, 
@@ -128,6 +132,7 @@ export class ComponentMetadata extends DirectiveMetadata {
             styleUrls, 
             styles
         }: {
+            changeDetection?: ChangeDetectionStrategy,
             selector?: string,
             inputs?: string[],
             outputs?: string[],
@@ -140,6 +145,7 @@ export class ComponentMetadata extends DirectiveMetadata {
         } = {}
     ) {
         super({ selector, inputs, outputs, host, providers });
+        this.changeDetection = changeDetection;
         this.templateUrl = templateUrl;
         this.template = template;
         this.styles = styles;
