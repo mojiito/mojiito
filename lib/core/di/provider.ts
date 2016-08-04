@@ -181,7 +181,7 @@ export function resolveFactory(provider: Provider): ResolvedFactory {
 export function dependenciesForClass(annotatedClass: ClassType<any>): any[] {
     let dependecies: any[] = []
     let dependencyTokens = ClassReflection.peek(annotatedClass).parameters.filter(value => value instanceof InjectMetadata);
-    if (Array.isArray(dependencyTokens)) {
+    if (Array.isArray(dependencyTokens) && dependencyTokens.length) {
         let isInjectable = false;
         ClassReflection.peek(annotatedClass).annotations.forEach(value => {
             if (value instanceof InjectableMetadata) {
