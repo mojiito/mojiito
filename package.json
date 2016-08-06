@@ -1,0 +1,44 @@
+{
+  "name": "mojito",
+  "description": "Lightweight Controller JS Framework",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomaspink/mojito.js"
+  },
+  "version": "",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "typings install",
+    "start": "watch 'npm run tsc' lib & npm run server",
+    "start:test": "watch 'npm run tsc:test' lib & npm run karma & npm run server & npm run server:test",
+    "server": "live-server --wait=1000 --watch=.tmp",
+    "server:test": "live-server --watch=.results/mojito/index.html --open=.results/mojito/index.html",
+    "test": "npm run tsc:test & npm run karma",
+    "tsc": "tsc -p lib/",
+    "tsc:test": "tsc --rootDir lib --outDir .tmp --module amd",
+    "karma": "karma start karma.conf.js",
+    "build": "npm run tsc",
+    "doc": "typedoc --out doc/ lib/ --module commonjs --experimentalDecorators --target es5 --mode file"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.0",
+    "jasmine-core": "^2.4.1",
+    "karma": "^0.13.19",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-html-reporter": "^0.2.7",
+    "karma-jasmine": "^0.3.6",
+    "karma-requirejs": "^0.2.4",
+    "live-server": "^0.9.1",
+    "requirejs": "^2.1.22",
+    "systemjs": "^0.19.17",
+    "tsd": "^0.6.5",
+    "typedoc": "^0.3.12",
+    "typescript": "^1.8.10",
+    "watch": "^0.17.1"
+  },
+  "dependencies": {
+    "es6-shim": "^0.35.1",
+    "reflect-metadata": "^0.1.3",
+    "zone.js": "^0.6.12"
+  }
+}

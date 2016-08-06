@@ -1,0 +1,13 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "rootDir": ".",
+    "inlineSourceMap": true,
+    "sourceRoot": "/",
+    "target": "es5"
+  },
+  "files": [
+    "./typings.d.ts"
+  ]
+}
