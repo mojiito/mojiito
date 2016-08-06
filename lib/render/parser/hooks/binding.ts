@@ -67,6 +67,6 @@ export class BindingParserHook extends ParserAttributeHook {
 
         }
 
-        console.log(bindingName);
+        // console.log(bindingName);
     }
 }

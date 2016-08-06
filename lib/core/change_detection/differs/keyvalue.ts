@@ -82,7 +82,7 @@ export class KeyValueDiffer {
         }
     }
 
-    diff(map: Map<any, any> | { [k: string]: any }): any {
+    diff(map: Map<any, any> | { [k: string]: any }): KeyValueDiffer {
         if (!map) {
             map = new Map();
         } else if (!(map instanceof Map || isObject(map))) {

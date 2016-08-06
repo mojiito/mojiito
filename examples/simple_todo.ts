@@ -63,12 +63,17 @@ class TodoForm {
     @Input('hero')  hero: any;
     @Output('onSubmit') onSubmitEmitter = new EventEmitter();
 
+    private date =  new Date() ;
+
     constructor(@Inject(TodoStore) private store: TodoStore) {
     }
 
     submitForm(title, date) {
-        this.store.add(title, new Date());
-        console.log(this.store);
+        setTimeout(() => {
+            this.store.add(title, new Date());
+            this.date = new Date();
+        }, 2000);
+       
     }
 }
 

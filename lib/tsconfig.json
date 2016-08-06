@@ -15,6 +15,7 @@
     "files": [
         "../typings/index.d.ts",
         "./typings.d.ts",
+        "../node_modules/zone.js/dist/zone.js.d.ts",
         "./mojito/core.ts",
         "./mojito/render.ts",
         "./mojito/debug.ts",

@@ -83,6 +83,7 @@ export class HostElement implements ChangeDetector {
     }
     
     detectChanges() {
+        console.log('detectChanges', this._nativeElement);
         if (this._cdStatus === ChangeDetectorStatus.Checked || this._cdStatus === ChangeDetectorStatus.Errored) {
             return;
         }

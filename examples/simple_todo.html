@@ -7,6 +7,7 @@
     <script src="../node_modules/systemjs/dist/system-polyfills.js"></script>
     <script src="../node_modules/systemjs/dist/system.js"></script>
     <script src="../../node_modules/es6-shim/es6-shim.js"></script>
+    <script src="../../node_modules/zone.js/dist/zone.js"></script>
     <script src="../mojito.js"></script>
     <script>
         // set our baseURL reference path
@@ -49,7 +50,7 @@
             </div>
         </header>
         <main class="mdl-layout__content">
-            <todo-form (onSubmit)="submitForm($event)">
+            <todo-form (onSubmit)="submitForm($event)" [hero]="hero" >
                 <form action="#" todo-form (submit)="submitForm(title.value, date.value)">
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                         <input class="mdl-textfield__input" #title type="text" id="sample3">
