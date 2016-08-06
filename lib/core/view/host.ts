@@ -83,7 +83,6 @@ export class HostElement implements ChangeDetector {
     }
     
     detectChanges() {
-        console.log('detectChanges', this._nativeElement);
         if (this._cdStatus === ChangeDetectorStatus.Checked || this._cdStatus === ChangeDetectorStatus.Errored) {
             return;
         }
@@ -94,13 +93,13 @@ export class HostElement implements ChangeDetector {
         if (isPresent(this._iterableDiffer)) {
             let changes = this._iterableDiffer.diff(this.component);
             if (isPresent(changes)) {
-                console.log(changes);
+                // console.log(changes);
             }
         }
         if (isPresent(this._keyValueDiffer)) {
             let changes = this._keyValueDiffer.diff(this.component);
             if (isPresent(changes)) {
-                console.log(changes);
+                // console.log(changes);
             }
         }
 
