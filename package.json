@@ -11,6 +11,7 @@
   "engines": {
     "node": ">= 5.4.1 < 6"
   },
+  "main": "./mojito.js",
   "scripts": {
     "postinstall": "typings install",
     "start": "watch 'npm run tsc' lib & npm run server",
