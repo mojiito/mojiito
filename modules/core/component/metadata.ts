@@ -61,8 +61,7 @@ export class DirectiveMetadata extends InjectableMetadata {
 
             // Check if the selector contains element names whicht are not allowed
             // eg. custom elements without a "-" in it
-            assert(
-                !selectorPart.match(/^\w+(-\w+)*$/) || !(document.createElement(selectorPart) instanceof HTMLUnknownElement),
+            assert(!(document.createElement(selectorPart) instanceof HTMLUnknownElement) || /^\w+(-\w+)+$/.test(selectorPart),
                 `The selector "${selector}" contains an element name "${selectorPart}" which is not allowed. 
                 If you are using a custom element, there has to be a "-" char in it. E.g.: my-component`,
                 SyntaxError);
