@@ -1,4 +1,4 @@
-import { Injector, Injectable, Inject, Component, Output, Input, bootstrap, Provider, ElementRef, HostElement, EventEmitter } from 'mojito/core';
+import { Injector, Injectable, Inject, Component, Output, Input, bootstrap, Provider, ElementRef, HostElement, EventEmitter } from 'mojito';
 
 console.time('startUp');
 

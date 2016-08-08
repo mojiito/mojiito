@@ -1738,12 +1738,8 @@ declare module "core/core" {
     export * from "core/di/di";
     export { EventEmitter } from "core/async/events";
 }
-declare module "mojito/core" {
-    export * from "core/core";
-}
-declare module "mojito/debug" {
+declare module "mojito" {
     export * from "debug/debug";
-}
-declare module "mojito/utils" {
     export * from "utils/utils";
+    export * from "core/core";
 }
