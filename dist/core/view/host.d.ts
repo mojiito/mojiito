@@ -1,0 +1,36 @@
+import { View } from './view';
+import { ElementRef } from './element';
+import { Injector } from '../di/di';
+import { ChangeDetector, ChangeDetectorStatus } from '../change_detection/change_detection';
+export declare class HostElement implements ChangeDetector {
+    private _componentView;
+    private _nestedViews;
+    private _nativeElement;
+    private _component;
+    private _injector;
+    private _parent;
+    private _children;
+    private _cdStatus;
+    private _cdDefaultStatus;
+    private _iterableDiffer;
+    private _keyValueDiffer;
+    component: any;
+    componentView: View;
+    elementRef: ElementRef;
+    injector: Injector;
+    parent: HostElement;
+    cdStatus: ChangeDetectorStatus;
+    constructor(nativeElement: Element, parent?: HostElement, cdStatus?: ChangeDetectorStatus);
+    initComponent(component: any, injector: Injector): void;
+    attachView(view: View, viewIndex: number): void;
+    registerChild(childHost: HostElement): void;
+    parseView(viewIndex?: number): void;
+    parse(): void;
+    getView(viewIndex?: number): View;
+    markForCheck(): void;
+    detach(): void;
+    detectChanges(): void;
+    detectChildChanges(): void;
+    checkNoChanges(): void;
+    reattach(): void;
+}
