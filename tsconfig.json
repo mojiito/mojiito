@@ -8,7 +8,6 @@
         "noImplicitAny": true,
         "preserveConstEnums": true,
         "removeComments": false,
-        "rootDir": "lib",
         "sourceMap": true,
         "moduleResolution": "node"
     },
@@ -19,5 +18,10 @@
         ".tmp",
         ".results",
         "examples"
+    ],
+    "files": [
+        "./typings/index.d.ts",
+        "./modules/typings.d.ts",
+        "./index.ts"
     ]
 }
