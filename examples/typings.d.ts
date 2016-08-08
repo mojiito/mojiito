@@ -1,1 +1,1 @@
-/// <reference path="../mojito.d.ts" />
+/// <reference path="../dist/index.d.ts" />

@@ -4,7 +4,8 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "target": "ES5",
-        "module": "system",
+        "module": "commonjs",
+        "outDir": "./dist",
         "noImplicitAny": true,
         "preserveConstEnums": true,
         "removeComments": false,
@@ -20,8 +21,9 @@
         "examples"
     ],
     "files": [
+        "./node_modules/zone.js/dist/zone.js.d.ts",
+        "./node_modules/reflect-metadata/reflect-metadata.d.ts",
         "./typings/index.d.ts",
-        "./modules/typings.d.ts",
-        "./index.ts"
+        "./modules/index.ts"
     ]
 }
