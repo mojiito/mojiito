@@ -1,4 +1,4 @@
 export declare class ElementRef {
-    nativeElement: any;
-    constructor(nativeElement: any);
+    nativeElement: Element;
+    constructor(nativeElement: Element);
 }
