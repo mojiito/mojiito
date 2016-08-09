@@ -58,6 +58,10 @@ export class DirectiveMetadata extends InjectableMetadata {
             if (!selectorPart.length) {
                 continue;
             }
+            
+            if (!/^\w+(-\w+)*$/.test(selectorPart)) {
+                continue;
+            }
 
             // Check if the selector contains element names whicht are not allowed
             // eg. custom elements without a "-" in it
