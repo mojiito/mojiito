@@ -94,35 +94,35 @@ export class IterableDiffer {
         }
     }
 
-    forEachPreviousItem(fn: Function) {
+    forEachPreviousItem(fn: (r: CollectionChangeRecord) => void) {
         var record: CollectionChangeRecord;
         for (record = this._previousItHead; record !== null; record = record._nextPrevious) {
             fn(record);
         }
     }
 
-    forEachAddedItem(fn: Function) {
+    forEachAddedItem(fn: (r: CollectionChangeRecord) => void) {
         var record: CollectionChangeRecord;
         for (record = this._additionsHead; record !== null; record = record._nextAdded) {
             fn(record);
         }
     }
 
-    forEachMovedItem(fn: Function) {
+    forEachMovedItem(fn: (r: CollectionChangeRecord) => void) {
         var record: CollectionChangeRecord;
         for (record = this._movesHead; record !== null; record = record._nextMoved) {
             fn(record);
         }
     }
 
-    forEachRemovedItem(fn: Function) {
+    forEachRemovedItem(fn: (r: CollectionChangeRecord) => void) {
         var record: CollectionChangeRecord;
         for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
             fn(record);
         }
     }
 
-    forEachIdentityChange(fn: Function) {
+    forEachIdentityChange(fn: (r: CollectionChangeRecord) => void) {
         var record: CollectionChangeRecord;
         for (record = this._identityChangesHead; record !== null; record = record._nextIdentityChange) {
             fn(record);

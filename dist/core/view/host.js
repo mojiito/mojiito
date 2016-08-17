@@ -61,13 +61,44 @@ var HostElement = (function () {
     HostElement.prototype.initComponent = function (component, injector) {
         this._component = component;
         this._injector = injector;
-        var componentView = new view_1.View(this._nativeElement, this);
-        this._componentView = componentView;
+        var componentView = new view_1.View(this._nativeElement);
+        this.attachView(componentView, -1);
     };
-    // TODO    
-    HostElement.prototype.attachView = function (view, viewIndex) { };
     HostElement.prototype.registerChild = function (childHost) {
         this._children.push(childHost);
+    };
+    HostElement.prototype.attachView = function (view, viewIndex) {
+        debug_1.assert(viewIndex >= -1, "Only views with index >= 0 can be attached!");
+        if (viewIndex === -1) {
+            debug_1.assert(!(this._componentView instanceof view_1.View), "There is already a component view attached!");
+            this._componentView = view;
+        }
+        else {
+            var view_2 = this._nestedViews[viewIndex];
+            debug_1.assert(!(view_2 instanceof view_1.View), "There is already a view attached on this view-index!");
+            this._nestedViews[viewIndex] === view_2;
+        }
+        view.attach(this);
+    };
+    HostElement.prototype.detachView = function (viewIndex) {
+        debug_1.assert(viewIndex >= 0, "You cannot detach the component view!");
+        var view = this._nestedViews[viewIndex];
+        if (view instanceof view_1.View) {
+            view.detach();
+            this._nestedViews.splice(viewIndex, 1);
+            return view;
+        }
+        return null;
+    };
+    HostElement.prototype.getView = function (viewIndex) {
+        if (viewIndex === void 0) { viewIndex = -1; }
+        return viewIndex === -1 ? this._componentView : this._nestedViews[viewIndex];
+    };
+    HostElement.prototype.destroyView = function (viewIndex) {
+        var view = this.detachView(viewIndex);
+        if (view instanceof view_1.View) {
+            view.destroy();
+        }
     };
     HostElement.prototype.parseView = function (viewIndex) {
         if (viewIndex === void 0) { viewIndex = -1; }
@@ -78,29 +109,29 @@ var HostElement = (function () {
     HostElement.prototype.parse = function () {
         this.parseView(-1);
     };
-    HostElement.prototype.getView = function (viewIndex) {
-        if (viewIndex === void 0) { viewIndex = -1; }
-        return viewIndex === -1 ? this._componentView : this._nestedViews[viewIndex];
-    };
     HostElement.prototype.markForCheck = function () { };
     HostElement.prototype.detach = function () {
         this._cdStatus = change_detection_1.ChangeDetectorStatus.Detached;
     };
     HostElement.prototype.detectChanges = function () {
+        var _this = this;
         if (this._cdStatus === change_detection_1.ChangeDetectorStatus.Checked || this._cdStatus === change_detection_1.ChangeDetectorStatus.Errored) {
             return;
         }
         if (this._cdStatus === change_detection_1.ChangeDetectorStatus.Destroyed) {
             return;
         }
-        if (utils_1.isPresent(this._iterableDiffer)) {
-            var changes = this._iterableDiffer.diff(this.component);
-            if (utils_1.isPresent(changes)) {
-            }
-        }
+        // TODO: Implement Iterable differ
+        // if (isPresent(this._iterableDiffer)) {
+        //     let changes = this._iterableDiffer.diff(this.component);
+        //     if (isPresent(changes)) {
+        //         // TODO
+        //     }
+        // }
         if (utils_1.isPresent(this._keyValueDiffer)) {
             var changes = this._keyValueDiffer.diff(this.component);
             if (utils_1.isPresent(changes)) {
+                changes.forEachItem(function (record) { return _this.emitBinding(record); });
             }
         }
         this.detectChildChanges();
@@ -120,6 +151,15 @@ var HostElement = (function () {
     HostElement.prototype.reattach = function () {
         this._cdStatus = this._cdDefaultStatus;
         this.markForCheck();
+    };
+    HostElement.prototype.emitBinding = function (record) {
+        for (var i = 0, max = this._nestedViews.length; i < max; i++) {
+            var view = this._nestedViews[i];
+            if (view.isAttached) {
+                view.getBindingsForKey(record.key).emit(record);
+            }
+        }
+        this.componentView.getBindingsForKey(record.key).emit(record);
     };
     return HostElement;
 }());

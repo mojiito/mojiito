@@ -3,7 +3,7 @@ import { isPresent } from '../../utils/utils';
 import { View } from './view';
 import { ElementRef } from './element';
 import { Injector } from '../di/di';
-import { ChangeDetector, ChangeDetectorStatus, IterableDifferFactory, IterableDiffer, KeyValueDifferFactory, KeyValueDiffer } from '../change_detection/change_detection';
+import { ChangeDetector, ChangeDetectorStatus, IterableDifferFactory, IterableDiffer, KeyValueDifferFactory, KeyValueDiffer, KeyValueChangeRecord, CollectionChangeRecord } from '../change_detection/change_detection';
 
 export class HostElement implements ChangeDetector {
 
@@ -51,15 +51,47 @@ export class HostElement implements ChangeDetector {
         this._component = component;
         this._injector = injector;
         
-        let componentView = new View(this._nativeElement, this);
-        this._componentView = componentView;
+        let componentView = new View(this._nativeElement);
+        this.attachView(componentView, -1);
     }
-
-    // TODO    
-    attachView(view: View, viewIndex: number) { }
 
     registerChild(childHost: HostElement) {
         this._children.push(childHost);
+    }
+
+    attachView(view: View, viewIndex: number) {
+        assert(viewIndex >= -1, `Only views with index >= 0 can be attached!`);
+        if (viewIndex === -1) {
+            assert(!(this._componentView instanceof View), `There is already a component view attached!`);
+            this._componentView = view;
+        } else {
+            let view = this._nestedViews[viewIndex];
+            assert(!(view instanceof View), `There is already a view attached on this view-index!`);
+            this._nestedViews[viewIndex] === view;
+        }
+        view.attach(this);
+    }
+
+    detachView(viewIndex: number): View {
+        assert(viewIndex >= 0, `You cannot detach the component view!`);
+        let view = this._nestedViews[viewIndex];
+        if (view instanceof View) {
+            view.detach();
+            this._nestedViews.splice(viewIndex, 1);
+            return view;
+        }
+        return null;
+    }
+
+    getView(viewIndex: number = -1) {
+        return viewIndex === -1 ? this._componentView : this._nestedViews[viewIndex];
+    }
+
+    destroyView(viewIndex: number) {
+        let view = this.detachView(viewIndex);
+        if (view instanceof View) {
+            view.destroy();
+        }
     }
 
     parseView(viewIndex = -1) {
@@ -70,10 +102,6 @@ export class HostElement implements ChangeDetector {
 
     parse() {
         this.parseView(-1);
-    }
-
-    getView(viewIndex: number = -1) {
-        return viewIndex === -1 ? this._componentView : this._nestedViews[viewIndex];
     }
 
     markForCheck() {}
@@ -89,17 +117,17 @@ export class HostElement implements ChangeDetector {
         if (this._cdStatus === ChangeDetectorStatus.Destroyed) {
             return;
         }
-
-        if (isPresent(this._iterableDiffer)) {
-            let changes = this._iterableDiffer.diff(this.component);
-            if (isPresent(changes)) {
-                // console.log(changes);
-            }
-        }
+        // TODO: Implement Iterable differ
+        // if (isPresent(this._iterableDiffer)) {
+        //     let changes = this._iterableDiffer.diff(this.component);
+        //     if (isPresent(changes)) {
+        //         // TODO
+        //     }
+        // }
         if (isPresent(this._keyValueDiffer)) {
             let changes = this._keyValueDiffer.diff(this.component);
             if (isPresent(changes)) {
-                // console.log(changes);
+                changes.forEachItem(record => this.emitBinding(record));
             }
         }
 
@@ -122,6 +150,16 @@ export class HostElement implements ChangeDetector {
     reattach() {
         this._cdStatus = this._cdDefaultStatus;
         this.markForCheck();
+    }
+
+    emitBinding(record: KeyValueChangeRecord) {
+        for (let i = 0, max = this._nestedViews.length; i < max; i++) {
+            let view = this._nestedViews[i];
+            if (view.isAttached) {
+                view.getBindingsForKey(record.key).emit(record);
+            }
+        }
+        this.componentView.getBindingsForKey(record.key).emit(record);
     }
 
 }

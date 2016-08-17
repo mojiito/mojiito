@@ -18,8 +18,10 @@ export class Executable {
         }
         executableString += expression.substr(lastIndex, expression.length);
         
-        this._executableFn = Function(executableString);
+        this._executableFn = Function('return '+executableString);
         this._contexts = contexts;
+        
+        this.execute = this.execute.bind(this);
     }
 
     execute() {

@@ -8,4 +8,8 @@ function toKebabCase(str) {
 }
 exports.toKebabCase = toKebabCase;
 ;
+function kebabToCamelCase(str) {
+    return str.replace(/(\-\w)/g, function (m) { return m[1].toUpperCase(); });
+}
+exports.kebabToCamelCase = kebabToCamelCase;
 //# sourceMappingURL=kebab.js.map

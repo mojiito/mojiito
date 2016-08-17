@@ -20,6 +20,13 @@ export function stringify(token: any): string {
         return token.overriddenName;
     }
 
+    if (token instanceof HTMLElement) {
+        let parts = token.toString().match(/\w+/g);
+        if (parts && parts.length)  {
+            return parts[parts.length - 1];
+        }
+    }
+
     var res = token.toString();
     var newLineIndex = res.indexOf('\n');
     return (newLineIndex === -1) ? res : res.substring(0, newLineIndex);

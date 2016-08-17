@@ -2,9 +2,11 @@
 var iterable_1 = require('./differs/iterable');
 exports.IterableDiffer = iterable_1.IterableDiffer;
 exports.IterableDifferFactory = iterable_1.IterableDifferFactory;
+exports.CollectionChangeRecord = iterable_1.CollectionChangeRecord;
 var keyvalue_1 = require('./differs/keyvalue');
 exports.KeyValueDiffer = keyvalue_1.KeyValueDiffer;
 exports.KeyValueDifferFactory = keyvalue_1.KeyValueDifferFactory;
+exports.KeyValueChangeRecord = keyvalue_1.KeyValueChangeRecord;
 var change_detector_1 = require('./change_detector');
 exports.ChangeDetector = change_detector_1.ChangeDetector;
 var constants_1 = require('./constants');

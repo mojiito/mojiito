@@ -1,0 +1,43 @@
+<html>
+
+<head>
+    <script src="../node_modules/systemjs/dist/system-polyfills.js"></script>
+    <script src="../node_modules/systemjs/dist/system.js"></script>
+    <script src="../node_modules/zone.js/dist/zone.min.js"></script>
+    <script>
+
+        // map tells the System loader where to look for things
+        var map = {
+            'mojito': '../dist',
+            'typescript': '../node_modules/typescript/lib/typescript.js',
+            'corejs': '../node_modules/core-js/shim.js',
+        };
+        // packages tells the System loader how to load when no filename and/or no extension
+        var packages = {
+            'mojito': { main: 'index.js',  defaultExtension: 'js' },
+            'corejs': {  defaultExtension: 'js' },
+        };
+
+        var config = {
+            baseURL: '.',
+            transpiler: 'typescript',
+            map: map,
+            packages: packages
+        };
+        System.config(config);
+        System.import('../node_modules/reflect-metadata/Reflect.js').catch(err => {
+            console.error(err)
+        });
+        System.import('playground.ts').catch(err => {
+            console.error(err)
+        });
+    </script>
+</head>
+
+<body todo-app>
+    <input type="text" (input)="text=$event.target.value">
+    <button (click)="onButtonClick($event)" [disabled]="!text" >Click</button>
+</body>
+
+
+</html>

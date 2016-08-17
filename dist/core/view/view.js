@@ -1,12 +1,13 @@
 "use strict";
 var assert_1 = require('../../debug/assert/assert');
 var parser_1 = require('../../render/parser/parser');
+var events_1 = require('../async/events');
+var host_1 = require('./host');
 var View = (function () {
-    function View(element, hostElement, cdStatus) {
+    function View(element, cdStatus) {
         this._templateVars = {};
+        this._bindings = {};
         this._rootElement = element;
-        this._hostElement = hostElement;
-        this._parser = this._hostElement.injector.get(parser_1.Parser);
     }
     Object.defineProperty(View.prototype, "rootElement", {
         get: function () { return this._rootElement; },
@@ -23,7 +24,13 @@ var View = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(View.prototype, "isAttached", {
+        get: function () { return this._hostElement instanceof host_1.HostElement; },
+        enumerable: true,
+        configurable: true
+    });
     View.prototype.parse = function () {
+        assert_1.assert(this.isAttached, "View can only be parsed if it is attached to a host element");
         this._parser.parse(this._rootElement, this, true);
     };
     View.prototype.addTemplateVar = function (key, element) {
@@ -39,7 +46,32 @@ var View = (function () {
         }
         return element;
     };
+    View.prototype.attach = function (hostElement) {
+        assert_1.assert(!this.isAttached, "View is already attached, please detach before reattaching!");
+        this._hostElement = hostElement;
+        this._parser = this._hostElement.injector.get(parser_1.Parser);
+    };
+    View.prototype.detach = function () {
+        assert_1.assert(this.isAttached, "View is already detached!");
+        this._hostElement = null;
+        this._parser = null;
+    };
     View.prototype.destroy = function () { };
+    View.prototype.addBinding = function (key, fn) {
+        var emitter = this._peekBindingForKey(key);
+        emitter.subscribe(fn);
+    };
+    View.prototype.getBindingsForKey = function (key) {
+        return this._peekBindingForKey(key);
+    };
+    View.prototype._peekBindingForKey = function (key) {
+        var emitter = this._bindings[key];
+        if (!(emitter instanceof events_1.EventEmitter)) {
+            emitter = new events_1.EventEmitter();
+            this._bindings[key] = emitter;
+        }
+        return emitter;
+    };
     return View;
 }());
 exports.View = View;

@@ -34,11 +34,11 @@ export declare class IterableDiffer {
     collection: any;
     length: number;
     forEachItem(fn: Function): void;
-    forEachPreviousItem(fn: Function): void;
-    forEachAddedItem(fn: Function): void;
-    forEachMovedItem(fn: Function): void;
-    forEachRemovedItem(fn: Function): void;
-    forEachIdentityChange(fn: Function): void;
+    forEachPreviousItem(fn: (r: CollectionChangeRecord) => void): void;
+    forEachAddedItem(fn: (r: CollectionChangeRecord) => void): void;
+    forEachMovedItem(fn: (r: CollectionChangeRecord) => void): void;
+    forEachRemovedItem(fn: (r: CollectionChangeRecord) => void): void;
+    forEachIdentityChange(fn: (r: CollectionChangeRecord) => void): void;
     diff(collection: any): IterableDiffer;
     onDestroy(): void;
     check(collection: any): boolean;

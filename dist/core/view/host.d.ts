@@ -1,7 +1,7 @@
 import { View } from './view';
 import { ElementRef } from './element';
 import { Injector } from '../di/di';
-import { ChangeDetector, ChangeDetectorStatus } from '../change_detection/change_detection';
+import { ChangeDetector, ChangeDetectorStatus, KeyValueChangeRecord } from '../change_detection/change_detection';
 export declare class HostElement implements ChangeDetector {
     private _componentView;
     private _nestedViews;
@@ -22,15 +22,18 @@ export declare class HostElement implements ChangeDetector {
     cdStatus: ChangeDetectorStatus;
     constructor(nativeElement: Element, parent?: HostElement, cdStatus?: ChangeDetectorStatus);
     initComponent(component: any, injector: Injector): void;
-    attachView(view: View, viewIndex: number): void;
     registerChild(childHost: HostElement): void;
+    attachView(view: View, viewIndex: number): void;
+    detachView(viewIndex: number): View;
+    getView(viewIndex?: number): View;
+    destroyView(viewIndex: number): void;
     parseView(viewIndex?: number): void;
     parse(): void;
-    getView(viewIndex?: number): View;
     markForCheck(): void;
     detach(): void;
     detectChanges(): void;
     detectChildChanges(): void;
     checkNoChanges(): void;
     reattach(): void;
+    emitBinding(record: KeyValueChangeRecord): void;
 }

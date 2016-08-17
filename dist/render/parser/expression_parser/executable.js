@@ -14,8 +14,9 @@ var Executable = (function () {
             lastIndex = pattern.lastIndex;
         }
         executableString += expression.substr(lastIndex, expression.length);
-        this._executableFn = Function(executableString);
+        this._executableFn = Function('return ' + executableString);
         this._contexts = contexts;
+        this.execute = this.execute.bind(this);
     }
     Executable.prototype.execute = function () {
         return this._executableFn.apply(this._executableFn, this._contexts);

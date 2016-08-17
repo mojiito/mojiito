@@ -4,5 +4,5 @@ export declare class BindingParserHook extends ParserAttributeHook {
     removeAttributeNode: boolean;
     constructor();
     predicate(attribute: Attr): boolean;
-    onParse(element: Element, attribute: Attr, context: ContextTree): void;
+    onParse(element: HTMLElement, attribute: Attr, context: ContextTree): void;
 }

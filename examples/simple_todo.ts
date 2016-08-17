@@ -50,16 +50,20 @@ class TodoStore {
 @Component({ selector: '[todo-app]' })
 class TodoApp {
 
-    private test = false;    
+    private test = false; 
+    private interable = [1, 2];
 
     constructor( @Inject(TodoStore) store: TodoStore) {
         store.add('test', new Date());
         this.test = true;
+        this.interable.push(3);
     }
 }
 
-@Component({ selector: 'todo-form' })    
-class TodoForm {
+@Component({
+    selector: 'todo-form'
+})    
+export class TodoForm {
     @Input('hero')  hero: any;
     @Output('onSubmit') onSubmitEmitter = new EventEmitter();
 
@@ -73,6 +77,7 @@ class TodoForm {
             this.store.add(title, new Date());
             this.date = new Date();
         }, 2000);
+        this.onSubmitEmitter.emit();
        
     }
 }

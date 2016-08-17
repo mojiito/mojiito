@@ -6,3 +6,7 @@ export function toKebabCase(str: string): string {
     });
     return result.indexOf('-') === 0 ? result.slice(1) : result;
 };
+
+export function kebabToCamelCase(str: string): string {
+    return str.replace(/(\-\w)/g, function(m){return m[1].toUpperCase();});
+}
