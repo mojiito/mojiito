@@ -57,7 +57,7 @@ export class View {
 
     destroy() { }
 
-    addBinding(key: string, fn: ()=>void) {
+    addBinding(key: string, fn: () => void) {
         let emitter = this._peekBindingForKey(key);
         emitter.subscribe(fn);
     }

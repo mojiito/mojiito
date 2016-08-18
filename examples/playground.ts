@@ -6,17 +6,15 @@ console.time('startUp');
 @Component({ selector: '[todo-app]' })
 class TodoApp {
 
-    private text = '';
+    private text: string;
     private interable = [1, 2];
 
-    constructor() { }
-    
-    onButtonClick(event: MouseEvent) {
-        console.log('clicked');
+    constructor() {
+        this.text = '';
     }
 
-    now() {
-        return Date.now();
+    onButtonClick(event: MouseEvent) {
+        console.log('clicked');
     }
 }
 bootstrap(TodoApp);

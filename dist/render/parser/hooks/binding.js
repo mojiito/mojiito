@@ -47,6 +47,7 @@ var BindingParserHook = (function (_super) {
                 if (host.componentView.getTemplateVar(token, false)) {
                     return host.componentView.templateVars;
                 }
+                debug_1.assert(token in host.component, "Binding \"" + attribute.name + "\" not valid!. The property or function \"" + token + "\" is not defined in the component \"" + utils_1.stringify(host.component.constructor) + "\"!");
                 bindingKeys.push(token);
                 return host.component;
             }
@@ -54,6 +55,7 @@ var BindingParserHook = (function (_super) {
         if (isComponentBinding) {
         }
         else {
+            var bindingCallback_1;
             if (/^\[((class|attr|style)\.)?\w+(-\w+)*(\.(\w+|%))?\]$/.test(attrName)) {
                 attrName = attrName.replace(/\[|\]/g, '');
                 parts = attrName.split('.');
@@ -68,36 +70,36 @@ var BindingParserHook = (function (_super) {
                 // [value]
                 bindingName = parts[0];
                 debug_1.assert(bindingName in element, "Can not bind \"" + bindingName + "\" on an " + utils_1.stringify(element) + " because it is not a valid property!");
-                bindingKeys.forEach(function (key) { return view.addBinding(key, function () {
+                bindingCallback_1 = function () {
                     var result = executable.execute();
                     debug_1.assert(utils_1.isPrimitive(result), "The expression " + bindingExpression + " on binding " + attribute.name + " results in an unvalid type. Only primitive value types are allowed for property bindings.");
                     element[bindingName] = result;
-                }); });
+                };
             }
             else if (parts[0] === 'class' && parts.length == 2) {
                 // [class.my-class]
                 bindingName = parts[1];
-                bindingKeys.forEach(function (key) { return view.addBinding(key, function () {
+                bindingCallback_1 = function () {
                     if (!!executable.execute())
                         element.classList.add(bindingName);
                     else
                         element.classList.remove(bindingName);
-                }); });
+                };
             }
             else if (parts[0] === 'attr' && parts.length == 2) {
                 // [attr.aria-hidden]
                 bindingName = parts[1];
-                bindingKeys.forEach(function (key) { return view.addBinding(key, function () {
+                bindingCallback_1 = function () {
                     var result = executable.execute();
                     debug_1.assert(utils_1.isPrimitive(result), "The expression " + bindingExpression + " on binding " + attribute.name + " results in an unvalid type. Only primitive value types are allowed for attribute bindings.");
                     element.setAttribute(bindingName, '' + result);
-                }); });
+                };
             }
             else if (parts[0] === 'style' && parts.length >= 2 && parts.length <= 3) {
                 // [style.color] or [style.font-size.em]
                 bindingName = utils_1.kebabToCamelCase(parts[1]);
                 bindingUnit = parts[2] || '';
-                bindingKeys.forEach(function (key) { return view.addBinding(key, function () {
+                bindingCallback_1 = function () {
                     var result = executable.execute();
                     debug_1.assert(utils_1.isPrimitive(result) || utils_1.isObject(result), "The expression " + bindingExpression + " on binding " + attribute.name + " results in an unvalid type. Only primitive value types or objects are allowed for style bindings.");
                     if (utils_1.isObject(result)) {
@@ -106,8 +108,15 @@ var BindingParserHook = (function (_super) {
                         debug_1.assert(bindingName in element.style, "Can not bind \"" + attribute.name + "\" on an " + utils_1.stringify(element) + " because " + parts[1] + " it is not a valid style property!");
                         element.style[bindingName] = result + bindingUnit;
                     }
-                }); });
+                };
             }
+            bindingKeys.forEach(function (key) {
+                if (utils_1.isFunction(host.component[key])) {
+                }
+                else {
+                    view.addBinding(key, bindingCallback_1);
+                }
+            });
         }
     };
     return BindingParserHook;

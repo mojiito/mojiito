@@ -1,5 +1,5 @@
 import { assert } from '../../../debug/debug';
-import { stringify, kebabToCamelCase, isDefined, isPrimitive, isObject } from '../../../utils/utils';
+import { stringify, kebabToCamelCase, isDefined, isPrimitive, isObject, isFunction } from '../../../utils/utils';
 import { Injectable, Inject, forwardRef } from '../../../core/di/di';
 import { ContextTree } from '../context';
 import { ParserAttributeHook } from './hooks';
@@ -51,6 +51,7 @@ export class BindingParserHook extends ParserAttributeHook {
                 if (host.componentView.getTemplateVar(token, false)) {
                     return host.componentView.templateVars;
                 }
+                assert(token in host.component, `Binding "${attribute.name}" not valid!. The property or function "${token}" is not defined in the component "${stringify(host.component.constructor)}"!`);
                 bindingKeys.push(token);
                 return host.component;
             }
@@ -59,6 +60,7 @@ export class BindingParserHook extends ParserAttributeHook {
         if (isComponentBinding) {
             // TODO
         } else {
+            let bindingCallback: () => any;
             if (/^\[((class|attr|style)\.)?\w+(-\w+)*(\.(\w+|%))?\]$/.test(attrName)) {
                 attrName = attrName.replace(/\[|\]/g, '');
                 parts = attrName.split('.');
@@ -71,33 +73,33 @@ export class BindingParserHook extends ParserAttributeHook {
                 // [value]
                 bindingName = parts[0];
                 assert(bindingName in element, `Can not bind "${bindingName}" on an ${stringify(element)} because it is not a valid property!`);
-                bindingKeys.forEach(key => view.addBinding(key, () => {
+                bindingCallback = () => {
                     let result = executable.execute();
                     assert(isPrimitive(result), `The expression ${bindingExpression} on binding ${attribute.name} results in an unvalid type. Only primitive value types are allowed for property bindings.`);
                     (<any>element)[bindingName] = result;
-                }));
+                };
             } else if (parts[0] === 'class' && parts.length == 2) {
                 // [class.my-class]
                 bindingName = parts[1];
-                bindingKeys.forEach(key => view.addBinding(key, () => {
+                bindingCallback = () => {
                     if (!!executable.execute())
                         element.classList.add(bindingName);
                     else
                         element.classList.remove(bindingName);
-                }));
+                };
             } else if (parts[0] === 'attr' && parts.length == 2) {
                 // [attr.aria-hidden]
                 bindingName = parts[1];
-                bindingKeys.forEach(key => view.addBinding(key, () => {
+                bindingCallback = () => {
                     let result = executable.execute();
                     assert(isPrimitive(result), `The expression ${bindingExpression} on binding ${attribute.name} results in an unvalid type. Only primitive value types are allowed for attribute bindings.`);
                     element.setAttribute(bindingName, '' + result);
-                }));
+                };
             } else if (parts[0] === 'style' && parts.length >= 2 && parts.length <= 3) {
                 // [style.color] or [style.font-size.em]
                 bindingName = kebabToCamelCase(parts[1]);
                 bindingUnit = parts[2] || '';
-                bindingKeys.forEach(key => view.addBinding(key, () => {
+                bindingCallback = () => {
                     let result = executable.execute();
                     assert(isPrimitive(result) || isObject(result), `The expression ${bindingExpression} on binding ${attribute.name} results in an unvalid type. Only primitive value types or objects are allowed for style bindings.`);
                     if (isObject(result)) {
@@ -106,8 +108,16 @@ export class BindingParserHook extends ParserAttributeHook {
                         assert(bindingName in element.style, `Can not bind "${attribute.name}" on an ${stringify(element)} because ${parts[1]} it is not a valid style property!`);
                         (<any>element.style)[bindingName] = result + bindingUnit;
                     }
-                }));
+                };
             }
+
+            bindingKeys.forEach(key => {
+                if (isFunction(host.component[key])) {
+                    
+                } else {
+                    view.addBinding(key, bindingCallback);
+                }
+            });
         }
     }
 }
