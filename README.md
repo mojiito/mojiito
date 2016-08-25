@@ -1,5 +1,11 @@
-<img src="https://avatars0.githubusercontent.com/u/20876637?v=3&s=260" width="180">  
-     
+
+<h1 align="center">
+  <a href="http://standardjs.com"><img src="https://avatars0.githubusercontent.com/u/20876637?v=3&s=260" width="180">  </a>
+  <br>
+  Mojito
+  <br>
+  <br>
+</h1>
 Mojito is a JavaScript framework, heavily inspired by Angular and Ember, which brings the benefits of components, services, ... to your (static) website.
 
 ## Status
