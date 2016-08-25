@@ -70,7 +70,7 @@ export class Application {
                 let elements = root.querySelectorAll(selector);
                 assert(
                     !!elements.length,
-                    `We could not find an element matching the selector "${selector}" of the "${stringify(componentFactory.componentType)}" component provided to the bootstrap function`
+                    `Mojito could not find an element matching the selector "${selector}" of the "${stringify(componentFactory.componentType)}" component provided to the bootstrap function`
                 );
                 assert(
                     elements.length === 1,

@@ -37,7 +37,7 @@ export class EventEmitter<T> {
     private _call(fnName: 'subscriber' | 'complete' | 'error', ...args: any[]) {
         for (let i = 0, max = this._subscriptions.length; i < max; i++) {
             let subscription = this._subscriptions[i];
-            (<any>subscription)[fnName].call(subscription, args);
+            (<any>subscription)[fnName].apply(subscription, args);
         }
     }
 }

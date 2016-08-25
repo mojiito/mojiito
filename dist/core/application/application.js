@@ -67,7 +67,7 @@ var Application = (function () {
             }
             else {
                 var elements = root.querySelectorAll(selector);
-                debug_1.assert(!!elements.length, "We could not find an element matching the selector \"" + selector + "\" of the \"" + utils_1.stringify(componentFactory.componentType) + "\" component provided to the bootstrap function");
+                debug_1.assert(!!elements.length, "Mojito could not find an element matching the selector \"" + selector + "\" of the \"" + utils_1.stringify(componentFactory.componentType) + "\" component provided to the bootstrap function");
                 debug_1.assert(elements.length === 1, "There are more than one elements matching the selector \"" + selector + "\" of the \"" + utils_1.stringify(componentFactory.componentType) + "\" component provided to the bootstrap function. Mojito only support one element/component per site for bootstraping your app!");
                 element = elements[0];
             }

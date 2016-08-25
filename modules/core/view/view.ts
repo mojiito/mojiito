@@ -1,32 +1,37 @@
 import { assert } from '../../debug/assert/assert';
 import { Parser } from '../../render/parser/parser';
-import { ViewFactory } from './factory';
 import { Injector } from '../di/di';
 import { EventEmitter } from '../async/events';
 import { HostElement } from './host';
 import { ChangeDetector, ChangeDetectorStatus } from '../change_detection/change_detection';
 
+export enum ViewType {
+    Embedded,
+    Host
+}
 
 export class View {
     
     private _parser: Parser;  
     private _rootElement: Element;
     private _hostElement: HostElement;
+    private _type: ViewType;
     private _templateVars: { [key: string]: Element } = {};
     private _bindings: { [key: string]: EventEmitter<any> } = {};
 
-    get rootElement(): Element { return this._rootElement; }
-    get hostElement(): HostElement {  return this._hostElement; }
+    get rootElement() { return this._rootElement; }
+    get hostElement() { return this._hostElement; }
+    get type() { return this._type; }
     get templateVars() { return this._templateVars; }
     get isAttached() { return this._hostElement instanceof HostElement; }
 
-    constructor(element: Element, cdStatus?: ChangeDetectorStatus) {
+    constructor(element: Element) {
         this._rootElement = element;
     }
 
     parse() {
         assert(this.isAttached, `View can only be parsed if it is attached to a host element`);
-        this._parser.parse(this._rootElement, this, true);
+        this._parser.parse(this._rootElement, this, false);
     }
 
     addTemplateVar(key: string, element: Element) {
@@ -43,10 +48,11 @@ export class View {
         return element;
     }
 
-    attach(hostElement: HostElement) {
+    attach(hostElement: HostElement, type: ViewType = ViewType.Embedded) {
         assert(!this.isAttached, `View is already attached, please detach before reattaching!`);
         this._hostElement = hostElement;
         this._parser = this._hostElement.injector.get(Parser);
+        this._type = type;
     }
 
     detach() {

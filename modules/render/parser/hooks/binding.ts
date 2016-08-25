@@ -5,7 +5,9 @@ import { ContextTree } from '../context';
 import { ParserAttributeHook } from './hooks';
 import { View } from '../../../core/view/view';
 import { ExpressionParser } from '../expression_parser/parser';
-
+import { ClassReflection } from '../../../core/reflect/reflection';
+import { InputMetadata } from '../../../core/component/metadata';
+import { triggerLifecycleHook, LifecycleHook } from '../../../core/lifecycle/lifecycle_hooks';
 
 export class BindingParserHook extends ParserAttributeHook {
 
@@ -59,6 +61,19 @@ export class BindingParserHook extends ParserAttributeHook {
 
         if (isComponentBinding) {
             // TODO
+            attrName = attrName.replace(/\[|\]|data-|bind-/g, '');
+            let bindingFound = false;
+            ClassReflection.peek(view.hostElement.component.constructor).properties.forEach((value: InputMetadata, key: string) => {
+                if (value instanceof InputMetadata && value.bindingPropertyName.toLowerCase() === attrName) {
+                    bindingFound = true;
+                    view.addBinding(key, () => {
+                        host.component[key] = executable.execute();
+                    });
+                    view.getBindingsForKey(key).emit();
+                }
+            });
+            triggerLifecycleHook(LifecycleHook.OnInit, host.component);
+            assert(bindingFound, `There was no input property "${attrName}" found on the component ${stringify(host.component.constructor)}!`);
         } else {
             let bindingCallback: () => any;
             if (/^\[((class|attr|style)\.)?\w+(-\w+)*(\.(\w+|%))?\]$/.test(attrName)) {

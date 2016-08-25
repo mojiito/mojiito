@@ -35,8 +35,11 @@
 </head>
 
 <body todo-app>
-    <input type="text" (input)="text=$event.target.value">
-    <button (click)="onButtonClick($event)" [disabled]="!text" [class.disabled]="!text" >Click</button>
+    <input type="text" [value]="test.text">
+    <test-form [test]="test" (onClick)="onClick($event)">
+        <input type="text" [value]="testObj.text">
+        <button (click)="onButtonClick($event)">Click</button>
+    </test-form>
 </body>
 
 

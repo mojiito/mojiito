@@ -1,9 +1,10 @@
 import { assert } from '../../debug/debug';
 import { isPresent } from '../../utils/utils';
-import { View } from './view';
+import { View, ViewType } from './view';
 import { ElementRef } from './element';
 import { Injector } from '../di/di';
 import { ChangeDetector, ChangeDetectorStatus, IterableDifferFactory, IterableDiffer, KeyValueDifferFactory, KeyValueDiffer, KeyValueChangeRecord, CollectionChangeRecord } from '../change_detection/change_detection';
+import { triggerLifecycleHook, LifecycleHook } from '../lifecycle/lifecycle_hooks';
 
 export class HostElement implements ChangeDetector {
 
@@ -48,11 +49,13 @@ export class HostElement implements ChangeDetector {
     }
 
     initComponent(component: any, injector: Injector) {
+        console.log('start init component');
         this._component = component;
         this._injector = injector;
         
         let componentView = new View(this._nativeElement);
         this.attachView(componentView, -1);
+        console.log('end init component');
     }
 
     registerChild(childHost: HostElement) {
@@ -61,15 +64,17 @@ export class HostElement implements ChangeDetector {
 
     attachView(view: View, viewIndex: number) {
         assert(viewIndex >= -1, `Only views with index >= 0 can be attached!`);
+        let viewType = ViewType.Embedded; 
         if (viewIndex === -1) {
             assert(!(this._componentView instanceof View), `There is already a component view attached!`);
             this._componentView = view;
+            viewType = ViewType.Host;
         } else {
             let view = this._nestedViews[viewIndex];
             assert(!(view instanceof View), `There is already a view attached on this view-index!`);
             this._nestedViews[viewIndex] === view;
         }
-        view.attach(this);
+        view.attach(this, viewType);
     }
 
     detachView(viewIndex: number): View {
@@ -125,10 +130,12 @@ export class HostElement implements ChangeDetector {
         //     }
         // }
         if (isPresent(this._keyValueDiffer)) {
+            triggerLifecycleHook(LifecycleHook.OnBeforeCheck, this.component);
             let changes = this._keyValueDiffer.diff(this.component);
             if (isPresent(changes)) {
                 changes.forEachItem(record => this.emitBinding(record));
             }
+            triggerLifecycleHook(LifecycleHook.OnAfterCheck, this.component, changes);
         }
 
         this.detectChildChanges();
@@ -161,5 +168,4 @@ export class HostElement implements ChangeDetector {
         }
         this.componentView.getBindingsForKey(record.key).emit(record);
     }
-
 }

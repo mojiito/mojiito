@@ -74,19 +74,21 @@ export class EventParserHook extends ParserAttributeHook {
 
         });
         if (isComponent) {
+            let outputFound = false;
             ClassReflection.peek(view.hostElement.component.constructor).properties.forEach((value, key) => {
                 if (value instanceof OutputMetadata && (<OutputMetadata>value).bindingPropertyName.toLowerCase() === eventType) {
                     let emitter: EventEmitter<any> = (<any>host.component)[key];
-                    if (emitter instanceof EventEmitter) {
-                        emitter.subscribe((event: any) => {
-                            if (event) {
-                                eventContextObject.$event = event;
-                            }
-                            executable.execute();
-                        });
-                    }
+                    assert(emitter instanceof EventEmitter, `The output property "${key}" on the component ${stringify(host.component.constructor)} is not an EventEmitter. Only EventEmitter are allowed!`)
+                    outputFound = true;
+                    emitter.subscribe((event: any) => {
+                        if (event) {
+                            eventContextObject.$event = event;
+                        }
+                        executable.execute();
+                    });
                 }
-            })
+            });
+            assert(outputFound, `There was no output property "${attrName}" found on the component ${stringify(host.component.constructor)}!`);
         } else {      
             element.addEventListener(eventType, event => {
                 if (event) {

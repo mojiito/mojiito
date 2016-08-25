@@ -3,8 +3,13 @@ var assert_1 = require('../../debug/assert/assert');
 var parser_1 = require('../../render/parser/parser');
 var events_1 = require('../async/events');
 var host_1 = require('./host');
+(function (ViewType) {
+    ViewType[ViewType["Embedded"] = 0] = "Embedded";
+    ViewType[ViewType["Host"] = 1] = "Host";
+})(exports.ViewType || (exports.ViewType = {}));
+var ViewType = exports.ViewType;
 var View = (function () {
-    function View(element, cdStatus) {
+    function View(element) {
         this._templateVars = {};
         this._bindings = {};
         this._rootElement = element;
@@ -16,6 +21,11 @@ var View = (function () {
     });
     Object.defineProperty(View.prototype, "hostElement", {
         get: function () { return this._hostElement; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(View.prototype, "type", {
+        get: function () { return this._type; },
         enumerable: true,
         configurable: true
     });
@@ -31,7 +41,7 @@ var View = (function () {
     });
     View.prototype.parse = function () {
         assert_1.assert(this.isAttached, "View can only be parsed if it is attached to a host element");
-        this._parser.parse(this._rootElement, this, true);
+        this._parser.parse(this._rootElement, this, false);
     };
     View.prototype.addTemplateVar = function (key, element) {
         assert_1.assert(!(this._templateVars[key] instanceof Element), "There is already a template variable \"" + key + "\" set on this view!");
@@ -46,10 +56,12 @@ var View = (function () {
         }
         return element;
     };
-    View.prototype.attach = function (hostElement) {
+    View.prototype.attach = function (hostElement, type) {
+        if (type === void 0) { type = ViewType.Embedded; }
         assert_1.assert(!this.isAttached, "View is already attached, please detach before reattaching!");
         this._hostElement = hostElement;
         this._parser = this._hostElement.injector.get(parser_1.Parser);
+        this._type = type;
     };
     View.prototype.detach = function () {
         assert_1.assert(this.isAttached, "View is already detached!");

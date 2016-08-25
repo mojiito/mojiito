@@ -4,6 +4,7 @@ var utils_1 = require('../../utils/utils');
 var view_1 = require('./view');
 var element_1 = require('./element');
 var change_detection_1 = require('../change_detection/change_detection');
+var lifecycle_hooks_1 = require('../lifecycle/lifecycle_hooks');
 var HostElement = (function () {
     function HostElement(nativeElement, parent, cdStatus) {
         this._componentView = null;
@@ -59,26 +60,30 @@ var HostElement = (function () {
         configurable: true
     });
     HostElement.prototype.initComponent = function (component, injector) {
+        console.log('start init component');
         this._component = component;
         this._injector = injector;
         var componentView = new view_1.View(this._nativeElement);
         this.attachView(componentView, -1);
+        console.log('end init component');
     };
     HostElement.prototype.registerChild = function (childHost) {
         this._children.push(childHost);
     };
     HostElement.prototype.attachView = function (view, viewIndex) {
         debug_1.assert(viewIndex >= -1, "Only views with index >= 0 can be attached!");
+        var viewType = view_1.ViewType.Embedded;
         if (viewIndex === -1) {
             debug_1.assert(!(this._componentView instanceof view_1.View), "There is already a component view attached!");
             this._componentView = view;
+            viewType = view_1.ViewType.Host;
         }
         else {
             var view_2 = this._nestedViews[viewIndex];
             debug_1.assert(!(view_2 instanceof view_1.View), "There is already a view attached on this view-index!");
             this._nestedViews[viewIndex] === view_2;
         }
-        view.attach(this);
+        view.attach(this, viewType);
     };
     HostElement.prototype.detachView = function (viewIndex) {
         debug_1.assert(viewIndex >= 0, "You cannot detach the component view!");
@@ -129,10 +134,12 @@ var HostElement = (function () {
         //     }
         // }
         if (utils_1.isPresent(this._keyValueDiffer)) {
+            lifecycle_hooks_1.triggerLifecycleHook(lifecycle_hooks_1.LifecycleHook.OnBeforeCheck, this.component);
             var changes = this._keyValueDiffer.diff(this.component);
             if (utils_1.isPresent(changes)) {
                 changes.forEachItem(function (record) { return _this.emitBinding(record); });
             }
+            lifecycle_hooks_1.triggerLifecycleHook(lifecycle_hooks_1.LifecycleHook.OnAfterCheck, this.component, changes);
         }
         this.detectChildChanges();
         if (this._cdStatus === change_detection_1.ChangeDetectorStatus.CheckOnce)

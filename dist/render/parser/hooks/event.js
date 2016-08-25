@@ -5,6 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var debug_1 = require('../../../debug/debug');
+var stringify_1 = require('../../../utils/string/stringify');
 var hooks_1 = require('./hooks');
 var view_1 = require('../../../core/view/view');
 var reflection_1 = require('../../../core/reflect/reflection');
@@ -60,19 +61,21 @@ var EventParserHook = (function (_super) {
             return isComponent ? host.parent.component : host.component;
         });
         if (isComponent) {
+            var outputFound_1 = false;
             reflection_1.ClassReflection.peek(view.hostElement.component.constructor).properties.forEach(function (value, key) {
                 if (value instanceof metadata_1.OutputMetadata && value.bindingPropertyName.toLowerCase() === eventType) {
                     var emitter = host.component[key];
-                    if (emitter instanceof events_1.EventEmitter) {
-                        emitter.subscribe(function (event) {
-                            if (event) {
-                                eventContextObject.$event = event;
-                            }
-                            executable.execute();
-                        });
-                    }
+                    debug_1.assert(emitter instanceof events_1.EventEmitter, "The output property \"" + key + "\" on the component " + stringify_1.stringify(host.component.constructor) + " is not an EventEmitter. Only EventEmitter are allowed!");
+                    outputFound_1 = true;
+                    emitter.subscribe(function (event) {
+                        if (event) {
+                            eventContextObject.$event = event;
+                        }
+                        executable.execute();
+                    });
                 }
             });
+            debug_1.assert(outputFound_1, "There was no output property \"" + attrName + "\" found on the component " + stringify_1.stringify(host.component.constructor) + "!");
         }
         else {
             element.addEventListener(eventType, function (event) {

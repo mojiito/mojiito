@@ -9,6 +9,9 @@ var utils_1 = require('../../../utils/utils');
 var hooks_1 = require('./hooks');
 var view_1 = require('../../../core/view/view');
 var parser_1 = require('../expression_parser/parser');
+var reflection_1 = require('../../../core/reflect/reflection');
+var metadata_1 = require('../../../core/component/metadata');
+var lifecycle_hooks_1 = require('../../../core/lifecycle/lifecycle_hooks');
 var BindingParserHook = (function (_super) {
     __extends(BindingParserHook, _super);
     function BindingParserHook() {
@@ -53,6 +56,20 @@ var BindingParserHook = (function (_super) {
             }
         });
         if (isComponentBinding) {
+            // TODO
+            attrName = attrName.replace(/\[|\]|data-|bind-/g, '');
+            var bindingFound_1 = false;
+            reflection_1.ClassReflection.peek(view.hostElement.component.constructor).properties.forEach(function (value, key) {
+                if (value instanceof metadata_1.InputMetadata && value.bindingPropertyName.toLowerCase() === attrName) {
+                    bindingFound_1 = true;
+                    view.addBinding(key, function () {
+                        host.component[key] = executable.execute();
+                    });
+                    view.getBindingsForKey(key).emit();
+                }
+            });
+            lifecycle_hooks_1.triggerLifecycleHook(lifecycle_hooks_1.LifecycleHook.OnInit, host.component);
+            debug_1.assert(bindingFound_1, "There was no input property \"" + attrName + "\" found on the component " + utils_1.stringify(host.component.constructor) + "!");
         }
         else {
             var bindingCallback_1;

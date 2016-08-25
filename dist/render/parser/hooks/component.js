@@ -11,6 +11,7 @@ var dom_1 = require('../../../utils/dom/dom');
 var registry_1 = require('../../../core/directive/registry');
 var view_1 = require('../../../core/view/view');
 var host_1 = require('../../../core/view/host');
+var lifecycle_hooks_1 = require('../../../core/lifecycle/lifecycle_hooks');
 var ComponentParserHook = (function (_super) {
     __extends(ComponentParserHook, _super);
     function ComponentParserHook(resolver) {
@@ -30,6 +31,7 @@ var ComponentParserHook = (function (_super) {
         return false;
     };
     ComponentParserHook.prototype.onBeforeParse = function (element, context) {
+        console.log('start parse component');
         var componentType = registry_1.DirectiveRegistry.directiveTypes[this.lastFoundSelectorIndex];
         var factory = this.resolver.resolveComponent(componentType);
         var view = context.getNearestContextOfType(view_1.View);
@@ -37,7 +39,12 @@ var ComponentParserHook = (function (_super) {
         debug_1.assert(view.hostElement instanceof host_1.HostElement, "The found component \"" + stringify_1.stringify(componentType) + "\" on the element " + element + " has no parent host element.\nAre you using the bootstrap function for setting up your project?");
         var componentRef = factory.create(view.hostElement.injector, element);
         this.lastFoundSelectorIndex = -1;
+        console.log('end parse component');
         return componentRef.hostElement.getView(-1);
+    };
+    ComponentParserHook.prototype.onAfterParse = function (element, context) {
+        var view = context.getNearestContextOfType(view_1.View);
+        lifecycle_hooks_1.triggerLifecycleHook(lifecycle_hooks_1.LifecycleHook.OnParse, view.hostElement.component);
     };
     return ComponentParserHook;
 }(hooks_1.ParserElementHook));

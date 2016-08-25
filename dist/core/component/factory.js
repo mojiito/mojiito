@@ -16,6 +16,7 @@ var ComponentFactory = (function () {
     });
     ComponentFactory.prototype.create = function (injector, nativeElement) {
         var _this = this;
+        console.log('start create factory');
         var metadata = reflection_1.ClassReflection.peek(this._componentType).annotations.get(metadata_1.ComponentMetadata);
         var parentHostElement = injector.get(host_1.HostElement);
         var hostElement = new host_1.HostElement(nativeElement, parentHostElement);
@@ -32,6 +33,7 @@ var ComponentFactory = (function () {
         var component = inj.get(hostElement);
         hostElement.initComponent(component, inj);
         var ref = new reference_1.ComponentReference(hostElement, this._componentType);
+        console.log('end create factory');
         return ref;
     };
     return ComponentFactory;

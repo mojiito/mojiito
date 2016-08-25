@@ -36,7 +36,7 @@ var EventEmitter = (function () {
         }
         for (var i = 0, max = this._subscriptions.length; i < max; i++) {
             var subscription = this._subscriptions[i];
-            subscription[fnName].call(subscription, args);
+            subscription[fnName].apply(subscription, args);
         }
     };
     return EventEmitter;

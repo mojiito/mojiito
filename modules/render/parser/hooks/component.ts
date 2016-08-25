@@ -6,8 +6,9 @@ import { ParserElementHook, ParserAttributeHook } from './hooks';
 import { doesSelectorMatchElement } from '../../../utils/dom/dom';
 import { DirectiveRegistry } from '../../../core/directive/registry';
 import { ComponentResolver } from '../../../core/component/resolver';
-import { View } from '../../../core/view/view';
+import { View, ViewType } from '../../../core/view/view';
 import { HostElement } from '../../../core/view/host';
+import { triggerLifecycleHook, LifecycleHook } from '../../../core/lifecycle/lifecycle_hooks';
 
 export class ComponentParserHook extends ParserElementHook {
 
@@ -30,6 +31,7 @@ export class ComponentParserHook extends ParserElementHook {
     }
 
     onBeforeParse(element: Element, context: ContextTree): Object | Function {
+        console.log('start parse component');
         let componentType = DirectiveRegistry.directiveTypes[this.lastFoundSelectorIndex];
         let factory = this.resolver.resolveComponent(componentType);
         let view: View = context.getNearestContextOfType(View);
@@ -37,6 +39,12 @@ export class ComponentParserHook extends ParserElementHook {
         assert(view.hostElement instanceof HostElement, `The found component "${stringify(componentType)}" on the element ${element} has no parent host element.\nAre you using the bootstrap function for setting up your project?`);
         let componentRef = factory.create(view.hostElement.injector, element);
         this.lastFoundSelectorIndex = -1;
+        console.log('end parse component');
         return componentRef.hostElement.getView(-1);
+    }
+
+    onAfterParse(element: Element, context: ContextTree) {
+        let view: View = context.getNearestContextOfType(View);
+        triggerLifecycleHook(LifecycleHook.OnParse, view.hostElement.component);
     }
 }
