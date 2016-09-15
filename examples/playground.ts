@@ -23,7 +23,6 @@ class TestForm implements OnInit, OnParse, OnChanges, OnBeforeCheck, OnAfterChec
     }
 
     onButtonClick(evt: MouseEvent) {
-        asdf
         evt.preventDefault();
         console.log(this.testObj);
         this.clickEmitter.emit(this.testObj);
