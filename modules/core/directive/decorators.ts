@@ -1,10 +1,6 @@
-import { assert } from '../../debug/debug';
-import { ClassType } from '../../utils/class/class';
-import { createClassDecorator, createPropertyDecoratory } from '../decorators/decorators';
-import { ComponentMetadata, InputMetadata, OutputMetadata } from './metadata';
-import { Injectable } from '../di/di';
+import { createPropertyDecoratory, createClassDecorator } from '../decorators/decorators';
+import { InputMetadata, OutputMetadata, ComponentMetadata } from './metadata';
 import { ChangeDetectionStrategy } from '../change_detection/change_detection';
-
 
 export interface ComponentMetadataFactory {
     (metadata: {
@@ -22,7 +18,6 @@ export interface ComponentMetadataFactory {
     }): ClassDecorator;
 }
 export var Component: ComponentMetadataFactory = <ComponentMetadataFactory>createClassDecorator(ComponentMetadata);
-
 
 export interface InputMetadataFactory {
     (bindingPropertyName?: string): PropertyDecorator;

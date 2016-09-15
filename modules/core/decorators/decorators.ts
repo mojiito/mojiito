@@ -1,6 +1,5 @@
 import { ClassType } from '../../utils/class/class';
 import { ClassReflection } from '../../core/reflect/reflection';
-import { ComponentMetadata, DirectiveMetadata } from '../../core/component/metadata';
 import { DirectiveRegistry } from '../../core/directive/registry';
 
 export function createClassDecorator(metadataClass: ClassType<any>): (objOrType: any) => ClassDecorator {

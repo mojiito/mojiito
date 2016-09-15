@@ -1,7 +1,7 @@
 import { assert } from '../../debug/debug';
 import { Injectable, Inject, forwardRef } from '../../core/di/di';
 import { DOMParser } from './dom_parser';
-import { ComponentResolver } from '../../core/component/resolver';
+import { ComponentFactoryResolver } from '../../core/component/factory';
 import { ComponentReference } from '../../core/component/reference';
 import { ComponentParserHook } from './hooks/component';
 import { EventParserHook } from './hooks/event';
@@ -14,7 +14,7 @@ export class Parser {
     private _domParser = new DOMParser();
 
     constructor(
-        @Inject(forwardRef(() => ComponentResolver)) resolver: ComponentResolver
+        @Inject(forwardRef(() => ComponentFactoryResolver)) resolver: ComponentFactoryResolver
     ) {
         this._domParser.registerElementHook(new ComponentParserHook(resolver));
         this._domParser.registerAttributeHook(new TemplateVariableParserHook());

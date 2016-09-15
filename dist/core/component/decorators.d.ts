@@ -17,11 +17,3 @@ export interface ComponentMetadataFactory {
     }): ClassDecorator;
 }
 export declare var Component: ComponentMetadataFactory;
-export interface InputMetadataFactory {
-    (bindingPropertyName?: string): PropertyDecorator;
-}
-export declare var Input: InputMetadataFactory;
-export interface OutputMetadataFactory {
-    (bindingPropertyName?: string): PropertyDecorator;
-}
-export declare var Output: OutputMetadataFactory;

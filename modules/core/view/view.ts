@@ -31,7 +31,7 @@ export class View {
 
     parse() {
         assert(this.isAttached, `View can only be parsed if it is attached to a host element`);
-        this._parser.parse(this._rootElement, this, false);
+        // this._parser.parse(this._rootElement, this, false);
     }
 
     addTemplateVar(key: string, element: Element) {

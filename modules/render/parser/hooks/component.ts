@@ -5,7 +5,7 @@ import { ContextTree } from '../context';
 import { ParserElementHook, ParserAttributeHook } from './hooks';
 import { doesSelectorMatchElement } from '../../../utils/dom/dom';
 import { DirectiveRegistry } from '../../../core/directive/registry';
-import { ComponentResolver } from '../../../core/component/resolver';
+import { ComponentFactoryResolver } from '../../../core/component/factory';
 import { View, ViewType } from '../../../core/view/view';
 import { HostElement } from '../../../core/view/host';
 import { triggerLifecycleHook, LifecycleHook } from '../../../core/lifecycle/lifecycle_hooks';
@@ -15,7 +15,7 @@ export class ComponentParserHook extends ParserElementHook {
     private selectors = DirectiveRegistry.selectors;
     private lastFoundSelectorIndex = -1;
 
-    constructor(private resolver: ComponentResolver) {
+    constructor(private resolver: ComponentFactoryResolver) {
         super();
     }
 

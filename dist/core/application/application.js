@@ -3,11 +3,14 @@ var debug_1 = require('../../debug/debug');
 var utils_1 = require('../../utils/utils');
 var di_1 = require('../di/di');
 var component_1 = require('../component/component');
+var metadata_1 = require('../directive/metadata');
 var reflection_1 = require('../reflect/reflection');
 var parser_1 = require('../../render/parser/parser');
 var zone_1 = require('../zone/zone');
+var dom_traverser_1 = require('../../browser/dom_traverser');
+var node_visitor_1 = require('../../browser/node_visitor');
 exports.DEFAULT_PROVIDERS = [
-    new di_1.Provider(component_1.ComponentResolver, { useClass: component_1.ComponentResolver }),
+    new di_1.Provider(component_1.ComponentFactoryResolver, { useClass: component_1.ComponentFactoryResolver }),
     new di_1.Provider(parser_1.Parser, { useClass: parser_1.Parser }),
     new di_1.Provider(zone_1.ZoneService, { useClass: zone_1.ZoneService })
 ];
@@ -48,17 +51,21 @@ var Application = (function () {
     Application.prototype.bootstrap = function (componentOrFactory, root) {
         var _this = this;
         if (root === void 0) { root = document.body; }
+        console.time('parse');
+        var trav = new dom_traverser_1.DOMTraverser(new node_visitor_1.NodeVisitor());
+        trav.traverse(document.body);
+        console.timeEnd('parse');
         this._zoneService.run(function () {
             var componentFactory;
             if (componentOrFactory instanceof component_1.ComponentFactory) {
                 componentFactory = componentOrFactory;
             }
             else {
-                var componentResolver = _this._injector.get(component_1.ComponentResolver);
+                var componentResolver = _this._injector.get(component_1.ComponentFactoryResolver);
                 componentFactory = componentResolver.resolveComponent(componentOrFactory);
             }
-            var metadata = reflection_1.ClassReflection.peek(componentFactory.componentType).annotations.get(component_1.ComponentMetadata);
-            debug_1.assert(metadata instanceof component_1.ComponentMetadata, "The class \"" + utils_1.stringify(componentFactory.componentType) + "\" has no metadata defined in the @Component decorator.");
+            var metadata = reflection_1.ClassReflection.peek(componentFactory.componentType).annotations.get(metadata_1.ComponentMetadata);
+            debug_1.assert(metadata instanceof metadata_1.ComponentMetadata, "The class \"" + utils_1.stringify(componentFactory.componentType) + "\" has no metadata defined in the @Component decorator.");
             var element;
             var selector = metadata.selector;
             debug_1.assert(!!(typeof selector === 'string' && selector.length), "The class \"" + utils_1.stringify(componentFactory.componentType) + "\" has no selector defined in the @Component metadata object.");

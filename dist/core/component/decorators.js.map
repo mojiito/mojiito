@@ -1,1 +1,1 @@
-{"version":3,"file":"decorators.js","sourceRoot":"","sources":["../../../modules/core/component/decorators.ts"],"names":[],"mappings":";AAEA,2BAA+D,0BAA0B,CAAC,CAAA;AAC1F,yBAAiE,YAAY,CAAC,CAAA;AAoBnE,iBAAS,GAAuD,iCAAoB,CAAC,4BAAiB,CAAC,CAAC;AAMxG,aAAK,GAA+C,qCAAwB,CAAC,wBAAa,CAAC,CAAC;AAM5F,cAAM,GAAiD,qCAAwB,CAAC,yBAAc,CAAC,CAAC"}
+{"version":3,"file":"decorators.js","sourceRoot":"","sources":["../../../modules/core/component/decorators.ts"],"names":[],"mappings":";AAEA,2BAAqC,0BAA0B,CAAC,CAAA;AAChE,yBAAkC,uBAAuB,CAAC,CAAA;AAmB/C,iBAAS,GAAuD,iCAAoB,CAAC,4BAAiB,CAAC,CAAC"}

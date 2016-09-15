@@ -7,3 +7,6 @@ export declare class ComponentFactory<C> {
     componentType: ClassType<C>;
     create(injector: Injector, nativeElement: Element): ComponentReference<C>;
 }
+export declare class ComponentFactoryResolver {
+    resolveComponent<C>(componentClass: ClassType<C>): ComponentFactory<C>;
+}

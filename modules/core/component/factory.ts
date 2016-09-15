@@ -2,11 +2,12 @@ import { ClassType, getClassName } from '../../utils/class/class';
 import { doesSelectorMatchElement } from '../../utils/dom/dom';
 import { assert } from '../../debug/debug';
 import { ComponentReference } from './reference';
-import { ComponentMetadata } from './metadata';
+import { ComponentMetadata } from '../directive/metadata';
 import { HostElement } from '../view/host';
 import { ElementRef } from '../view/element';
 import { ClassReflection } from '../reflect/reflection';
 import { Injector, provide, forwardRef } from '../di/di';
+import { Injectable } from '../di/di';
 
 export class ComponentFactory<C> {
 
@@ -19,8 +20,7 @@ export class ComponentFactory<C> {
     get componentType():ClassType<C> { return this._componentType; }
 
     create(injector: Injector, nativeElement: Element): ComponentReference<C> {
-        console.log('start create factory');
-        let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata)
+        let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata);
         let parentHostElement: HostElement = injector.get(HostElement);
         let hostElement = new HostElement(nativeElement, parentHostElement);
         if (parentHostElement instanceof HostElement) {
@@ -38,7 +38,18 @@ export class ComponentFactory<C> {
         hostElement.initComponent(component, inj);
         
         let ref = new ComponentReference(hostElement, this._componentType);
-        console.log('end create factory');
         return ref;
+    }
+}
+
+@Injectable()
+export class ComponentFactoryResolver {
+    resolveComponent<C>(componentClass: ClassType<C>): ComponentFactory<C> {
+        let factory = ClassReflection.peek(componentClass).annotations.get(ComponentFactory);
+        if (!(factory instanceof ComponentFactory)) {
+            factory = new ComponentFactory(componentClass);
+            ClassReflection.peek(componentClass).annotations.set(ComponentFactory, factory);
+        }
+        return factory;
     }
 }

@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var di_1 = require('../../core/di/di');
 var dom_parser_1 = require('./dom_parser');
-var resolver_1 = require('../../core/component/resolver');
+var factory_1 = require('../../core/component/factory');
 var component_1 = require('./hooks/component');
 var event_1 = require('./hooks/event');
 var binding_1 = require('./hooks/binding');
@@ -31,8 +31,8 @@ var Parser = (function () {
     };
     Parser = __decorate([
         di_1.Injectable(),
-        __param(0, di_1.Inject(di_1.forwardRef(function () { return resolver_1.ComponentResolver; }))), 
-        __metadata('design:paramtypes', [resolver_1.ComponentResolver])
+        __param(0, di_1.Inject(di_1.forwardRef(function () { return factory_1.ComponentFactoryResolver; }))), 
+        __metadata('design:paramtypes', [factory_1.ComponentFactoryResolver])
     ], Parser);
     return Parser;
 }());

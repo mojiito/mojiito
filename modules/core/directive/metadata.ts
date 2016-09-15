@@ -7,7 +7,6 @@ export class DirectiveMetadata extends InjectableMetadata {
     selector: string;
     inputs: string[];
     outputs: string[];
-    host: {[key: string]: string};
     providers: any[];
 
     constructor(
@@ -15,13 +14,11 @@ export class DirectiveMetadata extends InjectableMetadata {
             selector, 
             inputs, 
             outputs, 
-            host, 
             providers
         }: {
             selector?: string,
             inputs?: string[],
             outputs?: string[],
-            host?: {[key: string]: string},
             providers?: any[]
         } = {}
     ) {
@@ -74,7 +71,6 @@ export class DirectiveMetadata extends InjectableMetadata {
         this.selector = selector;
         this.inputs = inputs;
         this.outputs = outputs;
-        this.host = host;
         this.providers = providers;
     }
 
@@ -115,10 +111,9 @@ export class DirectiveMetadata extends InjectableMetadata {
  */
 export class ComponentMetadata extends DirectiveMetadata {
     changeDetection: ChangeDetectionStrategy;
-    
+    host: {[key: string]: string};
     templateUrl: string;
     template: string;
-
     styleUrls: string[];
     styles: string[];
 
@@ -147,8 +142,9 @@ export class ComponentMetadata extends DirectiveMetadata {
             styles?: string[],
         } = {}
     ) {
-        super({ selector, inputs, outputs, host, providers });
+        super({ selector, inputs, outputs, providers });
         this.changeDetection = changeDetection;
+        this.host = host;
         this.templateUrl = templateUrl;
         this.template = template;
         this.styles = styles;
@@ -157,6 +153,7 @@ export class ComponentMetadata extends DirectiveMetadata {
 
     toString(): string { return `@ComponentMetadata()`; }
 }
+
 
 export class InputMetadata {
     constructor(public bindingPropertyName?: string) { }

@@ -41,7 +41,7 @@ var View = (function () {
     });
     View.prototype.parse = function () {
         assert_1.assert(this.isAttached, "View can only be parsed if it is attached to a host element");
-        this._parser.parse(this._rootElement, this, false);
+        // this._parser.parse(this._rootElement, this, false);
     };
     View.prototype.addTemplateVar = function (key, element) {
         assert_1.assert(!(this._templateVars[key] instanceof Element), "There is already a template variable \"" + key + "\" set on this view!");

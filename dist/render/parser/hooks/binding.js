@@ -10,7 +10,7 @@ var hooks_1 = require('./hooks');
 var view_1 = require('../../../core/view/view');
 var parser_1 = require('../expression_parser/parser');
 var reflection_1 = require('../../../core/reflect/reflection');
-var metadata_1 = require('../../../core/component/metadata');
+var metadata_1 = require('../../../core/directive/metadata');
 var lifecycle_hooks_1 = require('../../../core/lifecycle/lifecycle_hooks');
 var BindingParserHook = (function (_super) {
     __extends(BindingParserHook, _super);

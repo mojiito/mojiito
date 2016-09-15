@@ -1,13 +1,18 @@
 import { assert } from '../../debug/debug';
 import { ClassType, stringify, doesSelectorMatchElement } from '../../utils/utils';
 import { Injector, Injectable, Provider } from '../di/di';
-import { ComponentFactory, ComponentReference, ComponentResolver, ComponentMetadata } from '../component/component';
+import { ComponentFactory, ComponentReference, ComponentFactoryResolver } from '../component/component';
+import { ComponentMetadata } from '../directive/metadata';
 import { ClassReflection } from '../reflect/reflection';
 import { Parser } from '../../render/parser/parser';
 import { ZoneService } from '../zone/zone';
 
+
+import { DOMTraverser } from '../../browser/dom_traverser';
+import { NodeVisitor } from '../../browser/node_visitor';
+
 export var DEFAULT_PROVIDERS = [
-    new Provider(ComponentResolver, { useClass: ComponentResolver }),
+    new Provider(ComponentFactoryResolver, { useClass: ComponentFactoryResolver }),
     new Provider(Parser, { useClass: Parser }),
     new Provider(ZoneService, { useClass: ZoneService })
 ];
@@ -48,12 +53,19 @@ export class Application {
     }
 
     bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root: Element = document.body) {
+
+        console.time('parse'); 
+        let trav = new DOMTraverser(new NodeVisitor());
+        trav.traverse(document.body);
+        console.timeEnd('parse');
+
+
         this._zoneService.run(() => {
             let componentFactory: ComponentFactory<C>;
             if (componentOrFactory instanceof ComponentFactory) {
                 componentFactory = componentOrFactory;
             } else {
-                let componentResolver = <ComponentResolver>this._injector.get(ComponentResolver);
+                let componentResolver = <ComponentFactoryResolver>this._injector.get(ComponentFactoryResolver);
                 componentFactory = componentResolver.resolveComponent(componentOrFactory)
             }
 

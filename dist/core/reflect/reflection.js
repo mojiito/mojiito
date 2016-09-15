@@ -1,12 +1,11 @@
 "use strict";
-var map_1 = require('../../core/map/map');
 var debug_1 = require('../../debug/debug');
 debug_1.assert(!!(Reflect && Reflect.defineMetadata), 'reflect-metadata shim is required! Please make sure it is installed.');
 var ClassReflection = (function () {
     function ClassReflection() {
-        this._properties = new map_1.TypedMap();
+        this._properties = new Map();
         this._parameters = [];
-        this._annotations = new map_1.TypedMap();
+        this._annotations = new Map();
     }
     Object.defineProperty(ClassReflection.prototype, "properties", {
         get: function () {

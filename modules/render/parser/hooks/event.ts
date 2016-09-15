@@ -6,7 +6,7 @@ import { ContextTree } from '../context';
 import { ParserAttributeHook } from './hooks';
 import { View } from '../../../core/view/view';
 import { ClassReflection } from '../../../core/reflect/reflection';
-import { OutputMetadata } from '../../../core/component/metadata';
+import { OutputMetadata } from '../../../core/directive/metadata';
 import { EventEmitter } from '../../../core/async/events';
 import { ExpressionParser } from '../expression_parser/parser';
 
