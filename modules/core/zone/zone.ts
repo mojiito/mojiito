@@ -3,7 +3,7 @@
  * Copyright Google Inc. All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://Mojito.io/license
  *
  * Modified by Thomas Pink for the usage in Mojito
  */
@@ -34,6 +34,7 @@ export class ZoneWrapper {
         this._onLeave = onLeave || function () { };
         this._setMicrotask = setMicrotask || function (hasMicrotasks: boolean) { };
         this._setMacrotask = setMacrotask || function (hasMacrotasks: boolean) { };
+        this._onError = onError || function () { };
 
 
         assert(!!Zone, `Mojito requires zone.js. Please install and provide it!`);
@@ -136,13 +137,13 @@ export class ZoneService {
         }
     }
     /**
-     * Notifies when code enters Angular Zone. This gets fired first on VM Turn.
+     * Notifies when code enters Mojito Zone. This gets fired first on VM Turn.
      */
     get onUnstable(): EventEmitter<any> { return this._onUnstable; }
 
     /**
      * Notifies when there is no more microtasks enqueue in the current VM Turn.
-     * This is a hint for Angular to do change detection, which may enqueue more microtasks.
+     * This is a hint for Mojito to do change detection, which may enqueue more microtasks.
      * For this reason this event can fire multiple times per VM Turn.
      */
     get onMicrotaskEmpty(): EventEmitter<any> { return this._onMicrotaskEmpty; }
@@ -175,14 +176,14 @@ export class ZoneService {
     get hasPendingMacrotasks(): boolean { return this._hasPendingMacrotasks; }
 
     /**
-     * Executes the `fn` function synchronously within the Angular zone and returns value returned by
+     * Executes the `fn` function synchronously within the Mojito zone and returns value returned by
      * the function.
      *
-     * Running functions via `run` allows you to reenter Angular zone from a task that was executed
-     * outside of the Angular zone (typically started via {@link #runOutsideAngular}).
+     * Running functions via `run` allows you to reenter Mojito zone from a task that was executed
+     * outside of the Mojito zone (typically started via {@link #runOutsideMojito}).
      *
      * Any future tasks or microtasks scheduled from within this function will continue executing from
-     * within the Angular zone.
+     * within the Mojito zone.
      *
      * If a synchronous error happens it will be rethrown and not reported via `onError`.
      */
@@ -195,16 +196,16 @@ export class ZoneService {
     runGuarded(fn: () => any): any { return this._zoneWrapper.runInnerGuarded(fn); }
 
     /**
-     * Executes the `fn` function synchronously in Angular's parent zone and returns value returned by
+     * Executes the `fn` function synchronously in Mojito's parent zone and returns value returned by
      * the function.
      *
-     * Running functions via `runOutsideAngular` allows you to escape Angular's zone and do work that
-     * doesn't trigger Angular change-detection or is subject to Angular's error handling.
+     * Running functions via `runOutsideMojito` allows you to escape Mojito's zone and do work that
+     * doesn't trigger Mojito change-detection or is subject to Mojito's error handling.
      *
      * Any future tasks or microtasks scheduled from within this function will continue executing from
-     * outside of the Angular zone.
+     * outside of the Mojito zone.
      *
-     * Use {@link #run} to reenter the Angular zone and do work that updates the application model.
+     * Use {@link #run} to reenter the Mojito zone and do work that updates the application model.
      */
     runOutsideMojito(fn: () => any): any { return this._zoneWrapper.runOuter(fn); }
 }
