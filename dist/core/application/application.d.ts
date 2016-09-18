@@ -1,19 +1,20 @@
 import { ClassType } from '../../utils/utils';
-import { Injector, Provider } from '../di/di';
+import { Provider } from '../di/di';
 import { ComponentFactory, ComponentReference } from '../component/component';
+import { ZoneService } from '../zone/zone';
+import { RuntimeRenderer } from '../../runtime/runtime';
 export declare var DEFAULT_PROVIDERS: Provider[];
 export declare function bootstrap<C>(appComponentType: ClassType<C>, customProviders: Array<ClassType<any> | Provider | {
     [key: string]: any;
-}>, root?: Element): Application;
-export declare function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): Application;
+}>, root?: Element): void;
+export declare function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): void;
 export declare class Application {
-    private _appComponent;
-    private _injector;
-    private _runningTick;
     private _zoneService;
-    injector: Injector;
+    private _renderer;
+    private _appComponent;
+    private _runningTick;
     appComponent: ComponentReference<any>;
-    constructor(injector: Injector);
+    constructor(_zoneService: ZoneService, _renderer: RuntimeRenderer);
     bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root?: Element): void;
     tick(): void;
 }

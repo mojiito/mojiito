@@ -60,12 +60,10 @@ var HostElement = (function () {
         configurable: true
     });
     HostElement.prototype.initComponent = function (component, injector) {
-        console.log('start init component');
         this._component = component;
         this._injector = injector;
         var componentView = new view_1.View(this._nativeElement);
         this.attachView(componentView, -1);
-        console.log('end init component');
     };
     HostElement.prototype.registerChild = function (childHost) {
         this._children.push(childHost);

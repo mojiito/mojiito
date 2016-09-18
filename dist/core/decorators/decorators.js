@@ -8,7 +8,7 @@ function createClassDecorator(metadataClass) {
             // if objOrType has a selector property we asume that cls is a component or DirectiveMetadata
             // so we can add it to the c
             if (typeof objOrType === 'object' && typeof objOrType.selector === 'string') {
-                registry_1.DirectiveRegistry.register(cls, objOrType.selector);
+                registry_1.DirectiveRegistry.register(cls);
             }
         };
     };

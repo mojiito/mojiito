@@ -5,36 +5,32 @@ var DOMTraverser = (function () {
         this._nodeCount = 0;
         this._attributeIndex = -1;
     }
-    DOMTraverser.prototype.traverse = function (node) {
-        var cb = this.visit(node);
+    DOMTraverser.prototype.traverse = function (node, context) {
+        if (context === void 0) { context = undefined; }
+        var ctxt = this.visit(node, context) || context;
         // Traverse through all the attributes of the node
         // if it is of type Element 
         if (node instanceof Element && node.attributes.length) {
             for (var i = 0, max = node.attributes.length; i < max; i++) {
-                this.traverse(node.attributes[i]);
+                this.traverse(node.attributes[i], ctxt);
             }
         }
         // Start traversing the child nodes        
         var childNode = node.firstChild;
         if (childNode) {
-            this.traverse(childNode);
+            this.traverse(childNode, ctxt);
             while (childNode = childNode.nextSibling) {
-                this.traverse(childNode);
+                this.traverse(childNode, ctxt);
             }
         }
-        // if (typeof cb === 'function') {
-        //     cb();
-        // }
     };
-    DOMTraverser.prototype.visit = function (node) {
+    DOMTraverser.prototype.visit = function (node, context) {
         if (node instanceof Element) {
-            return this.visitor.visitElement(node, null);
+            return this.visitor.visitElement(node, context);
         }
         else if (node instanceof Attr) {
-            return this.visitor.visitAttribute(node, null);
         }
         else if (node instanceof Text) {
-            return this.visitor.visitText(node, null);
         }
     };
     return DOMTraverser;

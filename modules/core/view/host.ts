@@ -49,13 +49,11 @@ export class HostElement implements ChangeDetector {
     }
 
     initComponent(component: any, injector: Injector) {
-        console.log('start init component');
         this._component = component;
         this._injector = injector;
         
         let componentView = new View(this._nativeElement);
         this.attachView(componentView, -1);
-        console.log('end init component');
     }
 
     registerChild(childHost: HostElement) {

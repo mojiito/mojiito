@@ -1,6 +1,5 @@
 "use strict";
 var assert_1 = require('../../debug/assert/assert');
-var parser_1 = require('../../render/parser/parser');
 var events_1 = require('../async/events');
 var host_1 = require('./host');
 (function (ViewType) {
@@ -60,13 +59,13 @@ var View = (function () {
         if (type === void 0) { type = ViewType.Embedded; }
         assert_1.assert(!this.isAttached, "View is already attached, please detach before reattaching!");
         this._hostElement = hostElement;
-        this._parser = this._hostElement.injector.get(parser_1.Parser);
+        // this._parser = this._hostElement.injector.get(Parser);
         this._type = type;
     };
     View.prototype.detach = function () {
         assert_1.assert(this.isAttached, "View is already detached!");
         this._hostElement = null;
-        this._parser = null;
+        // this._parser = null;
     };
     View.prototype.destroy = function () { };
     View.prototype.addBinding = function (key, fn) {

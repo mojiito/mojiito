@@ -5,7 +5,6 @@ export declare enum ViewType {
     Host = 1,
 }
 export declare class View {
-    private _parser;
     private _rootElement;
     private _hostElement;
     private _type;

@@ -51,7 +51,6 @@ export class DirectiveResolver {
             inputs.forEach((def: string) => {
                 const name = this._extractPublicName(def);
                 assert(dmInputs.indexOf(name) === -1, `Input '${name}' defined multiple times in '${stringify(type)}'`)
-
             });
             mergedInputs = dm.inputs.concat(inputs);
         } else {
@@ -64,7 +63,6 @@ export class DirectiveResolver {
             outputs.forEach((def: string) => {
                 const name = this._extractPublicName(def);
                 assert(dmOutputs.indexOf(name) === -1, `Output '${name}' defined multiple times in '${stringify(type)}'`)
-
             });
             mergedOutputs = dm.outputs.concat(inputs);
         } else {

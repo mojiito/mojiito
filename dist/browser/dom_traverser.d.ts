@@ -5,6 +5,6 @@ export declare class DOMTraverser {
     private _peek;
     private _attributeIndex;
     constructor(visitor: NodeVisitor);
-    traverse(node: Node): void;
-    visit(node: Node): void;
+    traverse(node: Node, context?: any): void;
+    visit(node: Node, context: any): any;
 }

@@ -1,5 +1,5 @@
 import { assert } from '../../debug/assert/assert';
-import { Parser } from '../../render/parser/parser';
+// import { Parser } from '../../render/parser/parser';
 import { Injector } from '../di/di';
 import { EventEmitter } from '../async/events';
 import { HostElement } from './host';
@@ -12,7 +12,7 @@ export enum ViewType {
 
 export class View {
     
-    private _parser: Parser;  
+    // private _parser: Parser;  
     private _rootElement: Element;
     private _hostElement: HostElement;
     private _type: ViewType;
@@ -51,14 +51,14 @@ export class View {
     attach(hostElement: HostElement, type: ViewType = ViewType.Embedded) {
         assert(!this.isAttached, `View is already attached, please detach before reattaching!`);
         this._hostElement = hostElement;
-        this._parser = this._hostElement.injector.get(Parser);
+        // this._parser = this._hostElement.injector.get(Parser);
         this._type = type;
     }
 
     detach() {
         assert(this.isAttached, `View is already detached!`);
         this._hostElement = null;
-        this._parser = null;
+        // this._parser = null;
     }
 
     destroy() { }
