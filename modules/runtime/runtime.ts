@@ -12,7 +12,5 @@ export {
 };
 export const RUNTIME_PROVIDERS = [
     RuntimeRenderer,
-    RuntimeCompiler,
-    DOMTraverser,
-    NodeVisitor
+    RuntimeCompiler
 ]

@@ -5,11 +5,13 @@ export declare class DirectiveMetadata extends InjectableMetadata {
     inputs: string[];
     outputs: string[];
     providers: any[];
-    constructor({selector, inputs, outputs, providers}?: {
+    directives: any[];
+    constructor({selector, inputs, outputs, providers, directives}?: {
         selector?: string;
         inputs?: string[];
         outputs?: string[];
         providers?: any[];
+        directives?: any[];
     });
     toString(): string;
 }
@@ -54,7 +56,7 @@ export declare class ComponentMetadata extends DirectiveMetadata {
     template: string;
     styleUrls: string[];
     styles: string[];
-    constructor({changeDetection, selector, inputs, outputs, host, providers, templateUrl, template, styleUrls, styles}?: {
+    constructor({changeDetection, selector, inputs, outputs, host, providers, directives, templateUrl, template, styleUrls, styles}?: {
         changeDetection?: ChangeDetectionStrategy;
         selector?: string;
         inputs?: string[];
@@ -63,6 +65,7 @@ export declare class ComponentMetadata extends DirectiveMetadata {
             [key: string]: string;
         };
         providers?: any[];
+        directives?: any[];
         templateUrl?: string;
         template?: string;
         styleUrls?: string[];

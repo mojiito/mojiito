@@ -1,89 +1,111 @@
 "use strict";
-var assert_1 = require('../../debug/assert/assert');
-var events_1 = require('../async/events');
-var host_1 = require('./host');
+var utils_1 = require('../../utils/utils');
+var change_detection_1 = require('../change_detection/change_detection');
 (function (ViewType) {
-    ViewType[ViewType["Embedded"] = 0] = "Embedded";
-    ViewType[ViewType["Host"] = 1] = "Host";
+    ViewType[ViewType["COMPONENT"] = 0] = "COMPONENT";
+    ViewType[ViewType["EMBEDDED"] = 1] = "EMBEDDED";
+    ViewType[ViewType["HOST"] = 2] = "HOST";
 })(exports.ViewType || (exports.ViewType = {}));
 var ViewType = exports.ViewType;
 var View = (function () {
-    function View(element) {
-        this._templateVars = {};
-        this._bindings = {};
-        this._rootElement = element;
+    function View(
+        // public clazz: any,
+        // public componentType: any,
+        type, parentInjector, declarationAppElement, cdMode) {
+        this.type = type;
+        this.parentInjector = parentInjector;
+        this.declarationAppElement = declarationAppElement;
+        this.cdMode = cdMode;
+        this.viewChildren = [];
+        this.viewContainerElement = null;
+        this.numberOfChecks = 0;
+        this.ref = new ViewRef(this);
     }
-    Object.defineProperty(View.prototype, "rootElement", {
-        get: function () { return this._rootElement; },
+    Object.defineProperty(View.prototype, "destroyed", {
+        get: function () { return this.cdMode === change_detection_1.ChangeDetectorStatus.Destroyed; },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(View.prototype, "hostElement", {
-        get: function () { return this._hostElement; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(View.prototype, "type", {
-        get: function () { return this._type; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(View.prototype, "templateVars", {
-        get: function () { return this._templateVars; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(View.prototype, "isAttached", {
-        get: function () { return this._hostElement instanceof host_1.HostElement; },
-        enumerable: true,
-        configurable: true
-    });
-    View.prototype.parse = function () {
-        assert_1.assert(this.isAttached, "View can only be parsed if it is attached to a host element");
-        // this._parser.parse(this._rootElement, this, false);
-    };
-    View.prototype.addTemplateVar = function (key, element) {
-        assert_1.assert(!(this._templateVars[key] instanceof Element), "There is already a template variable \"" + key + "\" set on this view!");
-        this._templateVars[key] = element;
-    };
-    View.prototype.getTemplateVar = function (key, hostLookup) {
-        if (hostLookup === void 0) { hostLookup = true; }
-        var hostView = this.hostElement.getView(-1);
-        var element = this._templateVars[key] || null;
-        if (hostLookup && !(element instanceof Element) && hostView !== this) {
-            element = hostView.getTemplateVar(key);
-        }
-        return element;
-    };
-    View.prototype.attach = function (hostElement, type) {
-        if (type === void 0) { type = ViewType.Embedded; }
-        assert_1.assert(!this.isAttached, "View is already attached, please detach before reattaching!");
-        this._hostElement = hostElement;
-        // this._parser = this._hostElement.injector.get(Parser);
-        this._type = type;
-    };
-    View.prototype.detach = function () {
-        assert_1.assert(this.isAttached, "View is already detached!");
-        this._hostElement = null;
-        // this._parser = null;
+    View.prototype.create = function (context, givenProjectableNodes, rootSelectorOrNode) {
+        this.context = context;
+        return null;
     };
     View.prototype.destroy = function () { };
-    View.prototype.addBinding = function (key, fn) {
-        var emitter = this._peekBindingForKey(key);
-        emitter.subscribe(fn);
-    };
-    View.prototype.getBindingsForKey = function (key) {
-        return this._peekBindingForKey(key);
-    };
-    View.prototype._peekBindingForKey = function (key) {
-        var emitter = this._bindings[key];
-        if (!(emitter instanceof events_1.EventEmitter)) {
-            emitter = new events_1.EventEmitter();
-            this._bindings[key] = emitter;
+    View.prototype.detectChanges = function (throwOnChange) {
+        if (this.cdMode === change_detection_1.ChangeDetectorStatus.Checked ||
+            this.cdMode === change_detection_1.ChangeDetectorStatus.Errored)
+            return;
+        if (this.cdMode === change_detection_1.ChangeDetectorStatus.Destroyed) {
         }
-        return emitter;
+        this.detectChangesInternal(throwOnChange);
+        if (this.cdMode === change_detection_1.ChangeDetectorStatus.CheckOnce)
+            this.cdMode = change_detection_1.ChangeDetectorStatus.Checked;
+        this.numberOfChecks++;
+    };
+    View.prototype.detectChangesInternal = function (throwOnChange) { };
+    View.prototype.markPathToRootAsCheckOnce = function () {
+        var c = this;
+        while (utils_1.isPresent(c) && c.cdMode !== change_detection_1.ChangeDetectorStatus.Detached) {
+            if (c.cdMode === change_detection_1.ChangeDetectorStatus.Checked) {
+                c.cdMode = change_detection_1.ChangeDetectorStatus.CheckOnce;
+            }
+            var parentEl = c.type === ViewType.COMPONENT ? c.declarationAppElement : c.viewContainerElement;
+            c = utils_1.isPresent(parentEl) ? parentEl.parentView : null;
+        }
     };
     return View;
 }());
 exports.View = View;
+var ViewRef = (function () {
+    function ViewRef(_view) {
+        this._view = _view;
+        this._view = _view;
+        this._originalMode = this._view.cdMode;
+    }
+    Object.defineProperty(ViewRef.prototype, "internalView", {
+        get: function () { return this._view; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ViewRef.prototype, "rootNodes", {
+        get: function () { return null; /* this._view.flatRootNodes;*/ },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ViewRef.prototype, "context", {
+        get: function () { return this._view.context; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ViewRef.prototype, "destroyed", {
+        get: function () { return this._view.destroyed; },
+        enumerable: true,
+        configurable: true
+    });
+    ViewRef.prototype.markForCheck = function () {
+        this._view.markPathToRootAsCheckOnce();
+    };
+    ViewRef.prototype.detach = function () {
+        this._view.cdMode = change_detection_1.ChangeDetectorStatus.Detached;
+    };
+    ViewRef.prototype.detectChanges = function () {
+        this._view.detectChanges(false);
+        // triggerQueuedAnimations();
+    };
+    ViewRef.prototype.checkNoChanges = function () {
+        this._view.detectChanges(true);
+    };
+    ViewRef.prototype.reattach = function () {
+        this._view.cdMode = this._originalMode;
+        this.markForCheck();
+    };
+    ViewRef.prototype.onDestroy = function (callback) {
+        this._view.disposables.push(callback);
+    };
+    ViewRef.prototype.destroy = function () {
+        // this._view.destroy();
+    };
+    return ViewRef;
+}());
+exports.ViewRef = ViewRef;
 //# sourceMappingURL=view.js.map

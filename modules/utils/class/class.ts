@@ -11,5 +11,9 @@ export function getClassName<T>(klass: ClassType<T>) {
 }
 
 export function isClassInstance(instance: any): boolean {
-    return typeof instance === 'object' && !!instance['constructor']
+    return typeof instance === 'object' && !!instance.constructor
+}
+
+export function isClassType(type: any) {
+    return typeof type === 'function' && type.constructor === Function;
 }

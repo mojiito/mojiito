@@ -5,6 +5,10 @@ import { resolveForwardRef } from './forward_ref';
 import { assert } from '../../debug/debug';
 import { stringify } from '../../utils/string/stringify';
 
+export interface IInjector {
+    get(token: any): any;
+}
+
 /**
  * An `Injector` is a replacement for a `new` operator, which can automatically resolve the
  * constructor dependencies.
@@ -12,7 +16,7 @@ import { stringify } from '../../utils/string/stringify';
  * @export
  * @class Injector
  */
-export class Injector {
+export class Injector implements IInjector {
 
     private _parent: Injector = null;
     private _providers: ResolvedProvider[] = [];
@@ -106,6 +110,9 @@ export class Injector {
      * @returns {*}
      */
     get(token: any): any {
+        if (token === Injector) {
+            return this;
+        }
         let value = this._values.get(token);
         if (value) {
             return value; 

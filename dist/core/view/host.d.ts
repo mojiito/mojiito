@@ -1,39 +1,16 @@
 import { View } from './view';
 import { ElementRef } from './element';
 import { Injector } from '../di/di';
-import { ChangeDetector, ChangeDetectorStatus, KeyValueChangeRecord } from '../change_detection/change_detection';
-export declare class HostElement implements ChangeDetector {
-    private _componentView;
+import { ChangeDetectorStatus } from '../change_detection/change_detection';
+export declare class HostElement {
+    private _hostView;
     private _nestedViews;
-    private _nativeElement;
-    private _component;
     private _injector;
-    private _parent;
-    private _children;
-    private _cdStatus;
-    private _cdDefaultStatus;
-    private _iterableDiffer;
-    private _keyValueDiffer;
-    component: any;
-    componentView: View;
+    hostView: View;
     elementRef: ElementRef;
+    parent: any;
     injector: Injector;
-    parent: HostElement;
-    cdStatus: ChangeDetectorStatus;
-    constructor(nativeElement: Element, parent?: HostElement, cdStatus?: ChangeDetectorStatus);
-    initComponent(component: any, injector: Injector): void;
-    registerChild(childHost: HostElement): void;
+    constructor(hostView: View, injector: Injector, cdStatus?: ChangeDetectorStatus);
     attachView(view: View, viewIndex: number): void;
-    detachView(viewIndex: number): View;
-    getView(viewIndex?: number): View;
-    destroyView(viewIndex: number): void;
-    parseView(viewIndex?: number): void;
-    parse(): void;
-    markForCheck(): void;
-    detach(): void;
-    detectChanges(): void;
-    detectChildChanges(): void;
-    checkNoChanges(): void;
-    reattach(): void;
-    emitBinding(record: KeyValueChangeRecord): void;
+    detachView(viewIndex: number): void;
 }

@@ -215,4 +215,7 @@ var ZoneService = (function () {
     return ZoneService;
 }());
 exports.ZoneService = ZoneService;
+exports.ZONE_PROVIDERS = [
+    ZoneService
+];
 //# sourceMappingURL=zone.js.map

@@ -11,6 +11,7 @@ export interface ComponentMetadataFactory {
         events?: string[],
         host?: {[key: string]: string},
         providers?: any[],
+        directives?: any[],
         templateUrl?: string,
         template?: string,
         styleUrls?: string[],

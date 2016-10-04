@@ -1,5 +1,8 @@
 import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider } from './provider';
+export interface IInjector {
+    get(token: any): any;
+}
 /**
  * An `Injector` is a replacement for a `new` operator, which can automatically resolve the
  * constructor dependencies.
@@ -7,7 +10,7 @@ import { Provider, ResolvedProvider } from './provider';
  * @export
  * @class Injector
  */
-export declare class Injector {
+export declare class Injector implements IInjector {
     private _parent;
     private _providers;
     private _values;

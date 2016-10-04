@@ -1,5 +1,4 @@
 import { Injectable, Inject } from '../core/di/di';
-import { ElementRef } from '../core/view/element';
 import { DOMTraverser } from './dom_traverser';
 
 @Injectable()

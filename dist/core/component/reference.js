@@ -13,7 +13,7 @@ var ComponentReference = (function () {
     });
     Object.defineProperty(ComponentReference.prototype, "instance", {
         get: function () {
-            return this._hostElement.component;
+            return this._hostElement.directive;
         },
         enumerable: true,
         configurable: true

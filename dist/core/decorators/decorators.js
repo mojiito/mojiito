@@ -1,15 +1,9 @@
 "use strict";
 var reflection_1 = require('../../core/reflect/reflection');
-var registry_1 = require('../../core/directive/registry');
 function createClassDecorator(metadataClass) {
     return function (objOrType) {
         return function (cls) {
             reflection_1.ClassReflection.peek(cls).annotations.set(metadataClass, new metadataClass(objOrType));
-            // if objOrType has a selector property we asume that cls is a component or DirectiveMetadata
-            // so we can add it to the c
-            if (typeof objOrType === 'object' && typeof objOrType.selector === 'string') {
-                registry_1.DirectiveRegistry.register(cls);
-            }
         };
     };
 }

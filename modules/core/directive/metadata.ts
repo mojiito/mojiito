@@ -8,18 +8,21 @@ export class DirectiveMetadata extends InjectableMetadata {
     inputs: string[];
     outputs: string[];
     providers: any[];
+    directives: any[];
 
     constructor(
         {
             selector, 
             inputs, 
             outputs, 
-            providers
+            providers,
+            directives
         }: {
             selector?: string,
             inputs?: string[],
             outputs?: string[],
-            providers?: any[]
+            providers?: any[],
+            directives?: any[]
         } = {}
     ) {
         super();
@@ -72,6 +75,7 @@ export class DirectiveMetadata extends InjectableMetadata {
         this.inputs = inputs;
         this.outputs = outputs;
         this.providers = providers;
+        this.directives = directives;
     }
 
     toString(): string { return `@DirectiveMetadata()`; }
@@ -125,6 +129,7 @@ export class ComponentMetadata extends DirectiveMetadata {
             outputs, 
             host, 
             providers, 
+            directives,
             templateUrl, 
             template, 
             styleUrls, 
@@ -136,13 +141,14 @@ export class ComponentMetadata extends DirectiveMetadata {
             outputs?: string[],
             host?: {[key: string]: string},
             providers?: any[],
+            directives?: any[],
             templateUrl?: string,
             template?: string,
             styleUrls?: string[],
             styles?: string[],
         } = {}
     ) {
-        super({ selector, inputs, outputs, providers });
+        super({ selector, inputs, outputs, providers, directives });
         this.changeDetection = changeDetection;
         this.host = host;
         this.templateUrl = templateUrl;

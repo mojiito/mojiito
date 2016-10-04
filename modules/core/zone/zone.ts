@@ -208,3 +208,7 @@ export class ZoneService {
      */
     runOutsideMojito(fn: () => any): any { return this._zoneWrapper.runOuter(fn); }
 }
+
+export const ZONE_PROVIDERS = [
+    ZoneService
+];

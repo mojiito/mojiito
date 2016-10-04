@@ -1,6 +1,6 @@
 import { assert } from '../../debug/debug';
 import { stringify } from '../../utils/string/stringify';
-import { isPresent } from '../../utils/lang/lang';
+import { isPresent, isArray } from '../../utils/lang/lang';
 import { Injectable } from '../di/di';
 import { ClassType } from '../../utils/class/class';
 import { DirectiveMetadata, ComponentMetadata, InputMetadata, OutputMetadata } from './metadata';
@@ -26,8 +26,9 @@ export class DirectiveResolver {
     }
 
     private _mergeWithPropertyMetadata(dm: DirectiveMetadata, properties: Map<string | symbol, any>, type: ClassType<any>): DirectiveMetadata {
-        var inputs: string[] = [];
-        var outputs: string[] = [];
+        const inputs: string[] = [];
+        const outputs: string[] = [];
+        const directives: any[] = [];
 
         properties.forEach((value: any, index: string) => {
             if (value instanceof InputMetadata) {
@@ -64,10 +65,22 @@ export class DirectiveResolver {
                 const name = this._extractPublicName(def);
                 assert(dmOutputs.indexOf(name) === -1, `Output '${name}' defined multiple times in '${stringify(type)}'`)
             });
-            mergedOutputs = dm.outputs.concat(inputs);
+            mergedOutputs = dm.outputs.concat(outputs);
         } else {
             mergedOutputs = outputs;
         }
+
+        let mergedDirectives: any[] = [];
+        if (isPresent(dm.directives)) {
+            dm.directives.forEach(d => {
+                if (isArray(d)) {
+                    mergedDirectives = mergedDirectives.concat(d);
+                } else {
+                    mergedDirectives.push(d);
+                }
+            })
+        }
+
         if (dm instanceof ComponentMetadata) {
             return new ComponentMetadata({
                 selector: dm.selector,
@@ -76,6 +89,7 @@ export class DirectiveResolver {
                 host: dm.host,
                 changeDetection: dm.changeDetection,
                 providers: dm.providers,
+                directives: mergedDirectives,
                 template: dm.template,
                 templateUrl: dm.templateUrl,
                 styles: dm.styles,
@@ -87,7 +101,8 @@ export class DirectiveResolver {
                 selector: dm.selector,
                 inputs: mergedInputs,
                 outputs: mergedOutputs,
-                providers: dm.providers
+                providers: dm.providers,
+                directives: dm.directives
             });
         }
     }

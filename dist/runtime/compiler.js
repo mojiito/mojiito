@@ -1,9 +1,4 @@
 "use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -16,74 +11,73 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var utils_1 = require('../utils/utils');
 var resolver_1 = require('../core/directive/resolver');
 var metadata_1 = require('../core/directive/metadata');
-var factory_1 = require('../core/component/factory');
 var di_1 = require('../core/di/di');
+var change_detection_1 = require('../core/change_detection/change_detection');
+var assert_1 = require("../debug/assert/assert");
 var RuntimeCompiler = (function () {
-    function RuntimeCompiler(_resolver, _compResolver) {
+    function RuntimeCompiler(_resolver) {
         this._resolver = _resolver;
-        this._compResolver = _compResolver;
-        this._compiledDirectiveCache = new Map();
     }
-    Object.defineProperty(RuntimeCompiler.prototype, "compiledDirectives", {
-        get: function () {
-            var result = [];
-            this._compiledDirectiveCache.forEach(function (d) { return result.push(d); });
-            return result;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    RuntimeCompiler.prototype.getCompiledDirective = function (type) {
-        var directive = this._compiledDirectiveCache.get(type);
-        return this._compiledDirectiveCache.get(type) || this._compileDirective(type);
-    };
-    RuntimeCompiler.prototype.compileDirectives = function (types) {
+    RuntimeCompiler.prototype.compileDirectiveAndAllChilds = function (directive) {
         var _this = this;
-        types.forEach(function (type) {
-            _this._compileDirective(type);
-        });
-    };
-    RuntimeCompiler.prototype._compileDirective = function (type) {
-        var result;
-        var metadata = this._resolver.resolve(type);
-        if (metadata instanceof metadata_1.ComponentMetadata) {
-            var factory = this._compResolver.resolveComponent(type);
-            result = new CompiledComponentFactory(factory, metadata);
+        var result = [this._compileDirective(directive)];
+        var metadata = this._resolver.resolve(directive);
+        if (utils_1.isArray(metadata.directives)) {
+            metadata.directives
+                .filter(function (d) { return utils_1.isPresent(d); })
+                .map(function (d) { return result = result.concat(_this.compileDirectiveAndAllChilds(d)); });
         }
-        this._compiledDirectiveCache.set(type, result);
         return result;
+    };
+    RuntimeCompiler.prototype._compileDirective = function (directive) {
+        var metadata = this._resolver.resolve(directive);
+        return CompileDirective.create(directive, metadata);
     };
     RuntimeCompiler = __decorate([
         di_1.Injectable(),
-        __param(0, di_1.Inject(resolver_1.DirectiveResolver)),
-        __param(1, di_1.Inject(factory_1.ComponentFactoryResolver)), 
-        __metadata('design:paramtypes', [resolver_1.DirectiveResolver, factory_1.ComponentFactoryResolver])
+        __param(0, di_1.Inject(resolver_1.DirectiveResolver)), 
+        __metadata('design:paramtypes', [resolver_1.DirectiveResolver])
     ], RuntimeCompiler);
     return RuntimeCompiler;
 }());
 exports.RuntimeCompiler = RuntimeCompiler;
-var CompiledDirectiveFactory = (function () {
-    function CompiledDirectiveFactory(metadata) {
-        this.metadata = metadata;
+var CompileDirective = (function () {
+    function CompileDirective(type, metadata) {
+        this.type = type;
+        this.isComponent = metadata instanceof metadata_1.ComponentMetadata;
+        var mergedInputs = {};
+        metadata.inputs.forEach(function (i) {
+            var parts = utils_1.splitAtColon(i, [i, i]);
+            assert_1.assert(!utils_1.isPresent(mergedInputs[parts[1]]), "The input parameter " + parts[1] + " is already defined on " + utils_1.stringify(type));
+            mergedInputs[parts[1]] = parts[0];
+        });
+        this.inputs = mergedInputs;
+        var mergedOutputs = {};
+        metadata.outputs.forEach(function (i) {
+            var parts = utils_1.splitAtColon(i, [i, i]);
+            assert_1.assert(!utils_1.isPresent(mergedOutputs[parts[1]]), "The output parameter " + parts[1] + " is already defined on " + utils_1.stringify(type));
+            mergedOutputs[parts[1]] = parts[0];
+        });
+        this.outputs = mergedOutputs;
+        this.directives = metadata.directives;
+        this.providers = metadata.providers;
+        this.selector = metadata.selector;
+        if (metadata instanceof metadata_1.ComponentMetadata) {
+            this.changeDetection = metadata.changeDetection || change_detection_1.ChangeDetectionStrategy.Default;
+            this.host = metadata.host;
+            this.templateUrl = metadata.templateUrl;
+            this.template = metadata.template;
+            this.styleUrls = metadata.styleUrls;
+            this.styles = metadata.styles;
+        }
     }
-    CompiledDirectiveFactory.prototype.create = function (injector, nativeElement) {
+    CompileDirective.create = function (type, metadata) {
+        return new CompileDirective(type, metadata);
     };
-    return CompiledDirectiveFactory;
+    return CompileDirective;
 }());
-exports.CompiledDirectiveFactory = CompiledDirectiveFactory;
-var CompiledComponentFactory = (function (_super) {
-    __extends(CompiledComponentFactory, _super);
-    function CompiledComponentFactory(_factory, metadata) {
-        _super.call(this, metadata);
-        this._factory = _factory;
-        this.metadata = metadata;
-    }
-    CompiledComponentFactory.prototype.create = function (injector, nativeElement) {
-        _super.prototype.create.call(this, injector, nativeElement);
-    };
-    return CompiledComponentFactory;
-}(CompiledDirectiveFactory));
-exports.CompiledComponentFactory = CompiledComponentFactory;
+exports.CompileDirective = CompileDirective;
 //# sourceMappingURL=compiler.js.map

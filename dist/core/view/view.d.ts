@@ -1,30 +1,43 @@
-import { EventEmitter } from '../async/events';
-import { HostElement } from './host';
+import { Injector } from '../di/di';
+import { ChangeDetectorStatus, ChangeDetector } from '../change_detection/change_detection';
+import { AppElement } from './element';
 export declare enum ViewType {
-    Embedded = 0,
-    Host = 1,
+    COMPONENT = 0,
+    EMBEDDED = 1,
+    HOST = 2,
 }
-export declare class View {
-    private _rootElement;
-    private _hostElement;
-    private _type;
-    private _templateVars;
-    private _bindings;
-    rootElement: Element;
-    hostElement: HostElement;
+export declare class View<C> {
     type: ViewType;
-    templateVars: {
-        [key: string]: Element;
-    };
-    isAttached: boolean;
-    constructor(element: Element);
-    parse(): void;
-    addTemplateVar(key: string, element: Element): void;
-    getTemplateVar(key: string, hostLookup?: boolean): Element;
-    attach(hostElement: HostElement, type?: ViewType): void;
-    detach(): void;
+    parentInjector: Injector;
+    declarationAppElement: AppElement;
+    cdMode: ChangeDetectorStatus;
+    ref: ViewRef<C>;
+    context: any;
+    disposables: Function[];
+    viewChildren: View<any>[];
+    viewContainerElement: AppElement;
+    numberOfChecks: number;
+    constructor(type: ViewType, parentInjector: Injector, declarationAppElement: AppElement, cdMode: ChangeDetectorStatus);
+    destroyed: boolean;
+    create(context: C, givenProjectableNodes: Array<any | any[]>, rootSelectorOrNode: string | any): AppElement;
     destroy(): void;
-    addBinding(key: string, fn: () => void): void;
-    getBindingsForKey(key: string): EventEmitter<any>;
-    private _peekBindingForKey(key);
+    detectChanges(throwOnChange: boolean): void;
+    detectChangesInternal(throwOnChange: boolean): void;
+    markPathToRootAsCheckOnce(): void;
+}
+export declare class ViewRef<C> implements ChangeDetector {
+    private _view;
+    _originalMode: ChangeDetectorStatus;
+    constructor(_view: View<C>);
+    internalView: View<C>;
+    rootNodes: any[];
+    context: any;
+    destroyed: boolean;
+    markForCheck(): void;
+    detach(): void;
+    detectChanges(): void;
+    checkNoChanges(): void;
+    reattach(): void;
+    onDestroy(callback: Function): void;
+    destroy(): void;
 }

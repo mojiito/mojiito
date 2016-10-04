@@ -1,84 +1,112 @@
 import { assert } from '../../debug/assert/assert';
+import { isPresent } from '../../utils/utils';
 // import { Parser } from '../../render/parser/parser';
 import { Injector } from '../di/di';
-import { EventEmitter } from '../async/events';
-import { HostElement } from './host';
-import { ChangeDetector, ChangeDetectorStatus } from '../change_detection/change_detection';
+import { ChangeDetectorStatus, ChangeDetector } from '../change_detection/change_detection';
+import { AppElement } from './element';
 
 export enum ViewType {
-    Embedded,
-    Host
+    COMPONENT,
+    EMBEDDED,
+    HOST
 }
 
-export class View {
-    
-    // private _parser: Parser;  
-    private _rootElement: Element;
-    private _hostElement: HostElement;
-    private _type: ViewType;
-    private _templateVars: { [key: string]: Element } = {};
-    private _bindings: { [key: string]: EventEmitter<any> } = {};
+export class View<C> {
 
-    get rootElement() { return this._rootElement; }
-    get hostElement() { return this._hostElement; }
-    get type() { return this._type; }
-    get templateVars() { return this._templateVars; }
-    get isAttached() { return this._hostElement instanceof HostElement; }
+    ref: ViewRef<C>;
+    context: any;
+    disposables: Function[];
+    viewChildren: View<any>[] = [];
+    viewContainerElement: AppElement = null;
+    numberOfChecks: number = 0;
 
-    constructor(element: Element) {
-        this._rootElement = element;
+    constructor(
+        // public clazz: any,
+        // public componentType: any,
+        public type: ViewType,
+        public parentInjector: Injector,
+        public declarationAppElement: AppElement,
+        public cdMode: ChangeDetectorStatus)
+    {
+        this.ref = new ViewRef(this);
     }
 
-    parse() {
-        assert(this.isAttached, `View can only be parsed if it is attached to a host element`);
-        // this._parser.parse(this._rootElement, this, false);
-    }
+    get destroyed(): boolean { return this.cdMode === ChangeDetectorStatus.Destroyed; }
 
-    addTemplateVar(key: string, element: Element) {
-        assert(!(this._templateVars[key] instanceof Element), `There is already a template variable "${key}" set on this view!`);
-        this._templateVars[key] = element;
-    }
-
-    getTemplateVar(key: string, hostLookup = true): Element {
-        let hostView = this.hostElement.getView(-1);
-        let element = this._templateVars[key] || null;
-        if (hostLookup && !(element instanceof Element) && hostView !== this) {
-            element = hostView.getTemplateVar(key);
-        }
-        return element;
-    }
-
-    attach(hostElement: HostElement, type: ViewType = ViewType.Embedded) {
-        assert(!this.isAttached, `View is already attached, please detach before reattaching!`);
-        this._hostElement = hostElement;
-        // this._parser = this._hostElement.injector.get(Parser);
-        this._type = type;
-    }
-
-    detach() {
-        assert(this.isAttached, `View is already detached!`);
-        this._hostElement = null;
-        // this._parser = null;
+    create(context: C, givenProjectableNodes: Array<any | any[]>, rootSelectorOrNode: string | any): AppElement {
+        this.context = context;
+        return null;
     }
 
     destroy() { }
 
-    addBinding(key: string, fn: () => void) {
-        let emitter = this._peekBindingForKey(key);
-        emitter.subscribe(fn);
-    }
-
-    getBindingsForKey(key: string): EventEmitter<any> {
-        return this._peekBindingForKey(key);
-    }
-
-    private _peekBindingForKey(key: string): EventEmitter<any> {
-        let emitter = this._bindings[key];
-        if (!(emitter instanceof EventEmitter)) { 
-            emitter = new EventEmitter();
-            this._bindings[key] = emitter;
+    detectChanges(throwOnChange: boolean): void {
+        if (this.cdMode === ChangeDetectorStatus.Checked ||
+            this.cdMode === ChangeDetectorStatus.Errored)
+            return;
+        if (this.cdMode === ChangeDetectorStatus.Destroyed) {
+            // this.throwDestroyedError('detectChanges');
         }
-        return emitter;
+        this.detectChangesInternal(throwOnChange);
+        if (this.cdMode === ChangeDetectorStatus.CheckOnce) this.cdMode = ChangeDetectorStatus.Checked;
+
+        this.numberOfChecks++;
     }
 
+    detectChangesInternal(throwOnChange: boolean): void { }
+
+
+    markPathToRootAsCheckOnce(): void {
+        let c: View<any> = this;
+        while (isPresent(c) && c.cdMode !== ChangeDetectorStatus.Detached) {
+            if (c.cdMode === ChangeDetectorStatus.Checked) {
+                c.cdMode = ChangeDetectorStatus.CheckOnce;
+            }
+            let parentEl =
+                c.type === ViewType.COMPONENT ? c.declarationAppElement : c.viewContainerElement;
+            c = isPresent(parentEl) ? parentEl.parentView : null;
+        }
+    }
+}
+
+export class ViewRef<C> implements ChangeDetector {
+    _originalMode: ChangeDetectorStatus;
+
+    constructor(private _view: View<C>) {
+        this._view = _view;
+        this._originalMode = this._view.cdMode;
+    }
+
+    get internalView(): View<C> { return this._view; }
+    get rootNodes(): any[] { return null; /* this._view.flatRootNodes;*/ }
+    get context() { return this._view.context; }
+    get destroyed(): boolean { return this._view.destroyed; }
+
+    markForCheck(): void {
+        this._view.markPathToRootAsCheckOnce();
+    }
+
+    detach(): void {
+        this._view.cdMode = ChangeDetectorStatus.Detached;
+    }
+
+    detectChanges(): void {
+        this._view.detectChanges(false);
+        // triggerQueuedAnimations();
+    }
+    checkNoChanges(): void {
+        this._view.detectChanges(true);
+    }
+    reattach(): void {
+        this._view.cdMode = this._originalMode;
+        this.markForCheck();
+    }
+
+    onDestroy(callback: Function) {
+        this._view.disposables.push(callback);
+    }
+
+    destroy() {
+        // this._view.destroy();
+    }
 }

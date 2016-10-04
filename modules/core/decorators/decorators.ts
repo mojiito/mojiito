@@ -1,16 +1,10 @@
 import { ClassType } from '../../utils/class/class';
 import { ClassReflection } from '../../core/reflect/reflection';
-import { DirectiveRegistry } from '../../core/directive/registry';
 
 export function createClassDecorator(metadataClass: ClassType<any>): (objOrType: any) => ClassDecorator {
     return function(objOrType: any): ClassDecorator {
-        return function (cls: ClassType<any>) {
+        return function (cls: any) {
             ClassReflection.peek(cls).annotations.set(metadataClass, new metadataClass(objOrType));
-            // if objOrType has a selector property we asume that cls is a component or DirectiveMetadata
-            // so we can add it to the c
-            if (typeof objOrType === 'object' && typeof objOrType.selector === 'string') {
-                DirectiveRegistry.register(cls);
-            }
         }
     }
 }

@@ -10,7 +10,7 @@ var metadata_1 = require('../di/metadata');
 var DirectiveMetadata = (function (_super) {
     __extends(DirectiveMetadata, _super);
     function DirectiveMetadata(_a) {
-        var _b = _a === void 0 ? {} : _a, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, providers = _b.providers;
+        var _b = _a === void 0 ? {} : _a, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, providers = _b.providers, directives = _b.directives;
         _super.call(this);
         // Check if a selector is specified in the metadata.
         // Every directive must have a selector
@@ -43,6 +43,7 @@ var DirectiveMetadata = (function (_super) {
         this.inputs = inputs;
         this.outputs = outputs;
         this.providers = providers;
+        this.directives = directives;
     }
     DirectiveMetadata.prototype.toString = function () { return "@DirectiveMetadata()"; };
     return DirectiveMetadata;
@@ -83,8 +84,8 @@ exports.DirectiveMetadata = DirectiveMetadata;
 var ComponentMetadata = (function (_super) {
     __extends(ComponentMetadata, _super);
     function ComponentMetadata(_a) {
-        var _b = _a === void 0 ? {} : _a, changeDetection = _b.changeDetection, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, host = _b.host, providers = _b.providers, templateUrl = _b.templateUrl, template = _b.template, styleUrls = _b.styleUrls, styles = _b.styles;
-        _super.call(this, { selector: selector, inputs: inputs, outputs: outputs, providers: providers });
+        var _b = _a === void 0 ? {} : _a, changeDetection = _b.changeDetection, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, host = _b.host, providers = _b.providers, directives = _b.directives, templateUrl = _b.templateUrl, template = _b.template, styleUrls = _b.styleUrls, styles = _b.styles;
+        _super.call(this, { selector: selector, inputs: inputs, outputs: outputs, providers: providers, directives: directives });
         this.changeDetection = changeDetection;
         this.host = host;
         this.templateUrl = templateUrl;

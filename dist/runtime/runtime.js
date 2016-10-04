@@ -9,8 +9,6 @@ var node_visitor_1 = require('./node_visitor');
 exports.NodeVisitor = node_visitor_1.NodeVisitor;
 exports.RUNTIME_PROVIDERS = [
     renderer_1.RuntimeRenderer,
-    compiler_1.RuntimeCompiler,
-    dom_traverser_1.DOMTraverser,
-    node_visitor_1.NodeVisitor
+    compiler_1.RuntimeCompiler
 ];
 //# sourceMappingURL=runtime.js.map

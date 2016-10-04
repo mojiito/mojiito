@@ -1,19 +1,7 @@
-import { Injector, Injectable, Inject, Component, Output, Input, bootstrap, Provider, ElementRef, HostElement, EventEmitter, OnChanges, OnInit, OnParse, OnBeforeCheck, OnAfterCheck } from '../dist';
+import { Injector, Injectable, Inject, Component, Output, Input, bootstrap, EventEmitter, OnChanges, OnInit, OnParse, OnBeforeCheck, OnAfterCheck } from '../dist';
 
 console.time('startUp');
 
-
-@Component({ selector: '[todo-app]' })
-class TodoApp {
-    private test = { text: 'asfsadf' };
-    constructor() {
-    }
-
-    onClick(test) {
-        console.log(test, this.test);
-        this.test = test;
-    }
-}
 
 @Component({ selector: 'test-form' })
 class TestForm implements OnInit, OnParse, OnChanges, OnBeforeCheck, OnAfterCheck {
@@ -46,6 +34,25 @@ class TestForm implements OnInit, OnParse, OnChanges, OnBeforeCheck, OnAfterChec
 
     onAfterCheck() {
         console.debug('onAfterCheck');
+    }
+}
+
+@Component({
+    selector: '[todo-app]',
+    directives: [TestForm],
+    inputs: ['test1', 'test2']
+})
+class TodoApp {
+
+    @Input('test3') laa:any;
+
+    private test = { text: 'asfsadf' };
+    constructor() {
+    }
+
+    onClick(test) {
+        console.log(test, this.test);
+        this.test = test;
     }
 }
 

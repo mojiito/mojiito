@@ -10,6 +10,7 @@ export interface ComponentMetadataFactory {
             [key: string]: string;
         };
         providers?: any[];
+        directives?: any[];
         templateUrl?: string;
         template?: string;
         styleUrls?: string[];

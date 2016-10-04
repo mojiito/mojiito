@@ -94,3 +94,4 @@ export declare class ZoneService {
      */
     runOutsideMojito(fn: () => any): any;
 }
+export declare const ZONE_PROVIDERS: typeof ZoneService[];

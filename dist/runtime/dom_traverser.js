@@ -23,7 +23,7 @@ var DOMTraverser = (function () {
         if (context === void 0) { context = undefined; }
         var ctxt = this.visit(node, context) || context;
         // Traverse through all the attributes of the node
-        // if it is of type Element 
+        // if it is type of Element 
         if (node instanceof Element && node.attributes.length) {
             for (var i = 0, max = node.attributes.length; i < max; i++) {
                 this.traverse(node.attributes[i], ctxt);

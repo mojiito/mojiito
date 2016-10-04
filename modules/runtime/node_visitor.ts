@@ -1,14 +1,15 @@
 import { isPresent, splitAtColon } from '../utils/utils';
 import { Logger, LogLevel, LogType } from '../debug/debug';
-import { Inject, Injectable } from '../core/di/di';
+import { Inject, Injectable, Injector } from '../core/di/di';
 import { DirectiveResolver } from '../core/directive/resolver';
 import { ClassType } from '../utils/class/class';
 import { ComponentMetadata } from '../core/directive/metadata';
+import { View } from '../core/view/view';
 import { Selector } from './selector';
 import { ExpressionParser } from './expression';
 import { CompiledDirectiveMetadata } from './metadata';
 import { RuntimeCompiler } from './compiler';
-import { CompiledDirectiveFactory, CompiledComponentFactory } from './compiler';
+import { BoundElementPropertyAst, BoundEventAst, PropertyBindingType } from './ast';
 
 // https://github.com/angular/angular/blob/master/modules/%40angular/compiler/src/template_parser/template_parser.ts#L35
 // Group 1 = "bind-"
@@ -36,6 +37,9 @@ enum BIND_NAME_POS {
     IDENT_PROPERTY_IDX,
     IDENT_EVENT_IDX
 }
+const ATTRIBUTE_PREFIX = 'attr';
+const CLASS_PREFIX = 'class';
+const STYLE_PREFIX = 'style';
 
 @Injectable()
 export class NodeVisitor {
@@ -44,8 +48,8 @@ export class NodeVisitor {
     private _expressionParser = new ExpressionParser();
 
     constructor(@Inject(RuntimeCompiler) private _compiler: RuntimeCompiler) {
-        if (Array.isArray(this._compiler.compiledDirectives))
-            this._compiler.compiledDirectives.forEach(d => this._selectables.push([Selector.parse(d.metadata.selector), d]));
+        // if (Array.isArray(this._compiler.compiledDirectives))
+        //     this._compiler.compiledDirectives.forEach(d => this._selectables.push([Selector.parse(d.metadata.selector), d]));
     }
 
     visitElement(element: Element, context: any): any {
@@ -59,28 +63,38 @@ export class NodeVisitor {
             return;
         }
 
-        const attrs = element.attributes;
-        for (let i = 0, max = attrs.length; i < max; i++) {
-            const attr = attrs[i];
-            this._parseAttribute(attr);
-        }
-
         // find selectables that match the elements selector     
         const selectables = this._selectables
             .filter(s => s[0].match(Selector.parseElement(element)))
-            .map(s => s[1])
-            .forEach(factory => this._createDirective(factory, context));
+            .map(s => s[1]);
+            // .forEach(factory => this._createDirective(factory, context));
+
+        if (selectables && selectables.length) {
+            const attrs = element.attributes;
+            const targetProperties: BoundElementPropertyAst[] = [];
+            const targetEvents: BoundEventAst[] = [];
+            for (let i = 0, max = attrs.length; i < max; i++) {
+                const attr = attrs[i];
+                this._parseAttribute(attr, targetProperties, targetEvents);
+            }
+
+            // TODO: Rework for directives            
+            // selectables.forEach((s: CompiledComponentFactory<any>) => {
+            //     if (s instanceof CompiledComponentFactory) {
+            //         s.create(context, element, targetProperties, targetEvents);
+            //     }
+            // })
+
+        }
     }
 
-    visitAttribute(attribute: Attr, context: any) {
-        console.log('visit Attribute', attribute);
-    }
+    visitAttribute(attr: Attr, context: any) { }
 
     visitText(text: Text, context: any) {
-        console.log('visit Attribute', text);
+        console.log('visit visitText', text);
     }
 
-    private _parseAttribute(attr: Attr) {
+    private _parseAttribute(attr: Attr, targetProperties: BoundElementPropertyAst[], targetEvents: BoundEventAst[]): boolean {
         const name = this._normalizeAttributeName(attr.name);
         const value = attr.value;
 
@@ -88,10 +102,13 @@ export class NodeVisitor {
             return;
 
         const bindParts = name.match(BIND_NAME_REGEXP);
+        let hasBinding = false;
         if (isPresent(bindParts)) {
+            hasBinding = true;
             if (isPresent(bindParts[BIND_NAME_POS.KW_BIND_IDX])) {
                 // Group 1 = "bind-"
-                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_KW_IDX], value);
+                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_KW_IDX], value, targetProperties);
+                hasBinding = true;
             } else if (bindParts[BIND_NAME_POS.KW_LET_IDX]) {
                 // Group 2 = "let-"
                 // TODO
@@ -102,30 +119,31 @@ export class NodeVisitor {
                 Logger.log(LogLevel.debug, `Ref is currently not supportet: ${name}`, LogType.warn);
             } else if (bindParts[BIND_NAME_POS.KW_ON_IDX]) {
                 // Group 4 = "on-"
-                this._parseEvent(bindParts[BIND_NAME_POS.IDENT_KW_IDX], value);
+                this._parseEvent(bindParts[BIND_NAME_POS.IDENT_KW_IDX], value, targetEvents);
             } else if (bindParts[BIND_NAME_POS.KW_BINDON_IDX]) {
                 // Group 5 = "bindon-"
-                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_KW_IDX], value);
-                this._parseEvent(`${bindParts[BIND_NAME_POS.IDENT_KW_IDX]}Change`, `${value}=$event`);
+                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_KW_IDX], value, targetProperties);
+                this._parseEvent(`${bindParts[BIND_NAME_POS.IDENT_KW_IDX]}Change`, `${value}=$event`, targetEvents);
             } else if (bindParts[BIND_NAME_POS.KW_AT_IDX]) {
                 // Group 6 = "@"
                 // TODO
                 Logger.log(LogLevel.debug, `Animations are currently not supportet: ${name}`, LogType.warn);
             } else if (bindParts[BIND_NAME_POS.IDENT_BANANA_BOX_IDX]) {
                 // Group 8 = identifier inside [()]
-                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX], value);
-                this._parseEvent(`${bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX]}Change`, `${value}=$event`);
+                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX], value, targetProperties);
+                this._parseEvent(`${bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX]}Change`, `${value}=$event`, targetEvents);
             } else if (bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX]) {
                 // Group 9 = identifier inside []
-                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX], value);
+                this._parsePropertyOrAnimation(bindParts[BIND_NAME_POS.IDENT_PROPERTY_IDX], value, targetProperties);
             } else if (bindParts[BIND_NAME_POS.IDENT_EVENT_IDX]) {
                 // Group 10 = identifier inside ()
-                this._parseEvent(bindParts[BIND_NAME_POS.IDENT_EVENT_IDX], value);
+                this._parseEvent(bindParts[BIND_NAME_POS.IDENT_EVENT_IDX], value, targetEvents);
             }
         }
+        return hasBinding;
     }
 
-    private _parsePropertyOrAnimation(name: string, expression: string) {
+    private _parsePropertyOrAnimation(name: string, expression: string, targetProperties: BoundElementPropertyAst[]) {
         const animatePropPrefix = 'animate-';
         const animatePropLength = 'animate-'.length;
         let isAnimationProp = name[0] == '@';
@@ -139,28 +157,48 @@ export class NodeVisitor {
             // TODO: Animation
             Logger.log(LogLevel.debug, `Animations are currently not supportet: ${name}`, LogType.warn);
         } else {
-            this._parseProperty(name, expression);
+            this._parseProperty(name, expression, targetProperties);
         }
     }
 
-    private _parseProperty(name: string, expression: string) {
-        console.log('parse property: ' + name + ' ' + expression);
+    private _parseProperty(name: string, expression: string, targetProperties: BoundElementPropertyAst[]) {
+        const parts = name.split('.');
+        let bindingName: string;
+        let bindingType: PropertyBindingType;
+        if (parts.length === 1) {
+            bindingType = PropertyBindingType.Property;
+            bindingName = parts[0];
+        } else {
+            const prefix = parts[0];
+            if (prefix === ATTRIBUTE_PREFIX) {
+                bindingType = PropertyBindingType.Attribute;
+            } else if (prefix === CLASS_PREFIX) {
+                bindingType = PropertyBindingType.Class;
+            } else if (prefix === STYLE_PREFIX) {
+                bindingType = PropertyBindingType.Style;
+            }
+            if (bindingType && parts[1]) {
+                bindingName = parts[1];
+            }
+        }
+        if (bindingName) {
+            targetProperties.push(new BoundElementPropertyAst(bindingName, expression, bindingType));
+        }
+        Logger.log(LogLevel.debug, `Invalid property name '${name}'`, LogType.warn);
     }
 
-    private _parseEvent(name: string, expression: string) {
+    private _parseEvent(name: string, expression: string, targetEvents: BoundEventAst[]) {
         const parts = splitAtColon(name, [null, name]);
         const target = parts[0];
         const eventName = parts[1];
-        this._expressionParser.parse(expression);
+        targetEvents.push(new BoundEventAst(name, target, eventName));
     }
 
-    private _parseBinding(expression: string) {
-        return expression;
-    }
-
-    private _createDirective(factory: CompiledDirectiveFactory<any>, context: any) {
-        console.log(factory);
-    }
+    // private _createDirective(factory: CompiledDirectiveFactory<any>, context: View<any>) {
+        // if (factory.metadata instanceof ComponentMetadata) {
+        //     factory.create()
+        // }
+    // }
 
     /**
      * Normalizes attribute name, removes "data-"

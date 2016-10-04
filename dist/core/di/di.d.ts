@@ -5,6 +5,6 @@
  * TODO: Insert stuff...
  */
 export { Injectable, Inject } from './decorators';
-export { Injector } from './injector';
+export { Injector, IInjector } from './injector';
 export { Provider, ResolvedProvider, provide } from './provider';
 export { forwardRef } from './forward_ref';

@@ -100,6 +100,9 @@ var Injector = (function () {
      * @returns {*}
      */
     Injector.prototype.get = function (token) {
+        if (token === Injector) {
+            return this;
+        }
         var value = this._values.get(token);
         if (value) {
             return value;

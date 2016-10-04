@@ -36,6 +36,7 @@ var DirectiveResolver = (function () {
         var _this = this;
         var inputs = [];
         var outputs = [];
+        var directives = [];
         properties.forEach(function (value, index) {
             if (value instanceof metadata_1.InputMetadata) {
                 if (lang_1.isPresent(value.bindingPropertyName)) {
@@ -73,10 +74,21 @@ var DirectiveResolver = (function () {
                 var name = _this._extractPublicName(def);
                 debug_1.assert(dmOutputs_1.indexOf(name) === -1, "Output '" + name + "' defined multiple times in '" + stringify_1.stringify(type) + "'");
             });
-            mergedOutputs = dm.outputs.concat(inputs);
+            mergedOutputs = dm.outputs.concat(outputs);
         }
         else {
             mergedOutputs = outputs;
+        }
+        var mergedDirectives = [];
+        if (lang_1.isPresent(dm.directives)) {
+            dm.directives.forEach(function (d) {
+                if (lang_1.isArray(d)) {
+                    mergedDirectives = mergedDirectives.concat(d);
+                }
+                else {
+                    mergedDirectives.push(d);
+                }
+            });
         }
         if (dm instanceof metadata_1.ComponentMetadata) {
             return new metadata_1.ComponentMetadata({
@@ -86,6 +98,7 @@ var DirectiveResolver = (function () {
                 host: dm.host,
                 changeDetection: dm.changeDetection,
                 providers: dm.providers,
+                directives: mergedDirectives,
                 template: dm.template,
                 templateUrl: dm.templateUrl,
                 styles: dm.styles,
@@ -97,7 +110,8 @@ var DirectiveResolver = (function () {
                 selector: dm.selector,
                 inputs: mergedInputs,
                 outputs: mergedOutputs,
-                providers: dm.providers
+                providers: dm.providers,
+                directives: dm.directives
             });
         }
     };
