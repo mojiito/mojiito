@@ -4,10 +4,10 @@ import { DOMTraverser } from './dom_traverser';
 @Injectable()
 export class RuntimeRenderer {
     constructor(
-        @Inject(DOMTraverser) private _traverser: DOMTraverser
+        // @Inject(DOMTraverser) private _traverser: DOMTraverser
     ) {}
 
-    parseDOM(root: Element, context?: any) {
-        this._traverser.traverse(root, context);
+    parse(root: Element) {
+        // this._traverser.traverse(root, context);
     }
 }

@@ -125,7 +125,7 @@ export class Injector implements IInjector {
                 for (let j = 0, max = resolvedFactory.dependencies.length; j < max; j++) {
                     let deptToken = resolveForwardRef(resolvedFactory.dependencies[j]);
                     let dept = this.get(deptToken);
-                    assert(!!dept, `Cannot resolve all parameters for ${stringify(resolvedFactory.factory)}! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject`);
+                    assert(!!dept, `Cannot resolve "${stringify(deptToken)}" injected into "${stringify(token)}"! \nPlease make shure "${stringify(deptToken)}" is provided, the class "${stringify(token)}" is marked as @Injectable() and the parameters are injected with @Inject`);
                     resolvedDepts.push(dept);
                 }
                 value = resolvedFactory.factory(resolvedDepts);

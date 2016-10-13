@@ -1,4 +1,5 @@
 "use strict";
+var class_1 = require('../class/class');
 function stringify(token) {
     if (typeof token === 'string') {
         return token;
@@ -6,14 +7,14 @@ function stringify(token) {
     if (token === undefined || token === null) {
         return '' + token;
     }
-    // if (typeof token === 'function') {
-    //     return getClassName(token);
-    // }
     if (token.name) {
         return token.name;
     }
     if (token.overriddenName) {
         return token.overriddenName;
+    }
+    if (typeof token === 'function') {
+        return class_1.getClassName(token);
     }
     if (token instanceof HTMLElement) {
         var parts = token.toString().match(/\w+/g);

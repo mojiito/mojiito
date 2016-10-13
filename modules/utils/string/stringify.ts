@@ -4,20 +4,20 @@ export function stringify(token: any): string {
     if (typeof token === 'string') {
         return token;
     }
-
+    
     if (token === undefined || token === null) {
         return '' + token;
     }    
-    
-    // if (typeof token === 'function') {
-    //     return getClassName(token);
-    // }
 
     if (token.name) {
         return token.name;
     }
     if (token.overriddenName) {
         return token.overriddenName;
+    }
+
+    if (typeof token === 'function') {
+        return getClassName(token);
     }
 
     if (token instanceof HTMLElement) {

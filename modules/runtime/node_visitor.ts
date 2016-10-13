@@ -1,5 +1,5 @@
 import { isPresent, splitAtColon } from '../utils/utils';
-import { Logger, LogLevel, LogType } from '../debug/debug';
+import { Logger, LogLevel, LogType, assert } from '../debug/debug';
 import { Inject, Injectable, Injector } from '../core/di/di';
 import { DirectiveResolver } from '../core/directive/resolver';
 import { ClassType } from '../utils/class/class';
@@ -41,15 +41,15 @@ const ATTRIBUTE_PREFIX = 'attr';
 const CLASS_PREFIX = 'class';
 const STYLE_PREFIX = 'style';
 
-@Injectable()
 export class NodeVisitor {
 
     private _selectables: [Selector, any][] = [];
     private _expressionParser = new ExpressionParser();
 
-    constructor(@Inject(RuntimeCompiler) private _compiler: RuntimeCompiler) {
-        // if (Array.isArray(this._compiler.compiledDirectives))
-        //     this._compiler.compiledDirectives.forEach(d => this._selectables.push([Selector.parse(d.metadata.selector), d]));
+    // get injector() { return this._injector; }
+
+    constructor(selectables: any[]/*, private _injector: Injector*/) {
+        this._selectables = <[Selector, any][]>selectables.map(s => [Selector.parse(s.selector), s]);
     }
 
     visitElement(element: Element, context: any): any {

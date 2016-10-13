@@ -1,9 +1,7 @@
-import { RuntimeCompiler } from './compiler';
 export declare class NodeVisitor {
-    private _compiler;
     private _selectables;
     private _expressionParser;
-    constructor(_compiler: RuntimeCompiler);
+    constructor(selectables: any[]);
     visitElement(element: Element, context: any): any;
     visitAttribute(attr: Attr, context: any): void;
     visitText(text: Text, context: any): void;

@@ -115,7 +115,7 @@ var Injector = (function () {
                 for (var j = 0, max_1 = resolvedFactory.dependencies.length; j < max_1; j++) {
                     var deptToken = forward_ref_1.resolveForwardRef(resolvedFactory.dependencies[j]);
                     var dept = this.get(deptToken);
-                    debug_1.assert(!!dept, "Cannot resolve all parameters for " + stringify_1.stringify(resolvedFactory.factory) + "! \n Please make shure the class is marked as @Injectable() and the parameters are injected with @Inject");
+                    debug_1.assert(!!dept, "Cannot resolve \"" + stringify_1.stringify(deptToken) + "\" injected into \"" + stringify_1.stringify(token) + "\"! \nPlease make shure \"" + stringify_1.stringify(deptToken) + "\" is provided, the class \"" + stringify_1.stringify(token) + "\" is marked as @Injectable() and the parameters are injected with @Inject");
                     resolvedDepts.push(dept);
                 }
                 value = resolvedFactory.factory(resolvedDepts);

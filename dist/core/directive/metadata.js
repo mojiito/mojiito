@@ -4,7 +4,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var debug_1 = require('../../debug/debug');
 var stringify_1 = require('../../utils/string/stringify');
 var metadata_1 = require('../di/metadata');
 var DirectiveMetadata = (function (_super) {
@@ -12,33 +11,6 @@ var DirectiveMetadata = (function (_super) {
     function DirectiveMetadata(_a) {
         var _b = _a === void 0 ? {} : _a, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, providers = _b.providers, directives = _b.directives;
         _super.call(this);
-        // Check if a selector is specified in the metadata.
-        // Every directive must have a selector
-        debug_1.assert(typeof selector === 'string', "The directive metadata object on your class must specify a selector!", TypeError);
-        selector = selector.trim();
-        // Check if selector contains only one level of dom nodes
-        // Ok: .my-selector
-        // Not allowed: .parent .my-selector
-        debug_1.assert(selector.indexOf(' ') === -1, "The selector \"" + selector + "\" contains more than one levels of nodes. Only one is allowed!", SyntaxError);
-        // Check if selector is valid
-        debug_1.assert(!!selector.match(/^([a-z#\-\.\[\]\=\"\']*)+$/), "The directive selector \"" + selector + "\" is not valid", SyntaxError);
-        // Parsing the selector string to an array
-        // 'my-element.class1#id[attribute1].class2[attribute2="value"]'
-        // to
-        // ["my-element", ".class1", "#id", "[attribute1]", ".class2", "[attribute2="value"]"]   
-        var selectorList = selector.split('.').join(' .').split('#').join(' #').split('[').join(' [').trim().split(' ');
-        for (var i = 0, max = selectorList.length; i < max; i++) {
-            var selectorPart = selectorList[i];
-            if (!selectorPart.length) {
-                continue;
-            }
-            if (!/^\w+(-\w+)*$/.test(selectorPart)) {
-                continue;
-            }
-            // Check if the selector contains element names whicht are not allowed
-            // eg. custom elements without a "-" in it
-            debug_1.assert(!(document.createElement(selectorPart) instanceof HTMLUnknownElement) || /^\w+(-\w+)+$/.test(selectorPart), "The selector \"" + selector + "\" contains an element name \"" + selectorPart + "\" which is not allowed. \n                If you are using a custom element, there has to be a \"-\" char in it. E.g.: my-component", SyntaxError);
-        }
         this.selector = selector;
         this.inputs = inputs;
         this.outputs = outputs;

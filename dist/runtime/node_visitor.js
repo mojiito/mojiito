@@ -1,22 +1,8 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var utils_1 = require('../utils/utils');
 var debug_1 = require('../debug/debug');
-var di_1 = require('../core/di/di');
 var selector_1 = require('./selector');
 var expression_1 = require('./expression');
-var compiler_1 = require('./compiler');
 var ast_1 = require('./ast');
 // https://github.com/angular/angular/blob/master/modules/%40angular/compiler/src/template_parser/template_parser.ts#L35
 // Group 1 = "bind-"
@@ -48,12 +34,11 @@ var ATTRIBUTE_PREFIX = 'attr';
 var CLASS_PREFIX = 'class';
 var STYLE_PREFIX = 'style';
 var NodeVisitor = (function () {
-    function NodeVisitor(_compiler) {
-        this._compiler = _compiler;
+    // get injector() { return this._injector; }
+    function NodeVisitor(selectables /*, private _injector: Injector*/) {
         this._selectables = [];
         this._expressionParser = new expression_1.ExpressionParser();
-        // if (Array.isArray(this._compiler.compiledDirectives))
-        //     this._compiler.compiledDirectives.forEach(d => this._selectables.push([Selector.parse(d.metadata.selector), d]));
+        this._selectables = selectables.map(function (s) { return [selector_1.Selector.parse(s.selector), s]; });
     }
     NodeVisitor.prototype.visitElement = function (element, context) {
         // Skip <script> and <style> tags
@@ -206,11 +191,6 @@ var NodeVisitor = (function () {
     NodeVisitor.prototype._normalizeAttributeName = function (attrName) {
         return /^data-/i.test(attrName) ? attrName.substring(5) : attrName;
     };
-    NodeVisitor = __decorate([
-        di_1.Injectable(),
-        __param(0, di_1.Inject(compiler_1.RuntimeCompiler)), 
-        __metadata('design:paramtypes', [compiler_1.RuntimeCompiler])
-    ], NodeVisitor);
     return NodeVisitor;
 }());
 exports.NodeVisitor = NodeVisitor;

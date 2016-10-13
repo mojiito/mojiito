@@ -8,22 +8,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var di_1 = require('../core/di/di');
-var dom_traverser_1 = require('./dom_traverser');
 var RuntimeRenderer = (function () {
-    function RuntimeRenderer(_traverser) {
-        this._traverser = _traverser;
+    function RuntimeRenderer() {
     }
-    RuntimeRenderer.prototype.parseDOM = function (root, context) {
-        this._traverser.traverse(root, context);
+    RuntimeRenderer.prototype.parse = function (root) {
+        // this._traverser.traverse(root, context);
     };
     RuntimeRenderer = __decorate([
-        di_1.Injectable(),
-        __param(0, di_1.Inject(dom_traverser_1.DOMTraverser)), 
-        __metadata('design:paramtypes', [dom_traverser_1.DOMTraverser])
+        di_1.Injectable(), 
+        __metadata('design:paramtypes', [])
     ], RuntimeRenderer);
     return RuntimeRenderer;
 }());

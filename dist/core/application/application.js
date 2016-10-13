@@ -21,47 +21,72 @@ var runtime_1 = require('../../runtime/runtime');
 exports.CORE_PROVIDERS = [
     resolver_1.DirectiveResolver
 ];
-function bootstrap(appComponentType, customProviders, root) {
-    if (customProviders === void 0) { customProviders = []; }
+function bootstrap(appComponentType, rootProviders, root) {
+    if (rootProviders === void 0) { rootProviders = []; }
     if (root === void 0) { root = document.body; }
-    if (customProviders instanceof Element) {
-        root = customProviders;
-        customProviders = [];
+    if (rootProviders instanceof Element) {
+        root = rootProviders;
+        rootProviders = [];
     }
     debug_1.assert(utils_1.isClassType((appComponentType)), "The first argument (\"appComponentType\") of the bootstrap function has to be a class", TypeError);
-    debug_1.assert(root instanceof Element, 'Root has to be an Element!', TypeError);
-    debug_1.assert(Array.isArray(customProviders), 'The custom providers must be an array', TypeError);
+    debug_1.assert(Array.isArray(rootProviders), 'The custom providers must be an array', TypeError);
     var rootInjector = di_1.Injector.resolveAndCreate([
         zone_1.ZONE_PROVIDERS,
         runtime_1.RUNTIME_PROVIDERS,
         exports.CORE_PROVIDERS,
-        customProviders,
-        Application
+        rootProviders
     ]);
-    rootInjector.get(Application).bootstrap(appComponentType, rootInjector, root);
+    var compiler = rootInjector.get(runtime_1.RuntimeCompiler);
+    compiler.compileDirectiveAndChilds(appComponentType);
+    console.log(compiler.resolveVisitor(appComponentType));
+    // rootInjector.get(Application).bootstrap(appComponentType, root);
 }
 exports.bootstrap = bootstrap;
+/**
+ * The main entrypoint.
+ * An single Application gets instanciated per page in the exported bootstrap function.
+ * It creates a Zone where your Application with all Components an Directives run in.
+ * The Application class itself is not a component.
+ * It takes a single component or component factory for creating the app component.
+ *
+ * @Injectable
+ * @export
+ * @class Application
+ */
 var Application = (function () {
-    // get injector() { return this._injector; }
-    // get appComponent() { return this._appComponent; }
-    function Application(_zoneService, _compiler) {
+    function Application(_zoneService, _renderer, _injector) {
         var _this = this;
         this._zoneService = _zoneService;
-        this._compiler = _compiler;
+        this._renderer = _renderer;
+        this._injector = _injector;
         this._runningTick = false;
+        // subscribe to the zone
         this._zoneService.onMicrotaskEmpty.subscribe(function () { _this._zoneService.run(function () { _this.tick(); }); });
         this._zoneService.onError.subscribe(function (error) { throw error; });
     }
-    Application.prototype.bootstrap = function (componentOrFactory, injector, root) {
-        var _this = this;
+    Object.defineProperty(Application.prototype, "injector", {
+        get: function () { return this._injector; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Application.prototype, "appComponent", {
+        get: function () { return this._appComponent; },
+        enumerable: true,
+        configurable: true
+    });
+    Application.prototype.bootstrap = function (componentOrFactory, root) {
         if (root === void 0) { root = document.documentElement; }
+        debug_1.assert(!this._appComponent, "This Application is already bootstrapped!");
+        debug_1.assert(root instanceof Element, 'Root has to be an Element!', TypeError);
+        // run a zone for bootstrapping the whole Application
+        // with all the provided Components starting at the 
+        // provided app component or factory
         this._zoneService.run(function () {
             var type = componentOrFactory;
             if (componentOrFactory instanceof factory_1.ComponentFactory) {
                 type = componentOrFactory.componentType;
             }
-            var compiledDirectives = _this._compiler.compileDirectiveAndAllChilds(type);
-            console.log(compiledDirectives);
+            // create a NodeVisitor vor every App/Component
         });
     };
     Application.prototype.tick = function () {
@@ -74,8 +99,9 @@ var Application = (function () {
     Application = __decorate([
         di_1.Injectable(),
         __param(0, di_1.Inject(zone_1.ZoneService)),
-        __param(1, di_1.Inject(runtime_1.RuntimeCompiler)), 
-        __metadata('design:paramtypes', [zone_1.ZoneService, runtime_1.RuntimeCompiler])
+        __param(1, di_1.Inject(runtime_1.RuntimeRenderer)),
+        __param(2, di_1.Inject(di_1.Injector)), 
+        __metadata('design:paramtypes', [zone_1.ZoneService, runtime_1.RuntimeRenderer, di_1.Injector])
     ], Application);
     return Application;
 }());
