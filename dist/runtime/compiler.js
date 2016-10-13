@@ -38,7 +38,9 @@ var RuntimeCompiler = (function () {
      * @memberOf RuntimeCompiler
      */
     RuntimeCompiler.prototype.compileDirectiveAndChilds = function (directive) {
-        return this._compileDirective(directive);
+        var compiled = this._compileDirective(directive);
+        this._compileVisitor(compiled);
+        return compiled;
     };
     /**
      * Resolves and returns a CompileDirective for a directive type
@@ -83,6 +85,7 @@ var RuntimeCompiler = (function () {
      * @memberOf RuntimeCompiler
      */
     RuntimeCompiler.prototype._compileDirective = function (directive) {
+        var _this = this;
         var compiled = this._directiveCache.get(directive);
         if (compiled instanceof CompileDirective) {
             return compiled;
@@ -142,11 +145,8 @@ var RuntimeCompiler = (function () {
             });
             resolvedMetadata.outputs = mergedOutputs_1;
         }
-        // resolve child directives
-        if (metadata.directives) {
-            resolvedMetadata.directives = metadata.directives.map(this._compileDirective.bind(this));
-        }
-        // resolve providers
+        // resolve child directives and providers
+        resolvedMetadata.directives = metadata.directives;
         resolvedMetadata.providers = metadata.providers;
         // setup the metadata only a component has        
         if (metadata instanceof metadata_1.ComponentMetadata) {
@@ -162,9 +162,8 @@ var RuntimeCompiler = (function () {
         // have to do this again and can just get the already compiled one
         compiled = new CompileDirective(resolvedMetadata);
         this._directiveCache.set(compiled.type, compiled);
-        // create a new Visitor for this directive 
-        // with the child directives as selectables
-        this._compileVisitor(compiled);
+        // compile child directives        
+        compiled.directives.forEach(function (d) { return _this._compileDirective(d); });
         return compiled;
     };
     /**
@@ -177,16 +176,28 @@ var RuntimeCompiler = (function () {
      * @memberOf RuntimeCompiler
      */
     RuntimeCompiler.prototype._compileVisitor = function (directive) {
-        var childDirectives = directive.directives;
-        if (utils_1.isArray(childDirectives) && childDirectives.length) {
-            var compiled = this._visitorCache.get(directive.type);
-            if (!(compiled instanceof node_visitor_1.NodeVisitor)) {
-                compiled = new node_visitor_1.NodeVisitor(childDirectives);
-                this._visitorCache.set(directive.type, compiled);
+        var _this = this;
+        var compiled = this._visitorCache.get(directive.type);
+        if (!(compiled instanceof node_visitor_1.NodeVisitor)) {
+            var childDirectives = directive.directives.map(function (d) { return _this.resolve(d); });
+            if (utils_1.isArray(childDirectives) && childDirectives.length) {
+                childDirectives.forEach(function (d) { return _this._compileVisitor(d); });
             }
-            return compiled;
+            else {
+                var i = this._directiveCache.values();
+                var d = void 0;
+                childDirectives = [];
+                do {
+                    d = i.next().value;
+                    if (d && d !== directive) {
+                        childDirectives.push(d);
+                    }
+                } while (d);
+            }
+            compiled = new node_visitor_1.NodeVisitor(childDirectives);
+            this._visitorCache.set(directive.type, compiled);
         }
-        return undefined;
+        return compiled;
     };
     RuntimeCompiler = __decorate([
         di_1.Injectable(),

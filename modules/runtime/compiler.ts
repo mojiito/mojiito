@@ -12,7 +12,6 @@ export class RuntimeCompiler {
     private _directiveCache = new Map<ClassType<any>, CompileDirective<any>>();
     private _visitorCache = new Map<ClassType<any>, NodeVisitor>();
 
-
     constructor(
         @Inject(DirectiveResolver) private _resolver: DirectiveResolver
     ) { }
@@ -31,7 +30,9 @@ export class RuntimeCompiler {
      * @memberOf RuntimeCompiler
      */
     compileDirectiveAndChilds(directive: ClassType<any>) {
-        return this._compileDirective(directive);
+        const compiled = this._compileDirective(directive);
+        this._compileVisitor(compiled);
+        return compiled;
     }
 
     /**
@@ -159,12 +160,8 @@ export class RuntimeCompiler {
             resolvedMetadata.outputs = mergedOutputs;
         }
 
-        // resolve child directives
-        if (metadata.directives) {
-            resolvedMetadata.directives = metadata.directives.map(this._compileDirective.bind(this));
-        }        
-
-        // resolve providers
+        // resolve child directives and providers
+        resolvedMetadata.directives = metadata.directives;
         resolvedMetadata.providers = metadata.providers; 
 
         // setup the metadata only a component has        
@@ -183,9 +180,8 @@ export class RuntimeCompiler {
         compiled = new CompileDirective(resolvedMetadata);        
         this._directiveCache.set(compiled.type, compiled);
 
-        // create a new Visitor for this directive 
-        // with the child directives as selectables
-        this._compileVisitor(compiled);
+        // compile child directives        
+        compiled.directives.forEach(d => this._compileDirective(d));
         
         return compiled;
     }
@@ -200,16 +196,26 @@ export class RuntimeCompiler {
      * @memberOf RuntimeCompiler
      */
     _compileVisitor(directive: CompileDirective<any>) {
-        const childDirectives = directive.directives;
-        if (isArray(childDirectives) && childDirectives.length) {
-            let compiled = this._visitorCache.get(directive.type)
-            if (!(compiled instanceof NodeVisitor)) {
-                compiled = new NodeVisitor(childDirectives);
-                this._visitorCache.set(directive.type, compiled);
+        let compiled = this._visitorCache.get(directive.type);
+        if (!(compiled instanceof NodeVisitor)) {
+            let childDirectives = directive.directives.map(d => this.resolve(d));
+            if (isArray(childDirectives) && childDirectives.length) {
+                childDirectives.forEach(d => this._compileVisitor(d));
+            } else {
+                const i = this._directiveCache.values();
+                let d: CompileDirective<any>;
+                childDirectives = [];
+                do {
+                    d = i.next().value;
+                    if (d && d !== directive) {
+                        childDirectives.push(d);
+                    }
+                } while (d);
             }
-            return compiled;
+            compiled = new NodeVisitor(childDirectives);
+            this._visitorCache.set(directive.type, compiled);
         }
-        return undefined;
+        return compiled;
     }
 
 }

@@ -38,7 +38,7 @@ function bootstrap(appComponentType, rootProviders, root) {
     ]);
     var compiler = rootInjector.get(runtime_1.RuntimeCompiler);
     compiler.compileDirectiveAndChilds(appComponentType);
-    console.log(compiler.resolveVisitor(appComponentType));
+    console.log(compiler);
     // rootInjector.get(Application).bootstrap(appComponentType, root);
 }
 exports.bootstrap = bootstrap;

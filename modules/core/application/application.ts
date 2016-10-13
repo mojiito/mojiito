@@ -32,7 +32,7 @@ export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: any 
     ]);
     const compiler: RuntimeCompiler = rootInjector.get(RuntimeCompiler);
     compiler.compileDirectiveAndChilds(appComponentType);
-    console.log(compiler.resolveVisitor(appComponentType));
+    console.log(compiler);
     // rootInjector.get(Application).bootstrap(appComponentType, root);
 }
 
