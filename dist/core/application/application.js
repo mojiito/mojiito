@@ -34,12 +34,12 @@ function bootstrap(appComponentType, rootProviders, root) {
         zone_1.ZONE_PROVIDERS,
         runtime_1.RUNTIME_PROVIDERS,
         exports.CORE_PROVIDERS,
-        rootProviders
+        rootProviders,
+        Application
     ]);
     var compiler = rootInjector.get(runtime_1.RuntimeCompiler);
     compiler.compileDirectiveAndChilds(appComponentType);
-    console.log(compiler);
-    // rootInjector.get(Application).bootstrap(appComponentType, root);
+    rootInjector.get(Application).bootstrap(appComponentType, root);
 }
 exports.bootstrap = bootstrap;
 /**
@@ -54,10 +54,11 @@ exports.bootstrap = bootstrap;
  * @class Application
  */
 var Application = (function () {
-    function Application(_zoneService, _renderer, _injector) {
+    function Application(_zoneService, _renderer, _compiler, _injector) {
         var _this = this;
         this._zoneService = _zoneService;
         this._renderer = _renderer;
+        this._compiler = _compiler;
         this._injector = _injector;
         this._runningTick = false;
         // subscribe to the zone
@@ -75,6 +76,7 @@ var Application = (function () {
         configurable: true
     });
     Application.prototype.bootstrap = function (componentOrFactory, root) {
+        var _this = this;
         if (root === void 0) { root = document.documentElement; }
         debug_1.assert(!this._appComponent, "This Application is already bootstrapped!");
         debug_1.assert(root instanceof Element, 'Root has to be an Element!', TypeError);
@@ -86,7 +88,7 @@ var Application = (function () {
             if (componentOrFactory instanceof factory_1.ComponentFactory) {
                 type = componentOrFactory.componentType;
             }
-            // create a NodeVisitor vor every App/Component
+            console.log(_this._compiler.resolveVisitor(type));
         });
     };
     Application.prototype.tick = function () {
@@ -100,8 +102,9 @@ var Application = (function () {
         di_1.Injectable(),
         __param(0, di_1.Inject(zone_1.ZoneService)),
         __param(1, di_1.Inject(runtime_1.RuntimeRenderer)),
-        __param(2, di_1.Inject(di_1.Injector)), 
-        __metadata('design:paramtypes', [zone_1.ZoneService, runtime_1.RuntimeRenderer, di_1.Injector])
+        __param(2, di_1.Inject(runtime_1.RuntimeCompiler)),
+        __param(3, di_1.Inject(di_1.Injector)), 
+        __metadata('design:paramtypes', [zone_1.ZoneService, runtime_1.RuntimeRenderer, runtime_1.RuntimeCompiler, di_1.Injector])
     ], Application);
     return Application;
 }());

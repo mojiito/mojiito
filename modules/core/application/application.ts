@@ -28,12 +28,12 @@ export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: any 
         ZONE_PROVIDERS,
         RUNTIME_PROVIDERS,
         CORE_PROVIDERS,
-        rootProviders
+        rootProviders,
+        Application
     ]);
     const compiler: RuntimeCompiler = rootInjector.get(RuntimeCompiler);
     compiler.compileDirectiveAndChilds(appComponentType);
-    console.log(compiler);
-    // rootInjector.get(Application).bootstrap(appComponentType, root);
+    rootInjector.get(Application).bootstrap(appComponentType, root);
 }
 
 /**
@@ -59,6 +59,7 @@ export class Application {
     constructor(
         @Inject(ZoneService) private _zoneService: ZoneService,
         @Inject(RuntimeRenderer) private _renderer: RuntimeRenderer,
+        @Inject(RuntimeCompiler) private _compiler: RuntimeCompiler,
         @Inject(Injector) private _injector: Injector
     ) {
         // subscribe to the zone
@@ -80,7 +81,9 @@ export class Application {
                 type = componentOrFactory.componentType
             }
 
-            // create a NodeVisitor vor every App/Component
+
+            console.log(this._compiler.resolveVisitor(type));            
+            
         });
     }
 

@@ -3,7 +3,7 @@ import { Injector, Provider } from '../di/di';
 import { ComponentFactory, ComponentRef } from '../directive/factory';
 import { DirectiveResolver } from '../directive/resolver';
 import { ZoneService } from '../zone/zone';
-import { RuntimeRenderer } from '../../runtime/runtime';
+import { RuntimeCompiler, RuntimeRenderer } from '../../runtime/runtime';
 export declare const CORE_PROVIDERS: typeof DirectiveResolver[];
 export declare function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: Array<ClassType<any> | Provider | {
     [key: string]: any;
@@ -23,12 +23,13 @@ export declare function bootstrap<C>(appComponentType: ClassType<C>, root?: Elem
 export declare class Application {
     private _zoneService;
     private _renderer;
+    private _compiler;
     private _injector;
     private _appComponent;
     private _runningTick;
     injector: Injector;
     appComponent: ComponentRef<any>;
-    constructor(_zoneService: ZoneService, _renderer: RuntimeRenderer, _injector: Injector);
+    constructor(_zoneService: ZoneService, _renderer: RuntimeRenderer, _compiler: RuntimeCompiler, _injector: Injector);
     bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root?: Element): void;
     tick(): void;
 }
