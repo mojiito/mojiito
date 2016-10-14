@@ -74,7 +74,6 @@ var NodeVisitor = (function () {
         var value = attr.value;
         if (!utils_1.isPresent(value))
             return;
-        console.log(value);
         var bindParts = name.match(BIND_NAME_REGEXP);
         var hasBinding = false;
         if (utils_1.isPresent(bindParts)) {

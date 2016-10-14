@@ -100,7 +100,6 @@ export class NodeVisitor {
 
         if (!isPresent(value))
             return;
-        console.log(value);
         const bindParts = name.match(BIND_NAME_REGEXP);
         let hasBinding = false;
         if (isPresent(bindParts)) {
