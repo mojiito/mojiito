@@ -54,12 +54,12 @@ exports.bootstrap = bootstrap;
  * @class Application
  */
 var Application = (function () {
-    function Application(_zoneService, _renderer, _compiler, _injector) {
+    function Application(_zoneService, _renderer, _compiler, _rootInjector) {
         var _this = this;
         this._zoneService = _zoneService;
         this._renderer = _renderer;
         this._compiler = _compiler;
-        this._injector = _injector;
+        this._rootInjector = _rootInjector;
         this._runningTick = false;
         // subscribe to the zone
         this._zoneService.onMicrotaskEmpty.subscribe(function () { _this._zoneService.run(function () { _this.tick(); }); });
@@ -88,7 +88,10 @@ var Application = (function () {
             if (componentOrFactory instanceof factory_1.ComponentFactory) {
                 type = componentOrFactory.componentType;
             }
-            console.log(_this._compiler.resolveVisitor(type));
+            _this._injector = _this._rootInjector.resolveAndCreateChild([
+                di_1.provide(runtime_1.NodeVisitor, { useValue: _this._compiler.resolveVisitor(type) })
+            ]);
+            _this._renderer.parse(root, _this);
         });
     };
     Application.prototype.tick = function () {

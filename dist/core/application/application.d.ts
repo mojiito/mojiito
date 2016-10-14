@@ -24,12 +24,13 @@ export declare class Application {
     private _zoneService;
     private _renderer;
     private _compiler;
-    private _injector;
+    private _rootInjector;
     private _appComponent;
     private _runningTick;
+    private _injector;
     injector: Injector;
     appComponent: ComponentRef<any>;
-    constructor(_zoneService: ZoneService, _renderer: RuntimeRenderer, _compiler: RuntimeCompiler, _injector: Injector);
+    constructor(_zoneService: ZoneService, _renderer: RuntimeRenderer, _compiler: RuntimeCompiler, _rootInjector: Injector);
     bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root?: Element): void;
     tick(): void;
 }

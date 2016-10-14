@@ -52,6 +52,7 @@ export class Application {
 
     private _appComponent: ComponentRef<any>;
     private _runningTick = false;
+    private _injector: Injector;
 
     get injector() { return this._injector; }
     get appComponent() { return this._appComponent; }
@@ -60,7 +61,7 @@ export class Application {
         @Inject(ZoneService) private _zoneService: ZoneService,
         @Inject(RuntimeRenderer) private _renderer: RuntimeRenderer,
         @Inject(RuntimeCompiler) private _compiler: RuntimeCompiler,
-        @Inject(Injector) private _injector: Injector
+        @Inject(Injector) private _rootInjector: Injector
     ) {
         // subscribe to the zone
         this._zoneService.onMicrotaskEmpty.subscribe(() => { this._zoneService.run(() => { this.tick(); }); })
@@ -81,9 +82,11 @@ export class Application {
                 type = componentOrFactory.componentType
             }
 
-
-            console.log(this._compiler.resolveVisitor(type));            
+            this._injector = this._rootInjector.resolveAndCreateChild([
+                provide(NodeVisitor, { useValue: this._compiler.resolveVisitor(type) })
+            ]);
             
+            this._renderer.parse(root, this);
         });
     }
 

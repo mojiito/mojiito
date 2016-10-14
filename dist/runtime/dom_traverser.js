@@ -8,39 +8,40 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var di_1 = require('../core/di/di');
 var node_visitor_1 = require('./node_visitor');
 var DOMTraverser = (function () {
-    function DOMTraverser(_visitor) {
-        this._visitor = _visitor;
+    function DOMTraverser() {
         this._nodeCount = 0;
         this._attributeIndex = -1;
     }
-    DOMTraverser.prototype.traverse = function (node, context) {
-        if (context === void 0) { context = undefined; }
-        var ctxt = this.visit(node, context) || context;
+    DOMTraverser.prototype.traverse = function (node, visitor, context) {
+        var ctxt = this.visit(node, visitor, context) || context;
+        // Check if context has changed and look up the corresponding
+        // NodeVisitor if available
+        if (ctxt !== context) {
+            visitor = node_visitor_1.getVisitorForContext(ctxt);
+        }
         // Traverse through all the attributes of the node
         // if it is type of Element 
         if (node instanceof Element && node.attributes.length) {
             for (var i = 0, max = node.attributes.length; i < max; i++) {
-                this.traverse(node.attributes[i], ctxt);
+                this.traverse(node.attributes[i], visitor, ctxt);
             }
         }
         // Start traversing the child nodes        
         var childNode = node.firstChild;
         if (childNode) {
-            this.traverse(childNode, ctxt);
+            this.traverse(childNode, visitor, ctxt);
             while (childNode = childNode.nextSibling) {
-                this.traverse(childNode, ctxt);
+                this.traverse(childNode, visitor, ctxt);
             }
         }
     };
-    DOMTraverser.prototype.visit = function (node, context) {
+    DOMTraverser.prototype.visit = function (node, visitor, context) {
+        // console.log(visitor);        
         if (node instanceof Element) {
-            return this._visitor.visitElement(node, context);
+            return visitor.visitElement(node, context);
         }
         else if (node instanceof Attr) {
         }
@@ -48,9 +49,8 @@ var DOMTraverser = (function () {
         }
     };
     DOMTraverser = __decorate([
-        di_1.Injectable(),
-        __param(0, di_1.Inject(node_visitor_1.NodeVisitor)), 
-        __metadata('design:paramtypes', [node_visitor_1.NodeVisitor])
+        di_1.Injectable(), 
+        __metadata('design:paramtypes', [])
     ], DOMTraverser);
     return DOMTraverser;
 }());

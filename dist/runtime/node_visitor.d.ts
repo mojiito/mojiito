@@ -21,3 +21,4 @@ export declare class NodeVisitor {
      */
     private _normalizeAttributeName(attrName);
 }
+export declare function getVisitorForContext(context: any): NodeVisitor;

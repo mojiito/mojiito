@@ -1,4 +1,4 @@
-import { isPresent, splitAtColon } from '../utils/utils';
+import { isPresent, splitAtColon, stringify } from '../utils/utils';
 import { Logger, LogLevel, LogType, assert } from '../debug/debug';
 import { Inject, Injectable, Injector } from '../core/di/di';
 import { DirectiveResolver } from '../core/directive/resolver';
@@ -100,7 +100,7 @@ export class NodeVisitor {
 
         if (!isPresent(value))
             return;
-
+        console.log(value);
         const bindParts = name.match(BIND_NAME_REGEXP);
         let hasBinding = false;
         if (isPresent(bindParts)) {
@@ -183,8 +183,9 @@ export class NodeVisitor {
         }
         if (bindingName) {
             targetProperties.push(new BoundElementPropertyAst(bindingName, expression, bindingType));
+        } else {
+            Logger.log(LogLevel.debug, `Invalid property name '${name}'`, LogType.warn);
         }
-        Logger.log(LogLevel.debug, `Invalid property name '${name}'`, LogType.warn);
     }
 
     private _parseEvent(name: string, expression: string, targetEvents: BoundEventAst[]) {
@@ -213,4 +214,12 @@ export class NodeVisitor {
     private _normalizeAttributeName(attrName: string): string {
         return /^data-/i.test(attrName) ? attrName.substring(5) : attrName;
     }
+}
+
+export function getVisitorForContext(context: any) {
+    const injector: Injector = context.injector;
+    assert(injector instanceof Injector, `The context "${stringify(context)}" does not implement a injector!`, TypeError);
+    const visitor: NodeVisitor = injector.get(NodeVisitor);
+    assert(visitor instanceof NodeVisitor, `Can not inject NodeVisitor into DOMTraverser`);
+    return visitor;
 }

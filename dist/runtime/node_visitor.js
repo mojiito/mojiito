@@ -1,6 +1,7 @@
 "use strict";
 var utils_1 = require('../utils/utils');
 var debug_1 = require('../debug/debug');
+var di_1 = require('../core/di/di');
 var selector_1 = require('./selector');
 var expression_1 = require('./expression');
 var ast_1 = require('./ast');
@@ -73,6 +74,7 @@ var NodeVisitor = (function () {
         var value = attr.value;
         if (!utils_1.isPresent(value))
             return;
+        console.log(value);
         var bindParts = name.match(BIND_NAME_REGEXP);
         var hasBinding = false;
         if (utils_1.isPresent(bindParts)) {
@@ -165,7 +167,9 @@ var NodeVisitor = (function () {
         if (bindingName) {
             targetProperties.push(new ast_1.BoundElementPropertyAst(bindingName, expression, bindingType));
         }
-        debug_1.Logger.log(debug_1.LogLevel.debug, "Invalid property name '" + name + "'", debug_1.LogType.warn);
+        else {
+            debug_1.Logger.log(debug_1.LogLevel.debug, "Invalid property name '" + name + "'", debug_1.LogType.warn);
+        }
     };
     NodeVisitor.prototype._parseEvent = function (name, expression, targetEvents) {
         var parts = utils_1.splitAtColon(name, [null, name]);
@@ -194,4 +198,12 @@ var NodeVisitor = (function () {
     return NodeVisitor;
 }());
 exports.NodeVisitor = NodeVisitor;
+function getVisitorForContext(context) {
+    var injector = context.injector;
+    debug_1.assert(injector instanceof di_1.Injector, "The context \"" + utils_1.stringify(context) + "\" does not implement a injector!", TypeError);
+    var visitor = injector.get(NodeVisitor);
+    debug_1.assert(visitor instanceof NodeVisitor, "Can not inject NodeVisitor into DOMTraverser");
+    return visitor;
+}
+exports.getVisitorForContext = getVisitorForContext;
 //# sourceMappingURL=node_visitor.js.map
