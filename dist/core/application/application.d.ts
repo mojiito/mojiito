@@ -10,7 +10,6 @@ export declare class Application {
     private _appComponent;
     private _injector;
     private _runningTick;
-    private _zoneService;
     injector: Injector;
     appComponent: ComponentReference<any>;
     constructor(injector: Injector);
