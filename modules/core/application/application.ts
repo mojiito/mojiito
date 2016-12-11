@@ -4,12 +4,12 @@ import { Injector, Injectable, Provider } from '../di/di';
 import { ComponentFactory, ComponentReference, ComponentResolver, ComponentMetadata } from '../component/component';
 import { ClassReflection } from '../reflect/reflection';
 import { Parser } from '../../render/parser/parser';
-import { ZoneService } from '../zone/zone';
+// import { ZoneService } from '../zone/zone';
 
 export var DEFAULT_PROVIDERS = [
     new Provider(ComponentResolver, { useClass: ComponentResolver }),
     new Provider(Parser, { useClass: Parser }),
-    new Provider(ZoneService, { useClass: ZoneService })
+    // new Provider(ZoneService, { useClass: ZoneService })
 ];
 
 export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: Array<ClassType<any> | Provider | { [key: string]: any }>, root?: Element): Application;
@@ -34,7 +34,7 @@ export class Application {
     private _appComponent: ComponentReference<any>;
     private _injector: Injector;
     private _runningTick = false;
-    private _zoneService: ZoneService;
+    // private _zoneService: ZoneService;
 
 
     get injector() { return this._injector; }
@@ -42,13 +42,13 @@ export class Application {
 
     constructor(injector: Injector) {
         this._injector = injector;
-        let zoneService: ZoneService = this._zoneService = this._injector.get(ZoneService);
-        zoneService.onMicrotaskEmpty.subscribe(() => { zoneService.run(() => { this.tick(); }); })
-        zoneService.onError.subscribe((error) => { throw error; });
+        // let zoneService: ZoneService = this._zoneService = this._injector.get(ZoneService);
+        // zoneService.onMicrotaskEmpty.subscribe(() => { zoneService.run(() => { this.tick(); }); })
+        // zoneService.onError.subscribe((error) => { throw error; });
     }
 
     bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root: Element = document.body) {
-        this._zoneService.run(() => {
+        // this._zoneService.run(() => {
             let componentFactory: ComponentFactory<C>;
             if (componentOrFactory instanceof ComponentFactory) {
                 componentFactory = componentOrFactory;
@@ -81,7 +81,7 @@ export class Application {
 
             let appRef = this._appComponent = componentFactory.create(this._injector, element);
             appRef.parse();
-        });
+        // });
     }
 
     tick() {

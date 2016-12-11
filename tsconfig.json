@@ -21,7 +21,6 @@
         "examples"
     ],
     "files": [
-        "./node_modules/zone.js/dist/zone.js.d.ts",
         "./node_modules/reflect-metadata/reflect-metadata.d.ts",
         "./typings/index.d.ts",
         "./modules/index.ts"
