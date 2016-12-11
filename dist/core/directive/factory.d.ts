@@ -3,7 +3,6 @@ import { AppElement } from '../view/element';
 import { ElementRef } from '../view/element-ref';
 import { ViewRef } from '../view/view';
 import { Injector } from '../di/di';
-import { ChangeDetector } from '../change_detection/change_detection';
 export declare class ComponentFactory<C> {
     private _componentType;
     private _viewFactory;
@@ -19,10 +18,7 @@ export declare class ComponentRef<C> {
     injector: Injector;
     instance: C;
     hostView: ViewRef<C>;
-    changeDetectorRef: ChangeDetector;
     componentType: ClassType<C>;
-    destroy(): void;
-    onDestroy(callback: Function): void;
 }
 export declare class ComponentFactoryResolver {
     private _parent;

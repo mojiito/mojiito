@@ -1,20 +1,20 @@
 import { Injector } from '../di/di';
-import { View } from './view';
+import { AppView } from './view';
 import { ViewContainerRef } from './view-container';
 import { ElementRef } from './element-ref';
 
 export class AppElement {
-    public nestedViews: View<any>[] = null;
-    public componentView: View<any> = null;
+    public nestedViews: AppView<any>[] = null;
+    public componentView: AppView<any> = null;
 
     public component: any;
 
-    constructor(public index: number, public parentIndex: number, public parentView: View<any>, public nativeElement: any) { }
+    constructor(public parentView: AppView<any>, public nativeElement: any) { }
 
     get elementRef(): ElementRef { return new ElementRef(this.nativeElement); }
     get vcRef(): ViewContainerRef { return new ViewContainerRef(this); }
 
-    initComponent(component: any, view: View<any>) {
+    initComponent(component: any, view: AppView<any>) {
         this.component = component;
         this.componentView = view;
     }
@@ -22,7 +22,7 @@ export class AppElement {
     get parentInjector(): Injector { return null; /* this.parentView.injector(this.parentIndex);*/ }
     get injector(): Injector { return null; /*this.parentView.injector(this.index);*/ }
 
-    moveView(view: View<any>, currentIndex: number) { }
-    attachView(view: View<any>, viewIndex: number) { }
-    detachView(viewIndex: number): View<any> { return null; }
+    moveView(view: AppView<any>, currentIndex: number) { }
+    attachView(view: AppView<any>, viewIndex: number) { }
+    detachView(viewIndex: number): AppView<any> { return null; }
 }

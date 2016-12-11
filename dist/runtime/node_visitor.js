@@ -35,21 +35,23 @@ var ATTRIBUTE_PREFIX = 'attr';
 var CLASS_PREFIX = 'class';
 var STYLE_PREFIX = 'style';
 var NodeVisitor = (function () {
-    // get injector() { return this._injector; }
-    function NodeVisitor(selectables /*, private _injector: Injector*/) {
+    function NodeVisitor(selectables) {
         this._selectables = [];
         this._expressionParser = new expression_1.ExpressionParser();
         this._selectables = selectables.map(function (s) { return [selector_1.Selector.parse(s.selector), s]; });
     }
-    NodeVisitor.prototype.visitElement = function (element, context) {
-        // Skip <script> and <style> tags
-        if (element instanceof HTMLScriptElement || element instanceof HTMLStyleElement) {
-            return;
-        }
+    NodeVisitor.prototype.visitElement = function (element, parentContext) {
+        // // Skip <script> and <style> tags
+        // if (element instanceof HTMLScriptElement || element instanceof HTMLStyleElement) {
+        //     return parentContext;
+        // }
         // Skip <template> tags
         if (element.tagName.toLowerCase() === 'template') {
-            return;
+            return parentContext;
         }
+        var context = parentContext;
+        // create an empty element ast        
+        var elementAst = new ast_1.ElementAst(element.tagName.toLowerCase(), [], [], [], false, []);
         // find selectables that match the elements selector     
         var selectables = this._selectables
             .filter(function (s) { return s[0].match(selector_1.Selector.parseElement(element)); })
@@ -59,15 +61,47 @@ var NodeVisitor = (function () {
             var attrs = element.attributes;
             var targetProperties = [];
             var targetEvents = [];
+            var targetAttrs = [];
             for (var i = 0, max = attrs.length; i < max; i++) {
                 var attr = attrs[i];
                 this._parseAttribute(attr, targetProperties, targetEvents);
             }
+            var components = selectables.filter(function (s) { return s.isComponent; });
+            debug_1.assert(components.length <= 1, "We found multiple components on the same element which is not allowed.");
+            if (components.length) {
+                elementAst.boundEvents = targetEvents;
+                elementAst.boundProperties = targetProperties;
+                elementAst.hasViewContainer = true;
+                context = new ContextRef(function () { }, elementAst, element, targetProperties, targetEvents);
+            }
         }
+        if (parentContext === context) {
+            context.childNodes.set(element, elementAst);
+        }
+        return context;
     };
-    NodeVisitor.prototype.visitAttribute = function (attr, context) { };
+    NodeVisitor.prototype.visitAttribute = function (element, attr, context) {
+        if (!context) {
+            return context;
+        }
+        var targetProperties = [];
+        var targetEvents = [];
+        var elementAst = context.childNodes.get(element);
+        if (this._parseAttribute(attr, targetProperties, targetEvents)) {
+            targetProperties.forEach(function (p) { return elementAst.boundProperties.push(p); });
+            targetEvents.forEach(function (e) { return elementAst.boundEvents.push(e); });
+        }
+        else {
+            elementAst.attrs.push(new ast_1.AttrAst(attr.name, attr.value));
+        }
+        return context;
+    };
     NodeVisitor.prototype.visitText = function (text, context) {
-        console.log('visit visitText', text);
+        if (!context) {
+            return context;
+        }
+        context.childNodes.set(text, new ast_1.TextAst(text.textContent));
+        return context;
     };
     NodeVisitor.prototype._parseAttribute = function (attr, targetProperties, targetEvents) {
         var name = this._normalizeAttributeName(attr.name);
@@ -198,11 +232,29 @@ var NodeVisitor = (function () {
 }());
 exports.NodeVisitor = NodeVisitor;
 function getVisitorForContext(context) {
-    var injector = context.injector;
+    var injector = context instanceof di_1.Injector ? context : context.injector;
     debug_1.assert(injector instanceof di_1.Injector, "The context \"" + utils_1.stringify(context) + "\" does not implement a injector!", TypeError);
     var visitor = injector.get(NodeVisitor);
     debug_1.assert(visitor instanceof NodeVisitor, "Can not inject NodeVisitor into DOMTraverser");
     return visitor;
 }
 exports.getVisitorForContext = getVisitorForContext;
+function createNodeVisitor(selectables, injector) {
+    return new NodeVisitor(selectables);
+}
+exports.createNodeVisitor = createNodeVisitor;
+var ContextRef = (function () {
+    function ContextRef(contextFactory, ast, node, inputs, outputs) {
+        this.contextFactory = contextFactory;
+        this.ast = ast;
+        this.node = node;
+        this.inputs = inputs;
+        this.outputs = outputs;
+        this.childNodes = new Map();
+        this.bindings = new Map();
+        this.disposables = new Map();
+    }
+    return ContextRef;
+}());
+exports.ContextRef = ContextRef;
 //# sourceMappingURL=node_visitor.js.map

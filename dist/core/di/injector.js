@@ -3,7 +3,7 @@ var map_1 = require('../map/map');
 var provider_1 = require('./provider');
 var forward_ref_1 = require('./forward_ref');
 var debug_1 = require('../../debug/debug');
-var stringify_1 = require('../../utils/string/stringify');
+var utils_1 = require('../../utils/utils');
 /**
  * An `Injector` is a replacement for a `new` operator, which can automatically resolve the
  * constructor dependencies.
@@ -115,10 +115,11 @@ var Injector = (function () {
                 for (var j = 0, max_1 = resolvedFactory.dependencies.length; j < max_1; j++) {
                     var deptToken = forward_ref_1.resolveForwardRef(resolvedFactory.dependencies[j]);
                     var dept = this.get(deptToken);
-                    debug_1.assert(!!dept, "Cannot resolve \"" + stringify_1.stringify(deptToken) + "\" injected into \"" + stringify_1.stringify(token) + "\"! \nPlease make shure \"" + stringify_1.stringify(deptToken) + "\" is provided, the class \"" + stringify_1.stringify(token) + "\" is marked as @Injectable() and the parameters are injected with @Inject");
+                    debug_1.assert(!!dept, "Could not resolve \"" + utils_1.stringify(deptToken) + "\" injected into \"" + utils_1.stringify(token) + "\"! \nPlease make shure \"" + utils_1.stringify(deptToken) + "\" is provided, the class \"" + utils_1.stringify(token) + "\" is marked as @Injectable() and the parameters are injected with @Inject");
                     resolvedDepts.push(dept);
                 }
                 value = resolvedFactory.factory(resolvedDepts);
+                debug_1.assert(utils_1.isDefined(value), "Could not resolve " + utils_1.stringify(token) + "! Make shure it is provided in a Injector.");
                 this._values.set(token, value);
                 return value;
             }

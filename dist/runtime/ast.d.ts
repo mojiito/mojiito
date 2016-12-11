@@ -1,4 +1,30 @@
 /**
+ * A plain attribute on an element.
+ */
+export declare class AttrAst {
+    name: string;
+    value: string;
+    constructor(name: string, value: string);
+}
+/**
+ * A segment of text.
+ */
+export declare class TextAst {
+    value: string;
+    constructor(value: string);
+}
+/**
+ * An element declaration
+ */
+export declare class ElementAst {
+    name: string;
+    attrs: AttrAst[];
+    boundProperties: BoundElementPropertyAst[];
+    boundEvents: BoundEventAst[];
+    hasViewContainer: boolean;
+    constructor(name: string, attrs: AttrAst[], boundProperties: BoundElementPropertyAst[], boundEvents: BoundEventAst[], hasViewContainer: boolean, children: ElementAst[]);
+}
+/**
  * A binding for an element property (e.g. `[property]="expression"`).
  */
 export declare class BoundElementPropertyAst {

@@ -1,9 +1,13 @@
-import { assert } from '../../debug/assert/assert';
+import { assert, Logger, LogLevel, LogType } from '../../debug/debug';
 import { isPresent } from '../../utils/utils';
 // import { Parser } from '../../render/parser/parser';
 import { Injector } from '../di/di';
 import { ChangeDetectorStatus, ChangeDetector } from '../change_detection/change_detection';
 import { AppElement } from './element';
+import { ViewContainerRef } from './view-container';
+import { ElementInjector } from './element_injector'
+
+export { ViewContainerRef };
 
 export enum ViewType {
     COMPONENT,
@@ -11,102 +15,80 @@ export enum ViewType {
     HOST
 }
 
-export class View<C> {
+export class AppView<T> {
 
-    ref: ViewRef<C>;
+    ref: ViewRef<T>;
     context: any;
     disposables: Function[];
-    viewChildren: View<any>[] = [];
+    viewChildren: AppView<any>[] = [];
     viewContainerElement: AppElement = null;
     numberOfChecks: number = 0;
+    renderer: any;
 
     constructor(
-        // public clazz: any,
+        public clazz: any,
         // public componentType: any,
         public type: ViewType,
         public parentInjector: Injector,
-        public declarationAppElement: AppElement,
-        public cdMode: ChangeDetectorStatus)
-    {
+        public declarationAppElement: AppElement
+        // public cdMode: ChangeDetectorStatus
+    ) {
         this.ref = new ViewRef(this);
+        // if (type === ViewType.COMPONENT || type === ViewType.HOST) {
+        //     this.renderer = viewUtils.renderComponent(componentType);
+        // } else {
+        //     this.renderer = declarationAppElement.parentView.renderer;
+        // }
     }
 
-    get destroyed(): boolean { return this.cdMode === ChangeDetectorStatus.Destroyed; }
-
-    create(context: C, givenProjectableNodes: Array<any | any[]>, rootSelectorOrNode: string | any): AppElement {
+    create(context: T, rootSelectorOrNode: string | any): AppElement {
         this.context = context;
-        return null;
+        return this.createInternal(rootSelectorOrNode);
     }
 
-    destroy() { }
+    createInternal(rootSelectorOrNode: string | any): AppElement { return null; }
 
-    detectChanges(throwOnChange: boolean): void {
-        if (this.cdMode === ChangeDetectorStatus.Checked ||
-            this.cdMode === ChangeDetectorStatus.Errored)
-            return;
-        if (this.cdMode === ChangeDetectorStatus.Destroyed) {
-            // this.throwDestroyedError('detectChanges');
+    selectOrCreateHostElement(elementName: string, rootSelectorOrNode: string | any): any {
+        let hostElement: any;
+        if (isPresent(rootSelectorOrNode)) {
+            // hostElement = this.renderer.selectRootElement(rootSelectorOrNode, debugInfo);
+            hostElement = rootSelectorOrNode;
+        } else {
+            Logger.log(LogLevel.debug, 'UNIMPLEMENTED FEATURE: Element creation will be supported in the future, when the template functionality is implemented');
+            hostElement = null;
+            //   hostElement = this.renderer.createElement(null, elementName, debugInfo);
         }
-        this.detectChangesInternal(throwOnChange);
-        if (this.cdMode === ChangeDetectorStatus.CheckOnce) this.cdMode = ChangeDetectorStatus.Checked;
-
-        this.numberOfChecks++;
+        return hostElement;
     }
 
-    detectChangesInternal(throwOnChange: boolean): void { }
+    injectorGet(token: any, nodeIndex: number): any {
+        return this.injectorGetInternal(token, nodeIndex);
+    }
 
+    injectorGetInternal(token: any, nodeIndex: number): any {
+        return undefined;
+    }
 
-    markPathToRootAsCheckOnce(): void {
-        let c: View<any> = this;
-        while (isPresent(c) && c.cdMode !== ChangeDetectorStatus.Detached) {
-            if (c.cdMode === ChangeDetectorStatus.Checked) {
-                c.cdMode = ChangeDetectorStatus.CheckOnce;
-            }
-            let parentEl =
-                c.type === ViewType.COMPONENT ? c.declarationAppElement : c.viewContainerElement;
-            c = isPresent(parentEl) ? parentEl.parentView : null;
+    injector(nodeIndex: number): Injector {
+        if (isPresent(nodeIndex)) {
+            return new ElementInjector(this, nodeIndex);
+        } else {
+            return this.parentInjector;
         }
     }
+
 }
 
-export class ViewRef<C> implements ChangeDetector {
+export class ViewRef<C> { //implements ChangeDetector {
     _originalMode: ChangeDetectorStatus;
 
-    constructor(private _view: View<C>) {
+    constructor(private _view: AppView<C>) {
         this._view = _view;
-        this._originalMode = this._view.cdMode;
+        // this._originalMode = this._view.cdMode;
     }
 
-    get internalView(): View<C> { return this._view; }
+    get internalView(): AppView<C> { return this._view; }
     get rootNodes(): any[] { return null; /* this._view.flatRootNodes;*/ }
     get context() { return this._view.context; }
-    get destroyed(): boolean { return this._view.destroyed; }
-
-    markForCheck(): void {
-        this._view.markPathToRootAsCheckOnce();
-    }
-
-    detach(): void {
-        this._view.cdMode = ChangeDetectorStatus.Detached;
-    }
-
-    detectChanges(): void {
-        this._view.detectChanges(false);
-        // triggerQueuedAnimations();
-    }
-    checkNoChanges(): void {
-        this._view.detectChanges(true);
-    }
-    reattach(): void {
-        this._view.cdMode = this._originalMode;
-        this.markForCheck();
-    }
-
-    onDestroy(callback: Function) {
-        this._view.disposables.push(callback);
-    }
-
-    destroy() {
-        // this._view.destroy();
-    }
+    // get destroyed(): boolean { return this._view.destroyed; }
 }

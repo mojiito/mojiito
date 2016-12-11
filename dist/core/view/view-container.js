@@ -33,12 +33,12 @@ var ViewContainerRef = (function () {
         if (index === void 0) { index = -1; }
         return null;
     };
-    ViewContainerRef.prototype.createComponent = function (componentFactory, index, injector) {
+    ViewContainerRef.prototype.createComponent = function (componentFactory, index, injector, nativeElement) {
         if (index === void 0) { index = -1; }
         if (injector === void 0) { injector = null; }
-        var contextInjector = utils_1.isPresent(injector) ? injector : this._element.parentInjector;
-        //   var componentRef = componentFactory.create(contextInjector);
-        return null;
+        var contextInjector = injector || this._element.parentInjector;
+        var componentRef = componentFactory.create(contextInjector, nativeElement);
+        return componentRef;
     };
     return ViewContainerRef;
 }());

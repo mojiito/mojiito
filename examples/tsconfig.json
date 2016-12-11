@@ -2,8 +2,10 @@
   "compileOnSave": true,
   "compilerOptions": {
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "rootDir": ".",
     "inlineSourceMap": true,
+    "noImplicitAny": true,
     "sourceRoot": "/",
     "target": "es5"
   },

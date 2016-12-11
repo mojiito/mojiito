@@ -12,5 +12,5 @@ export declare class ViewContainerRef {
     injector: Injector;
     parentInjector: Injector;
     createEmbeddedView<C>(templateRef: any, context?: any, index?: number): ViewRef<C>;
-    createComponent<C>(componentFactory: ComponentFactory<C>, index?: number, injector?: Injector): ComponentRef<C>;
+    createComponent<C>(componentFactory: ComponentFactory<C>, index: number, injector: Injector, nativeElement: Element): ComponentRef<C>;
 }

@@ -10,25 +10,9 @@ var ComponentFactory = (function () {
         configurable: true
     });
     ComponentFactory.prototype.create = function (injector, nativeElement) {
-        // let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata);
-        // let parentHostElement: HostElement = injector.get(HostElement);
-        // let hostElement = new HostElement(nativeElement, parentHostElement);
-        // if (parentHostElement instanceof HostElement) {
-        //     parentHostElement.registerChild(hostElement);
-        // }
-        // let providers = Array.isArray(metadata.providers) ? metadata.providers : [];
-        // providers = providers.concat([
-        //     provide(ElementRef, { useValue: hostElement.elementRef }),
-        //     provide(HostElement, { useValue: hostElement }),
-        //     provide(hostElement, { useClass: forwardRef(() => this._componentType) })
-        // ]);
-        // let inj = injector.resolveAndCreateChild(providers);
-        // let component = inj.get(hostElement);
-        // hostElement.initComponent(component, inj);
-        // var hostView = new View(
-        // const hostElement = hostView.create(new Object(), null, nativeElement);
-        // return new ComponentRef<C>(hostElement, this._componentType);
-        return null;
+        var hostView = this._viewFactory(injector, null);
+        var hostElement = hostView.create({}, nativeElement);
+        return new ComponentRef(hostElement, this._componentType);
     };
     return ComponentFactory;
 }());
@@ -60,19 +44,12 @@ var ComponentRef = (function () {
         configurable: true
     });
     ;
-    Object.defineProperty(ComponentRef.prototype, "changeDetectorRef", {
-        get: function () { return this._hostElement.parentView.ref; },
-        enumerable: true,
-        configurable: true
-    });
-    ;
     Object.defineProperty(ComponentRef.prototype, "componentType", {
+        // get changeDetectorRef(): ChangeDetector { return this._hostElement.parentView.ref; };
         get: function () { return this._componentType; },
         enumerable: true,
         configurable: true
     });
-    ComponentRef.prototype.destroy = function () { this._hostElement.parentView.destroy(); };
-    ComponentRef.prototype.onDestroy = function (callback) { this.hostView.onDestroy(callback); };
     return ComponentRef;
 }());
 exports.ComponentRef = ComponentRef;

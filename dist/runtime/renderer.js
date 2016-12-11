@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var di_1 = require('../core/di/di');
-var dom_traverser_1 = require('./dom_traverser');
+var dom_traverser_1 = require('../browser/dom_traverser');
 var node_visitor_1 = require('./node_visitor');
 var RuntimeRenderer = (function () {
     function RuntimeRenderer(_traverser) {

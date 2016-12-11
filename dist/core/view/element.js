@@ -2,9 +2,7 @@
 var view_container_1 = require('./view-container');
 var element_ref_1 = require('./element-ref');
 var AppElement = (function () {
-    function AppElement(index, parentIndex, parentView, nativeElement) {
-        this.index = index;
-        this.parentIndex = parentIndex;
+    function AppElement(parentView, nativeElement) {
         this.parentView = parentView;
         this.nativeElement = nativeElement;
         this.nestedViews = null;

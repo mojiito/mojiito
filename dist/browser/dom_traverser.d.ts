@@ -1,10 +1,7 @@
-import { NodeVisitor } from './node_visitor';
+import { NodeVisitor } from '../runtime/runtime';
 export declare class DOMTraverser {
-    private visitor;
     private _nodeCount;
     private _peek;
     private _attributeIndex;
-    constructor(visitor: NodeVisitor);
-    traverse(node: Node, context?: any): void;
-    visit(node: Node, context: any): any;
+    traverse(node: Node, visitor: NodeVisitor, context?: any): void;
 }

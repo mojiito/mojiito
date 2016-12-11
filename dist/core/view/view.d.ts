@@ -1,43 +1,38 @@
 import { Injector } from '../di/di';
-import { ChangeDetectorStatus, ChangeDetector } from '../change_detection/change_detection';
+import { ChangeDetectorStatus } from '../change_detection/change_detection';
 import { AppElement } from './element';
+import { ViewContainerRef } from './view-container';
+export { ViewContainerRef };
 export declare enum ViewType {
     COMPONENT = 0,
     EMBEDDED = 1,
     HOST = 2,
 }
-export declare class View<C> {
+export declare class AppView<T> {
+    clazz: any;
     type: ViewType;
     parentInjector: Injector;
     declarationAppElement: AppElement;
-    cdMode: ChangeDetectorStatus;
-    ref: ViewRef<C>;
+    ref: ViewRef<T>;
     context: any;
     disposables: Function[];
-    viewChildren: View<any>[];
+    viewChildren: AppView<any>[];
     viewContainerElement: AppElement;
     numberOfChecks: number;
-    constructor(type: ViewType, parentInjector: Injector, declarationAppElement: AppElement, cdMode: ChangeDetectorStatus);
-    destroyed: boolean;
-    create(context: C, givenProjectableNodes: Array<any | any[]>, rootSelectorOrNode: string | any): AppElement;
-    destroy(): void;
-    detectChanges(throwOnChange: boolean): void;
-    detectChangesInternal(throwOnChange: boolean): void;
-    markPathToRootAsCheckOnce(): void;
+    renderer: any;
+    constructor(clazz: any, type: ViewType, parentInjector: Injector, declarationAppElement: AppElement);
+    create(context: T, rootSelectorOrNode: string | any): AppElement;
+    createInternal(rootSelectorOrNode: string | any): AppElement;
+    selectOrCreateHostElement(elementName: string, rootSelectorOrNode: string | any): any;
+    injectorGet(token: any, nodeIndex: number): any;
+    injectorGetInternal(token: any, nodeIndex: number): any;
+    injector(nodeIndex: number): Injector;
 }
-export declare class ViewRef<C> implements ChangeDetector {
+export declare class ViewRef<C> {
     private _view;
     _originalMode: ChangeDetectorStatus;
-    constructor(_view: View<C>);
-    internalView: View<C>;
+    constructor(_view: AppView<C>);
+    internalView: AppView<C>;
     rootNodes: any[];
     context: any;
-    destroyed: boolean;
-    markForCheck(): void;
-    detach(): void;
-    detectChanges(): void;
-    checkNoChanges(): void;
-    reattach(): void;
-    onDestroy(callback: Function): void;
-    destroy(): void;
 }

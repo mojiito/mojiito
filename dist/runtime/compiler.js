@@ -1,4 +1,9 @@
 "use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -18,11 +23,15 @@ var di_1 = require('../core/di/di');
 var change_detection_1 = require('../core/change_detection/change_detection');
 var assert_1 = require("../debug/assert/assert");
 var node_visitor_1 = require('./node_visitor');
+var factory_1 = require('../core/directive/factory');
+var view_1 = require('../core/view/view');
+var element_1 = require('../core/view/element');
 var RuntimeCompiler = (function () {
     function RuntimeCompiler(_resolver) {
         this._resolver = _resolver;
         this._directiveCache = new Map();
         this._visitorCache = new Map();
+        this._componentFactoryCache = new Map();
     }
     /**
      * Compiles a directive with all its metadata,
@@ -38,45 +47,24 @@ var RuntimeCompiler = (function () {
      * @memberOf RuntimeCompiler
      */
     RuntimeCompiler.prototype.compileDirectiveAndChilds = function (directive) {
-        var compiled = this._compileDirective(directive);
+        var compiled = this.compileDirective(directive);
         this._compileVisitor(compiled);
         return compiled;
     };
-    /**
-     * Resolves and returns a CompileDirective for a directive type
-     * Throws an error if it is not already compiled.
-     *
-     * @param {ClassType<any>} directive
-     * @returns
-     *
-     * @memberOf RuntimeCompiler
-     */
-    RuntimeCompiler.prototype.resolve = function (directive) {
-        var resolved = this._directiveCache.get(directive);
-        assert_1.assert(resolved instanceof CompileDirective, "Can not resolve " + utils_1.stringify(directive) + ". It is not compiled yet.");
-        return resolved;
-    };
-    /**
-     * Resolves and returns a NodeVisitor for a directive type.
-     * Throws an error if it is not already compiled.
-     *
-     * @param {ClassType<any>} directive
-     * @returns
-     *
-     * @memberOf RuntimeCompiler
-     */
-    RuntimeCompiler.prototype.resolveVisitor = function (directive) {
-        var childDirectives = this.resolve(directive).directives;
-        if (utils_1.isArray(childDirectives) && childDirectives.length) {
-            var resolved = this._visitorCache.get(directive);
-            assert_1.assert(resolved instanceof node_visitor_1.NodeVisitor, "Can not resolve visitor for " + utils_1.stringify(directive) + ". It is not compiled yet.");
-            return resolved;
+    RuntimeCompiler.prototype.compileComponent = function (componentType) {
+        var factory = this._componentFactoryCache.get(componentType);
+        if (!factory) {
+            var compiled = this.compileDirective(componentType);
+            factory = new factory_1.ComponentFactory(compiled.type, this.compileViewFactory(compiled));
         }
-        return undefined;
+        return factory;
+    };
+    RuntimeCompiler.prototype._compileComponent = function (compileDirective) {
+        assert_1.assert(compileDirective.isComponent, "Can not compile " + utils_1.stringify(compileDirective.type) + " because it is not a component!");
+        return new factory_1.ComponentFactory(compileDirective.type, function () { });
     };
     /**
      * Compiles the directive and all its metadata and stores it into a cache
-     * We also compile a NodeVisitor for this directive
      *
      * @private
      * @param {ClassType<any>} directive
@@ -84,10 +72,10 @@ var RuntimeCompiler = (function () {
      *
      * @memberOf RuntimeCompiler
      */
-    RuntimeCompiler.prototype._compileDirective = function (directive) {
+    RuntimeCompiler.prototype.compileDirective = function (directive) {
         var _this = this;
         var compiled = this._directiveCache.get(directive);
-        if (compiled instanceof CompileDirective) {
+        if (compiled instanceof CompiledDirectiveResult) {
             return compiled;
         }
         var metadata = this._resolver.resolve(directive);
@@ -160,26 +148,40 @@ var RuntimeCompiler = (function () {
         // create a new CompileDirective based on the resolved metadata
         // set the CompileDirective in the cache so next time we don't
         // have to do this again and can just get the already compiled one
-        compiled = new CompileDirective(resolvedMetadata);
+        compiled = new CompiledDirectiveResult(resolvedMetadata);
         this._directiveCache.set(compiled.type, compiled);
         // compile child directives        
-        compiled.directives.forEach(function (d) { return _this._compileDirective(d); });
+        compiled.directives.forEach(function (d) { return _this.compileDirective(d); });
+        if (compiled.isComponent) {
+            this._compileComponent(compiled);
+        }
         return compiled;
     };
     /**
      * Compiles a NodeVisitor for a CompileDirective
      * with all child directives as selectables.
      *
+     * @private
      * @param {CompileDirective<any>} directive
      * @returns
      *
      * @memberOf RuntimeCompiler
      */
+    RuntimeCompiler.prototype.compileVisitor = function (type) {
+        var compiled = this.compileDirective(type);
+        return this._compileVisitor(compiled);
+    };
+    RuntimeCompiler.prototype.createVisitor = function (directives) {
+        var _this = this;
+        directives = directives.map(function (d) { return d instanceof CompiledDirectiveResult ? d : _this.compileDirective(d); });
+        var compiled = new node_visitor_1.NodeVisitor(directives);
+        return compiled;
+    };
     RuntimeCompiler.prototype._compileVisitor = function (directive) {
         var _this = this;
-        var compiled = this._visitorCache.get(directive.type);
-        if (!(compiled instanceof node_visitor_1.NodeVisitor)) {
-            var childDirectives = directive.directives.map(function (d) { return _this.resolve(d); });
+        var visitor = this._visitorCache.get(directive.type);
+        if (!visitor) {
+            var childDirectives = directive.directives.map(function (d) { return _this.compileDirective(d); });
             if (utils_1.isArray(childDirectives) && childDirectives.length) {
                 childDirectives.forEach(function (d) { return _this._compileVisitor(d); });
             }
@@ -194,10 +196,48 @@ var RuntimeCompiler = (function () {
                     }
                 } while (d);
             }
-            compiled = new node_visitor_1.NodeVisitor(childDirectives);
-            this._visitorCache.set(directive.type, compiled);
+            visitor = this.createVisitor(childDirectives);
+            this._visitorCache.set(directive.type, visitor);
         }
-        return compiled;
+        return visitor;
+    };
+    RuntimeCompiler.prototype.createComponentFactoryResolver = function (factories, parent) {
+        return new factory_1.ComponentFactoryResolver(factories, parent);
+    };
+    RuntimeCompiler.prototype.compileViewFactory = function (directive) {
+        return function (parentInjector, declarationAppElement) {
+            if (declarationAppElement === void 0) { declarationAppElement = null; }
+            var compViewType = directive.isComponent ? (function (_super) {
+                __extends(class_1, _super);
+                function class_1(parentInjector, declarationAppElement) {
+                    _super.call(this, compViewType, view_1.ViewType.COMPONENT, parentInjector, declarationAppElement);
+                }
+                /* @override */
+                class_1.prototype.createInternal = function (rootSelectorOrNode) {
+                    var self = this;
+                    return null;
+                };
+                return class_1;
+            }(view_1.AppView)) : null;
+            var hostView = (function (_super) {
+                __extends(class_2, _super);
+                function class_2(parentInjector) {
+                    _super.call(this, hostView, view_1.ViewType.HOST, parentInjector, null);
+                }
+                /* @override */
+                class_2.prototype.createInternal = function (rootSelectorOrNode) {
+                    var self = this;
+                    self._el = this.selectOrCreateHostElement(directive.selector, rootSelectorOrNode);
+                    self._appEl = new element_1.AppElement(this, self._el);
+                    var compView = compViewType ? new compViewType(null, self._el) : null;
+                    return null;
+                };
+                return class_2;
+            }(view_1.AppView));
+            // const view = new View(ViewType.HOST, parentInjector, declarationAppElement);
+            // view.createInternal = viewCreateInternal(view);
+            return new hostView(parentInjector);
+        };
     };
     RuntimeCompiler = __decorate([
         di_1.Injectable(),
@@ -207,6 +247,25 @@ var RuntimeCompiler = (function () {
     return RuntimeCompiler;
 }());
 exports.RuntimeCompiler = RuntimeCompiler;
+// HOST
+// self._el_0 = self.selectOrCreateHostElement('app-root',rootSelector,self.debug(0,0,0));
+// self._appEl_0 = new jit_AppElement5(0,null,self,self._el_0);
+// var compView_0 = jit_viewFactory_AppComponent6(self.viewUtils,self.injector(0),self._appEl_0);
+// self._AppComponent_0_5 = new jit_Wrapper_AppComponent7(self._appEl_0.vcRef);
+// self._appEl_0.initComponent(self._AppComponent_0_5.context,[],compView_0);
+// compView_0.create(self._AppComponent_0_5.context,self.projectableNodes,null);
+// self.init([].concat([self._appEl_0]),[self._el_0],[],[]);
+// return self._appEl_0;
+// COMPONENT
+// var parentRenderNode = self.renderer.createViewRoot(self.declarationAppElement.nativeElement);
+// self._el_0 = self.renderer.createElement(parentRenderNode,'app-sub',self.debug(0,0,0));
+// self._appEl_0 = new jit_AppElement5(0,null,self,self._el_0);
+// var compView_0 = jit_viewFactory_SubComponent6(self.viewUtils,self.injector(0),self._appEl_0);
+// self._SubComponent_0_5 = new jit_Wrapper_SubComponent7(self._appEl_0.vcRef);
+// self._appEl_0.initComponent(self._SubComponent_0_5.context,[],compView_0);
+// compView_0.create(self._SubComponent_0_5.context,[],null);
+// self.init([],[self._el_0],[],[]);
+// return null;
 /**
  * Representation of a compiled directive.
  * It includes all metadata a directive or component can have.
@@ -214,11 +273,11 @@ exports.RuntimeCompiler = RuntimeCompiler;
  * inforation if it is a directive or component.
  *
  * @export
- * @class CompileDirective
+ * @class CompiledDirectiveResult
  * @template T
  */
-var CompileDirective = (function () {
-    function CompileDirective(_a) {
+var CompiledDirectiveResult = (function () {
+    function CompiledDirectiveResult(_a) {
         var isComponent = _a.isComponent, type = _a.type, changeDetection = _a.changeDetection, selector = _a.selector, inputs = _a.inputs, outputs = _a.outputs, host = _a.host, providers = _a.providers, directives = _a.directives, templateUrl = _a.templateUrl, template = _a.template, styleUrls = _a.styleUrls, styles = _a.styles;
         this.isComponent = isComponent;
         this.type = type;
@@ -236,7 +295,7 @@ var CompileDirective = (function () {
             this.styles = styles;
         }
     }
-    return CompileDirective;
+    return CompiledDirectiveResult;
 }());
-exports.CompileDirective = CompileDirective;
+exports.CompiledDirectiveResult = CompiledDirectiveResult;
 //# sourceMappingURL=compiler.js.map

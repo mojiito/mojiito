@@ -1,5 +1,40 @@
 "use strict";
 /**
+ * A plain attribute on an element.
+ */
+var AttrAst = (function () {
+    function AttrAst(name, value) {
+        this.name = name;
+        this.value = value;
+    }
+    return AttrAst;
+}());
+exports.AttrAst = AttrAst;
+/**
+ * A segment of text.
+ */
+var TextAst = (function () {
+    function TextAst(value) {
+        this.value = value;
+    }
+    return TextAst;
+}());
+exports.TextAst = TextAst;
+/**
+ * An element declaration
+ */
+var ElementAst = (function () {
+    function ElementAst(name, attrs, boundProperties, boundEvents, hasViewContainer, children) {
+        this.name = name;
+        this.attrs = attrs;
+        this.boundProperties = boundProperties;
+        this.boundEvents = boundEvents;
+        this.hasViewContainer = hasViewContainer;
+    }
+    return ElementAst;
+}());
+exports.ElementAst = ElementAst;
+/**
  * A binding for an element property (e.g. `[property]="expression"`).
  */
 var BoundElementPropertyAst = (function () {

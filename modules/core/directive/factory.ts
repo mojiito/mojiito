@@ -4,7 +4,7 @@ import { assert } from '../../debug/debug';
 import { ComponentMetadata } from '../directive/metadata';
 import { AppElement } from '../view/element';
 import { ElementRef } from '../view/element-ref';
-import { ViewRef, View } from '../view/view';
+import { ViewRef, AppView } from '../view/view';
 import { ClassReflection } from '../reflect/reflection';
 import { Injector, provide, forwardRef } from '../di/di';
 import { Injectable } from '../di/di';
@@ -17,27 +17,9 @@ export class ComponentFactory<C> {
     get componentType(): ClassType<C> { return this._componentType; }
 
     create(injector: Injector, nativeElement: Element): ComponentRef<C> {
-        // let metadata: ComponentMetadata = ClassReflection.peek(this._componentType).annotations.get(ComponentMetadata);
-        // let parentHostElement: HostElement = injector.get(HostElement);
-        // let hostElement = new HostElement(nativeElement, parentHostElement);
-        // if (parentHostElement instanceof HostElement) {
-        //     parentHostElement.registerChild(hostElement);
-        // }
-        // let providers = Array.isArray(metadata.providers) ? metadata.providers : [];
-        // providers = providers.concat([
-        //     provide(ElementRef, { useValue: hostElement.elementRef }),
-        //     provide(HostElement, { useValue: hostElement }),
-        //     provide(hostElement, { useClass: forwardRef(() => this._componentType) })
-        // ]);
-
-        // let inj = injector.resolveAndCreateChild(providers);
-        // let component = inj.get(hostElement);
-        // hostElement.initComponent(component, inj);
-
-        // var hostView = new View(
-        // const hostElement = hostView.create(new Object(), null, nativeElement);
-        // return new ComponentRef<C>(hostElement, this._componentType);
-        return null;
+        const hostView: AppView<C> = this._viewFactory(injector, null);
+        const hostElement = hostView.create(<any>{}, nativeElement);
+        return new ComponentRef(hostElement, this._componentType);
     }
 }
 
@@ -47,11 +29,11 @@ export class ComponentRef<C> {
     get injector(): Injector { return this._hostElement.injector; }
     get instance(): C { return this._hostElement.component; };
     get hostView(): ViewRef<C> { return this._hostElement.parentView.ref; };
-    get changeDetectorRef(): ChangeDetector { return this._hostElement.parentView.ref; };
+    // get changeDetectorRef(): ChangeDetector { return this._hostElement.parentView.ref; };
     get componentType(): ClassType<C> { return this._componentType; }
 
-    destroy(): void { this._hostElement.parentView.destroy(); }
-    onDestroy(callback: Function): void { this.hostView.onDestroy(callback); }
+    // destroy(): void { this._hostElement.parentView.destroy(); }
+    // onDestroy(callback: Function): void { this.hostView.onDestroy(callback); }
 }
 
 // https://github.com/angular/angular/blob/master/modules/%40angular/core/src/linker/component_factory_resolver.ts#L40

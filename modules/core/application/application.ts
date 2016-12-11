@@ -6,6 +6,7 @@ import { DirectiveMetadata } from '../directive/metadata';
 import { DirectiveResolver } from '../directive/resolver';
 import { ZONE_PROVIDERS, ZoneService } from '../zone/zone';
 import { RUNTIME_PROVIDERS, RuntimeCompiler, RuntimeRenderer, NodeVisitor } from '../../runtime/runtime';
+import { DOM_PROVIDERS, DOMTraverser } from '../../browser/browser';
 
 export const CORE_PROVIDERS = [
     DirectiveResolver
@@ -14,7 +15,7 @@ export const CORE_PROVIDERS = [
 
 export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: Array<ClassType<any> | Provider | { [key: string]: any }>, root?: Element): void;
 export function bootstrap<C>(appComponentType: ClassType<C>, root?: Element): void;
-export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: any = [], root = <Element>document.body): void {
+export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: any = [], root?: Element): void {
 
     if (rootProviders instanceof Element) {
         root = rootProviders;
@@ -23,11 +24,11 @@ export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: any 
     assert(isClassType((appComponentType)), `The first argument ("appComponentType") of the bootstrap function has to be a class`, TypeError);
     assert(Array.isArray(rootProviders), 'The custom providers must be an array', TypeError);
     
-
     const rootInjector = Injector.resolveAndCreate([
         ZONE_PROVIDERS,
         RUNTIME_PROVIDERS,
         CORE_PROVIDERS,
+        DOM_PROVIDERS,
         rootProviders,
         Application
     ]);
@@ -38,7 +39,7 @@ export function bootstrap<C>(appComponentType: ClassType<C>, rootProviders: any 
 
 /**
  * The main entrypoint.
- * An single Application gets instanciated per page in the exported bootstrap function.
+ * A single Application gets instanciated per page in the exported bootstrap function.
  * It creates a Zone where your Application with all Components an Directives run in.
  * The Application class itself is not a component.
  * It takes a single component or component factory for creating the app component.
@@ -59,8 +60,8 @@ export class Application {
 
     constructor(
         @Inject(ZoneService) private _zoneService: ZoneService,
-        @Inject(RuntimeRenderer) private _renderer: RuntimeRenderer,
         @Inject(RuntimeCompiler) private _compiler: RuntimeCompiler,
+        @Inject(DOMTraverser) private _traverser: DOMTraverser,
         @Inject(Injector) private _rootInjector: Injector
     ) {
         // subscribe to the zone
@@ -68,7 +69,7 @@ export class Application {
         this._zoneService.onError.subscribe((error) => { throw error; });
     }
 
-    bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root: Element = document.documentElement) {
+    bootstrap<C>(componentOrFactory: ComponentFactory<C> | ClassType<C>, root: Element = document.body) {
         assert(!this._appComponent, `This Application is already bootstrapped!`);
         assert(root instanceof Element, 'Root has to be an Element!', TypeError);
 
@@ -77,16 +78,27 @@ export class Application {
         // provided app component or factory
         this._zoneService.run(() => {
 
-            let type = <ClassType<C>>componentOrFactory;
+            let type: ClassType<C>;
+            let factory: ComponentFactory<C>;
             if (componentOrFactory instanceof ComponentFactory) {
                 type = componentOrFactory.componentType
+                factory = componentOrFactory;
+            } else {
+                type = componentOrFactory;
+                factory = this._compiler.compileComponent(type);
             }
+            
+            const appVisitor = this._compiler.createVisitor([type]);
+            const appResolver = this._compiler.createComponentFactoryResolver([factory]);
 
             this._injector = this._rootInjector.resolveAndCreateChild([
-                provide(NodeVisitor, { useValue: this._compiler.resolveVisitor(type) })
+                provide(NodeVisitor, { useValue: appVisitor }),
+                provide(ComponentFactoryResolver, { useValue: appResolver })
             ]);
-            
-            this._renderer.parse(root, this);
+
+            this._traverser.traverse(root, appVisitor);
+
+            // this._renderer.parse(root, this._injector);
         });
     }
 

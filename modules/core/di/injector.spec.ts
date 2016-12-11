@@ -1,4 +1,4 @@
-/// <reference path="../../../typings/main.d.ts" />
+//// <reference path="../../../typings/main.d.ts" />
 
 import { Injector } from './injector';
 import { Injectable } from './decorators';

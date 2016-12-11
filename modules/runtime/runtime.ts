@@ -1,17 +1,12 @@
 import { RuntimeRenderer } from './renderer';
 import { RuntimeCompiler } from './compiler';
-import { DOMTraverser } from './dom_traverser';
-import { NodeVisitor } from './node_visitor';
-
+import { NodeVisitor, getVisitorForContext, ContextRef } from './node_visitor';
 
 export {
     RuntimeRenderer,
     RuntimeCompiler,
-    DOMTraverser,
-    NodeVisitor
+    NodeVisitor, getVisitorForContext, ContextRef
 };
 export const RUNTIME_PROVIDERS = [
-    RuntimeRenderer,
-    RuntimeCompiler,
-    DOMTraverser
+    RuntimeCompiler
 ]

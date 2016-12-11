@@ -5,15 +5,15 @@ console.time('startUp');
 
 @Component({ selector: 'test-form' })
 class TestForm implements OnInit, OnParse, OnChanges, OnBeforeCheck, OnAfterCheck {
-    @Input('test') testObj;
-    @Output('onClick') clickEmitter = new EventEmitter(); 
+    // @Input('test') testObj;
+    // @Output('onClick') clickEmitter = new EventEmitter(); 
     constructor() {
     }
 
     onButtonClick(evt: MouseEvent) {
         evt.preventDefault();
-        console.log(this.testObj);
-        this.clickEmitter.emit(this.testObj);
+        // console.log(this.testObj);
+        // this.clickEmitter.emit(this.testObj);
     }
 
     onInit() {
@@ -44,7 +44,7 @@ class TestForm implements OnInit, OnParse, OnChanges, OnBeforeCheck, OnAfterChec
 })
 class TodoApp {
 
-    @Input('test3') laa:any;
+    // @Input('test3') laa:any;
 
     private test = { text: 'asfsadf' };
     constructor() {

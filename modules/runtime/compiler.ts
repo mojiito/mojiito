@@ -1,16 +1,20 @@
 import { ClassType, isArray, isPresent, splitAtColon, stringify } from '../utils/utils';
 import { DirectiveResolver } from '../core/directive/resolver';
 import { ComponentMetadata } from '../core/directive/metadata';
-import { Inject, Injectable } from '../core/di/di';
+import { Inject, Injectable, Injector } from '../core/di/di';
 import { ChangeDetectionStrategy } from '../core/change_detection/change_detection';
 import { assert } from "../debug/assert/assert";
 import { NodeVisitor } from './node_visitor';
+import { ComponentFactory, ComponentFactoryResolver } from '../core/directive/factory';
+import { AppView, ViewType, ViewContainerRef } from '../core/view/view';
+import { AppElement } from '../core/view/element';
 
 @Injectable()
 export class RuntimeCompiler {
 
-    private _directiveCache = new Map<ClassType<any>, CompileDirective<any>>();
+    private _directiveCache = new Map<ClassType<any>, CompiledDirectiveResult<any>>();
     private _visitorCache = new Map<ClassType<any>, NodeVisitor>();
+    private _componentFactoryCache = new Map<ClassType<any>, ComponentFactory<any>>();
 
     constructor(
         @Inject(DirectiveResolver) private _resolver: DirectiveResolver
@@ -30,48 +34,29 @@ export class RuntimeCompiler {
      * @memberOf RuntimeCompiler
      */
     compileDirectiveAndChilds(directive: ClassType<any>) {
-        const compiled = this._compileDirective(directive);
+        const compiled = this.compileDirective(directive);
         this._compileVisitor(compiled);
         return compiled;
     }
 
-    /**
-     * Resolves and returns a CompileDirective for a directive type
-     * Throws an error if it is not already compiled.
-     * 
-     * @param {ClassType<any>} directive
-     * @returns
-     * 
-     * @memberOf RuntimeCompiler
-     */
-    resolve(directive: ClassType<any>) {
-        const resolved = this._directiveCache.get(directive);
-        assert(resolved instanceof CompileDirective, `Can not resolve ${stringify(directive)}. It is not compiled yet.`);
-        return resolved;
+    compileComponent<C>(componentType: ClassType<C>): ComponentFactory<C> {
+        let factory: ComponentFactory<C> = this._componentFactoryCache.get(componentType);
+        if (!factory) {
+            const compiled = this.compileDirective(componentType);
+
+            factory = new ComponentFactory(compiled.type, this.compileViewFactory(compiled));
+        }
+        return factory;
     }
 
-    /**
-     * Resolves and returns a NodeVisitor for a directive type.
-     * Throws an error if it is not already compiled.
-     * 
-     * @param {ClassType<any>} directive
-     * @returns
-     * 
-     * @memberOf RuntimeCompiler
-     */
-    resolveVisitor(directive: ClassType<any>) {
-        const childDirectives = this.resolve(directive).directives;
-        if (isArray(childDirectives) && childDirectives.length) {
-            const resolved = this._visitorCache.get(directive);
-            assert(resolved instanceof NodeVisitor, `Can not resolve visitor for ${stringify(directive)}. It is not compiled yet.`);
-            return resolved;
-        }
-        return undefined;
+    _compileComponent<C>(compileDirective: CompiledDirectiveResult<C>) {
+        assert(compileDirective.isComponent, `Can not compile ${stringify(compileDirective.type)} because it is not a component!`);
+        return new ComponentFactory(compileDirective.type, () => { });
     }
+
 
     /**
      * Compiles the directive and all its metadata and stores it into a cache
-     * We also compile a NodeVisitor for this directive
      * 
      * @private
      * @param {ClassType<any>} directive
@@ -79,9 +64,9 @@ export class RuntimeCompiler {
      * 
      * @memberOf RuntimeCompiler
      */
-    private _compileDirective(directive: ClassType<any>) {
+    private compileDirective(directive: ClassType<any>) {
         let compiled = this._directiveCache.get(directive);
-        if (compiled instanceof CompileDirective) {
+        if (compiled instanceof CompiledDirectiveResult) {
             return compiled;
         }
         const metadata = this._resolver.resolve(directive);
@@ -118,7 +103,7 @@ export class RuntimeCompiler {
             if (!selectorPart.length) {
                 continue;
             }
-            
+
             if (!/^\w+(-\w+)*$/.test(selectorPart)) {
                 continue;
             }
@@ -162,7 +147,7 @@ export class RuntimeCompiler {
 
         // resolve child directives and providers
         resolvedMetadata.directives = metadata.directives;
-        resolvedMetadata.providers = metadata.providers; 
+        resolvedMetadata.providers = metadata.providers;
 
         // setup the metadata only a component has        
         if (metadata instanceof ComponentMetadata) {
@@ -177,33 +162,51 @@ export class RuntimeCompiler {
         // create a new CompileDirective based on the resolved metadata
         // set the CompileDirective in the cache so next time we don't
         // have to do this again and can just get the already compiled one
-        compiled = new CompileDirective(resolvedMetadata);        
+        compiled = new CompiledDirectiveResult(resolvedMetadata);
         this._directiveCache.set(compiled.type, compiled);
 
         // compile child directives        
-        compiled.directives.forEach(d => this._compileDirective(d));
-        
+        compiled.directives.forEach(d => this.compileDirective(d));
+
+        if (compiled.isComponent) {
+            this._compileComponent(compiled);
+        }
+
         return compiled;
     }
 
     /**
      * Compiles a NodeVisitor for a CompileDirective
      * with all child directives as selectables.
-     * 
+     *
+     * @private
      * @param {CompileDirective<any>} directive
      * @returns
      * 
      * @memberOf RuntimeCompiler
      */
-    _compileVisitor(directive: CompileDirective<any>) {
-        let compiled = this._visitorCache.get(directive.type);
-        if (!(compiled instanceof NodeVisitor)) {
-            let childDirectives = directive.directives.map(d => this.resolve(d));
+    compileVisitor(type: ClassType<any>) {
+        const compiled = this.compileDirective(type);
+        return this._compileVisitor(compiled);
+    }
+
+    createVisitor(directives: ClassType<any>[]): NodeVisitor;
+    createVisitor(directives: CompiledDirectiveResult<any>[]): NodeVisitor;
+    createVisitor(directives: any[]): NodeVisitor {
+        directives = directives.map(d => d instanceof CompiledDirectiveResult ? d : this.compileDirective(d));
+        const compiled = new NodeVisitor(directives);
+        return compiled;
+    }
+
+    private _compileVisitor(directive: CompiledDirectiveResult<any>) {
+        let visitor = this._visitorCache.get(directive.type);
+        if (!visitor) {
+            let childDirectives = directive.directives.map(d => this.compileDirective(d));
             if (isArray(childDirectives) && childDirectives.length) {
                 childDirectives.forEach(d => this._compileVisitor(d));
             } else {
                 const i = this._directiveCache.values();
-                let d: CompileDirective<any>;
+                let d: CompiledDirectiveResult<any>;
                 childDirectives = [];
                 do {
                     d = i.next().value;
@@ -212,13 +215,76 @@ export class RuntimeCompiler {
                     }
                 } while (d);
             }
-            compiled = new NodeVisitor(childDirectives);
-            this._visitorCache.set(directive.type, compiled);
+            visitor = this.createVisitor(childDirectives);
+            this._visitorCache.set(directive.type, visitor);
         }
-        return compiled;
+
+        return visitor;
     }
 
+    createComponentFactoryResolver(factories: ComponentFactory<any>[], parent?: ComponentFactoryResolver) {
+        return new ComponentFactoryResolver(factories, parent);
+    }
+
+    compileViewFactory<T>(directive: CompiledDirectiveResult<T>) {
+        return function (parentInjector: Injector, declarationAppElement: AppElement = null): AppView<T> {
+
+            const compViewType = directive.isComponent ? class extends AppView<T> {
+                constructor(parentInjector: Injector, declarationAppElement: AppElement) {
+                    super(compViewType, ViewType.COMPONENT, parentInjector, declarationAppElement);
+                }
+                /* @override */
+                createInternal(rootSelectorOrNode: string | any): AppElement {
+                    const self = <any>this;
+                    return null;
+                }
+            } : null;
+
+
+
+
+            const hostView = class extends AppView<T> {
+                constructor(parentInjector: Injector) {
+                    super(hostView, ViewType.HOST, parentInjector, null);
+                }
+
+                /* @override */
+                createInternal(rootSelectorOrNode: string | any): AppElement {
+                    const self = <any>this;
+                    self._el = this.selectOrCreateHostElement(directive.selector, rootSelectorOrNode);
+                    self._appEl = new AppElement(this, self._el);
+                    const compView = compViewType ? new compViewType(null, self._el) : null;
+                    return null;
+                }
+            }
+
+            // const view = new View(ViewType.HOST, parentInjector, declarationAppElement);
+            // view.createInternal = viewCreateInternal(view);
+            return new hostView(parentInjector);
+        }
+    }
 }
+
+// HOST
+// self._el_0 = self.selectOrCreateHostElement('app-root',rootSelector,self.debug(0,0,0));
+// self._appEl_0 = new jit_AppElement5(0,null,self,self._el_0);
+// var compView_0 = jit_viewFactory_AppComponent6(self.viewUtils,self.injector(0),self._appEl_0);
+// self._AppComponent_0_5 = new jit_Wrapper_AppComponent7(self._appEl_0.vcRef);
+// self._appEl_0.initComponent(self._AppComponent_0_5.context,[],compView_0);
+// compView_0.create(self._AppComponent_0_5.context,self.projectableNodes,null);
+// self.init([].concat([self._appEl_0]),[self._el_0],[],[]);
+// return self._appEl_0;
+
+// COMPONENT
+// var parentRenderNode = self.renderer.createViewRoot(self.declarationAppElement.nativeElement);
+// self._el_0 = self.renderer.createElement(parentRenderNode,'app-sub',self.debug(0,0,0));
+// self._appEl_0 = new jit_AppElement5(0,null,self,self._el_0);
+// var compView_0 = jit_viewFactory_SubComponent6(self.viewUtils,self.injector(0),self._appEl_0);
+// self._SubComponent_0_5 = new jit_Wrapper_SubComponent7(self._appEl_0.vcRef);
+// self._appEl_0.initComponent(self._SubComponent_0_5.context,[],compView_0);
+// compView_0.create(self._SubComponent_0_5.context,[],null);
+// self.init([],[self._el_0],[],[]);
+// return null;
 
 
 /**
@@ -228,18 +294,18 @@ export class RuntimeCompiler {
  * inforation if it is a directive or component.
  * 
  * @export
- * @class CompileDirective
+ * @class CompiledDirectiveResult
  * @template T
  */
-export class CompileDirective<T> {
+export class CompiledDirectiveResult<T> {
 
     isComponent: boolean;
     type: ClassType<T>;
     changeDetection: ChangeDetectionStrategy;
     selector: string;
-    inputs: {[key: string]: string};
-    outputs: {[key: string]: string};
-    host: {[key: string]: string};
+    inputs: { [key: string]: string };
+    outputs: { [key: string]: string };
+    host: { [key: string]: string };
     providers: any[];
     directives: ClassType<any>[];
     templateUrl: string;
@@ -248,34 +314,34 @@ export class CompileDirective<T> {
     styles: string[];
 
     constructor({
-            isComponent,
-            type,
-            changeDetection,
-            selector,
-            inputs,
-            outputs,
-            host,
-            providers,
-            directives,
-            templateUrl,
-            template,
-            styleUrls,
-            styles
-        }: {
+        isComponent,
+        type,
+        changeDetection,
+        selector,
+        inputs,
+        outputs,
+        host,
+        providers,
+        directives,
+        templateUrl,
+        template,
+        styleUrls,
+        styles,
+    }: {
             isComponent: boolean;
             type: ClassType<T>;
             changeDetection?: ChangeDetectionStrategy;
             selector: string;
-            inputs?: {[key: string]: string};
-            outputs?: {[key: string]: string};
-            host?: {[key: string]: string};
+            inputs?: { [key: string]: string };
+            outputs?: { [key: string]: string };
+            host?: { [key: string]: string };
             providers?: any[];
             directives?: ClassType<any>[];
             templateUrl?: string;
             template?: string;
             styleUrls?: string[];
             styles?: string[];
-            }
+        }
     ) {
         this.isComponent = isComponent;
         this.type = type;
@@ -284,7 +350,7 @@ export class CompileDirective<T> {
         this.outputs = outputs;
         this.directives = directives;
         this.providers = providers;
-        
+
         if (isComponent) {
             this.changeDetection = changeDetection || ChangeDetectionStrategy.Default;
             this.host = host;

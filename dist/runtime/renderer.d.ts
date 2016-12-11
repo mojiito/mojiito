@@ -1,4 +1,4 @@
-import { DOMTraverser } from './dom_traverser';
+import { DOMTraverser } from '../browser/dom_traverser';
 export declare class RuntimeRenderer {
     private _traverser;
     constructor(_traverser: DOMTraverser);

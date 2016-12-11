@@ -3,7 +3,7 @@ import { ClassType } from '../../utils/class/class';
 import { Provider, ResolvedProvider, resolveProviders } from './provider';
 import { resolveForwardRef } from './forward_ref';
 import { assert } from '../../debug/debug';
-import { stringify } from '../../utils/string/stringify';
+import { stringify, isDefined } from '../../utils/utils';
 
 export interface IInjector {
     get(token: any): any;
@@ -125,10 +125,11 @@ export class Injector implements IInjector {
                 for (let j = 0, max = resolvedFactory.dependencies.length; j < max; j++) {
                     let deptToken = resolveForwardRef(resolvedFactory.dependencies[j]);
                     let dept = this.get(deptToken);
-                    assert(!!dept, `Cannot resolve "${stringify(deptToken)}" injected into "${stringify(token)}"! \nPlease make shure "${stringify(deptToken)}" is provided, the class "${stringify(token)}" is marked as @Injectable() and the parameters are injected with @Inject`);
+                    assert(!!dept, `Could not resolve "${stringify(deptToken)}" injected into "${stringify(token)}"! \nPlease make shure "${stringify(deptToken)}" is provided, the class "${stringify(token)}" is marked as @Injectable() and the parameters are injected with @Inject`);
                     resolvedDepts.push(dept);
                 }
                 value = resolvedFactory.factory(resolvedDepts);
+                assert(isDefined(value), `Could not resolve ${stringify(token)}! Make shure it is provided in a Injector.`);
                 this._values.set(token, value);
                 return value;
             }

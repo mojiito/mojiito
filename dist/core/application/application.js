@@ -18,12 +18,12 @@ var factory_1 = require('../directive/factory');
 var resolver_1 = require('../directive/resolver');
 var zone_1 = require('../zone/zone');
 var runtime_1 = require('../../runtime/runtime');
+var browser_1 = require('../../browser/browser');
 exports.CORE_PROVIDERS = [
     resolver_1.DirectiveResolver
 ];
 function bootstrap(appComponentType, rootProviders, root) {
     if (rootProviders === void 0) { rootProviders = []; }
-    if (root === void 0) { root = document.body; }
     if (rootProviders instanceof Element) {
         root = rootProviders;
         rootProviders = [];
@@ -34,6 +34,7 @@ function bootstrap(appComponentType, rootProviders, root) {
         zone_1.ZONE_PROVIDERS,
         runtime_1.RUNTIME_PROVIDERS,
         exports.CORE_PROVIDERS,
+        browser_1.DOM_PROVIDERS,
         rootProviders,
         Application
     ]);
@@ -44,7 +45,7 @@ function bootstrap(appComponentType, rootProviders, root) {
 exports.bootstrap = bootstrap;
 /**
  * The main entrypoint.
- * An single Application gets instanciated per page in the exported bootstrap function.
+ * A single Application gets instanciated per page in the exported bootstrap function.
  * It creates a Zone where your Application with all Components an Directives run in.
  * The Application class itself is not a component.
  * It takes a single component or component factory for creating the app component.
@@ -54,11 +55,11 @@ exports.bootstrap = bootstrap;
  * @class Application
  */
 var Application = (function () {
-    function Application(_zoneService, _renderer, _compiler, _rootInjector) {
+    function Application(_zoneService, _compiler, _traverser, _rootInjector) {
         var _this = this;
         this._zoneService = _zoneService;
-        this._renderer = _renderer;
         this._compiler = _compiler;
+        this._traverser = _traverser;
         this._rootInjector = _rootInjector;
         this._runningTick = false;
         // subscribe to the zone
@@ -77,21 +78,31 @@ var Application = (function () {
     });
     Application.prototype.bootstrap = function (componentOrFactory, root) {
         var _this = this;
-        if (root === void 0) { root = document.documentElement; }
+        if (root === void 0) { root = document.body; }
         debug_1.assert(!this._appComponent, "This Application is already bootstrapped!");
         debug_1.assert(root instanceof Element, 'Root has to be an Element!', TypeError);
         // run a zone for bootstrapping the whole Application
         // with all the provided Components starting at the 
         // provided app component or factory
         this._zoneService.run(function () {
-            var type = componentOrFactory;
+            var type;
+            var factory;
             if (componentOrFactory instanceof factory_1.ComponentFactory) {
                 type = componentOrFactory.componentType;
+                factory = componentOrFactory;
             }
+            else {
+                type = componentOrFactory;
+                factory = _this._compiler.compileComponent(type);
+            }
+            var appVisitor = _this._compiler.createVisitor([type]);
+            var appResolver = _this._compiler.createComponentFactoryResolver([factory]);
             _this._injector = _this._rootInjector.resolveAndCreateChild([
-                di_1.provide(runtime_1.NodeVisitor, { useValue: _this._compiler.resolveVisitor(type) })
+                di_1.provide(runtime_1.NodeVisitor, { useValue: appVisitor }),
+                di_1.provide(factory_1.ComponentFactoryResolver, { useValue: appResolver })
             ]);
-            _this._renderer.parse(root, _this);
+            _this._traverser.traverse(root, appVisitor);
+            // this._renderer.parse(root, this._injector);
         });
     };
     Application.prototype.tick = function () {
@@ -104,10 +115,10 @@ var Application = (function () {
     Application = __decorate([
         di_1.Injectable(),
         __param(0, di_1.Inject(zone_1.ZoneService)),
-        __param(1, di_1.Inject(runtime_1.RuntimeRenderer)),
-        __param(2, di_1.Inject(runtime_1.RuntimeCompiler)),
+        __param(1, di_1.Inject(runtime_1.RuntimeCompiler)),
+        __param(2, di_1.Inject(browser_1.DOMTraverser)),
         __param(3, di_1.Inject(di_1.Injector)), 
-        __metadata('design:paramtypes', [zone_1.ZoneService, runtime_1.RuntimeRenderer, runtime_1.RuntimeCompiler, di_1.Injector])
+        __metadata('design:paramtypes', [zone_1.ZoneService, runtime_1.RuntimeCompiler, browser_1.DOMTraverser, di_1.Injector])
     ], Application);
     return Application;
 }());

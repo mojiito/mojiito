@@ -4,12 +4,13 @@ import { Inject, Injectable, Injector } from '../core/di/di';
 import { DirectiveResolver } from '../core/directive/resolver';
 import { ClassType } from '../utils/class/class';
 import { ComponentMetadata } from '../core/directive/metadata';
-import { View } from '../core/view/view';
+import { AppView, ViewContainerRef } from '../core/view/view';
 import { Selector } from './selector';
 import { ExpressionParser } from './expression';
-import { CompiledDirectiveMetadata } from './metadata';
+import { CompiledDirectiveResult } from './compiler';
 import { RuntimeCompiler } from './compiler';
-import { BoundElementPropertyAst, BoundEventAst, PropertyBindingType } from './ast';
+import { BoundElementPropertyAst, BoundEventAst, PropertyBindingType, TextAst, ElementAst, AttrAst } from './ast';
+import { createComponent } from './builder';
 
 // https://github.com/angular/angular/blob/master/modules/%40angular/compiler/src/template_parser/template_parser.ts#L35
 // Group 1 = "bind-"
@@ -43,55 +44,89 @@ const STYLE_PREFIX = 'style';
 
 export class NodeVisitor {
 
-    private _selectables: [Selector, any][] = [];
+    private _selectables: [Selector, CompiledDirectiveResult<any>][] = [];
     private _expressionParser = new ExpressionParser();
 
-    // get injector() { return this._injector; }
-
-    constructor(selectables: any[]/*, private _injector: Injector*/) {
-        this._selectables = <[Selector, any][]>selectables.map(s => [Selector.parse(s.selector), s]);
+    constructor(selectables: any[]) {
+        this._selectables = <[Selector, CompiledDirectiveResult<any>][]>selectables.map(s => [Selector.parse(s.selector), s]);
     }
 
-    visitElement(element: Element, context: any): any {
-        // Skip <script> and <style> tags
-        if (element instanceof HTMLScriptElement || element instanceof HTMLStyleElement) {
-            return;
-        }
+    visitElement(element: Element, parentContext: ContextRef): any {
+        // // Skip <script> and <style> tags
+        // if (element instanceof HTMLScriptElement || element instanceof HTMLStyleElement) {
+        //     return parentContext;
+        // }
 
         // Skip <template> tags
         if (element.tagName.toLowerCase() === 'template') {
-            return;
+            return parentContext;
         }
+
+        let context = parentContext;
+
+        // create an empty element ast        
+        const elementAst = new ElementAst(element.tagName.toLowerCase(), [], [], [], false, [])
 
         // find selectables that match the elements selector     
         const selectables = this._selectables
             .filter(s => s[0].match(Selector.parseElement(element)))
             .map(s => s[1]);
-            // .forEach(factory => this._createDirective(factory, context));
+        // .forEach(factory => this._createDirective(factory, context));
 
         if (selectables && selectables.length) {
             const attrs = element.attributes;
             const targetProperties: BoundElementPropertyAst[] = [];
             const targetEvents: BoundEventAst[] = [];
+            const targetAttrs: AttrAst[] = [];
             for (let i = 0, max = attrs.length; i < max; i++) {
                 const attr = attrs[i];
                 this._parseAttribute(attr, targetProperties, targetEvents);
             }
 
-            // TODO: Rework for directives            
-            // selectables.forEach((s: CompiledComponentFactory<any>) => {
-            //     if (s instanceof CompiledComponentFactory) {
-            //         s.create(context, element, targetProperties, targetEvents);
-            //     }
-            // })
+            const components = selectables.filter(s => s.isComponent);
+            assert(components.length <= 1, `We found multiple components on the same element which is not allowed.`);
 
+            if (components.length) {
+                elementAst.boundEvents = targetEvents;
+                elementAst.boundProperties = targetProperties;
+                elementAst.hasViewContainer = true;
+                context = new ContextRef(function () { }, elementAst, element, targetProperties, targetEvents);
+                    //createComponent(components[0], element);
+            }
+            
         }
+
+        if (parentContext === context) {
+            context.childNodes.set(element, elementAst);
+        }
+
+        
+
+        return context;
     }
 
-    visitAttribute(attr: Attr, context: any) { }
+    visitAttribute(element: Element, attr: Attr, context: ContextRef) {
+        if (!context) {
+            return context;
+        }
+        const targetProperties: BoundElementPropertyAst[] = [];
+        const targetEvents: BoundEventAst[] = [];
+        const elementAst = <ElementAst>context.childNodes.get(element);
+        if (this._parseAttribute(attr, targetProperties, targetEvents)) {
+            targetProperties.forEach(p => elementAst.boundProperties.push(p));
+            targetEvents.forEach(e => elementAst.boundEvents.push(e));
+        } else {
+            elementAst.attrs.push(new AttrAst(attr.name, attr.value));
+        }
+        return context;
+    }
 
-    visitText(text: Text, context: any) {
-        console.log('visit visitText', text);
+    visitText(text: Text, context: ContextRef) {
+        if (!context) {
+            return context;
+        }
+        context.childNodes.set(text, new TextAst(text.textContent));
+        return context;
     }
 
     private _parseAttribute(attr: Attr, targetProperties: BoundElementPropertyAst[], targetEvents: BoundEventAst[]): boolean {
@@ -100,6 +135,7 @@ export class NodeVisitor {
 
         if (!isPresent(value))
             return;
+
         const bindParts = name.match(BIND_NAME_REGEXP);
         let hasBinding = false;
         if (isPresent(bindParts)) {
@@ -195,9 +231,9 @@ export class NodeVisitor {
     }
 
     // private _createDirective(factory: CompiledDirectiveFactory<any>, context: View<any>) {
-        // if (factory.metadata instanceof ComponentMetadata) {
-        //     factory.create()
-        // }
+    // if (factory.metadata instanceof ComponentMetadata) {
+    //     factory.create()
+    // }
     // }
 
     /**
@@ -216,9 +252,23 @@ export class NodeVisitor {
 }
 
 export function getVisitorForContext(context: any) {
-    const injector: Injector = context.injector;
+    const injector: Injector = context instanceof Injector ? context : context.injector;
     assert(injector instanceof Injector, `The context "${stringify(context)}" does not implement a injector!`, TypeError);
     const visitor: NodeVisitor = injector.get(NodeVisitor);
     assert(visitor instanceof NodeVisitor, `Can not inject NodeVisitor into DOMTraverser`);
     return visitor;
+}
+
+export function createNodeVisitor(selectables: any[], injector: Injector) {
+    return new NodeVisitor(selectables);
+}
+
+
+export class ContextRef {
+    public childNodes = new Map<Node, ElementAst | TextAst>();
+    public bindings = new Map<Node, BoundElementPropertyAst>();
+    public disposables = new Map<Node, BoundEventAst>();
+
+    constructor(public contextFactory: any, public ast: ElementAst, public node: Node,
+        public inputs: BoundElementPropertyAst[], public outputs: BoundEventAst[]) { }
 }

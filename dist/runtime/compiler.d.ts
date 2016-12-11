@@ -1,11 +1,16 @@
 import { ClassType } from '../utils/utils';
 import { DirectiveResolver } from '../core/directive/resolver';
+import { Injector } from '../core/di/di';
 import { ChangeDetectionStrategy } from '../core/change_detection/change_detection';
 import { NodeVisitor } from './node_visitor';
+import { ComponentFactory, ComponentFactoryResolver } from '../core/directive/factory';
+import { AppView } from '../core/view/view';
+import { AppElement } from '../core/view/element';
 export declare class RuntimeCompiler {
     private _resolver;
     private _directiveCache;
     private _visitorCache;
+    private _componentFactoryCache;
     constructor(_resolver: DirectiveResolver);
     /**
      * Compiles a directive with all its metadata,
@@ -20,30 +25,11 @@ export declare class RuntimeCompiler {
      *
      * @memberOf RuntimeCompiler
      */
-    compileDirectiveAndChilds(directive: ClassType<any>): CompileDirective<any>;
-    /**
-     * Resolves and returns a CompileDirective for a directive type
-     * Throws an error if it is not already compiled.
-     *
-     * @param {ClassType<any>} directive
-     * @returns
-     *
-     * @memberOf RuntimeCompiler
-     */
-    resolve(directive: ClassType<any>): CompileDirective<any>;
-    /**
-     * Resolves and returns a NodeVisitor for a directive type.
-     * Throws an error if it is not already compiled.
-     *
-     * @param {ClassType<any>} directive
-     * @returns
-     *
-     * @memberOf RuntimeCompiler
-     */
-    resolveVisitor(directive: ClassType<any>): NodeVisitor;
+    compileDirectiveAndChilds(directive: ClassType<any>): CompiledDirectiveResult<any>;
+    compileComponent<C>(componentType: ClassType<C>): ComponentFactory<C>;
+    _compileComponent<C>(compileDirective: CompiledDirectiveResult<C>): ComponentFactory<C>;
     /**
      * Compiles the directive and all its metadata and stores it into a cache
-     * We also compile a NodeVisitor for this directive
      *
      * @private
      * @param {ClassType<any>} directive
@@ -51,17 +37,23 @@ export declare class RuntimeCompiler {
      *
      * @memberOf RuntimeCompiler
      */
-    private _compileDirective(directive);
+    private compileDirective(directive);
     /**
      * Compiles a NodeVisitor for a CompileDirective
      * with all child directives as selectables.
      *
+     * @private
      * @param {CompileDirective<any>} directive
      * @returns
      *
      * @memberOf RuntimeCompiler
      */
-    _compileVisitor(directive: CompileDirective<any>): NodeVisitor;
+    compileVisitor(type: ClassType<any>): NodeVisitor;
+    createVisitor(directives: ClassType<any>[]): NodeVisitor;
+    createVisitor(directives: CompiledDirectiveResult<any>[]): NodeVisitor;
+    private _compileVisitor(directive);
+    createComponentFactoryResolver(factories: ComponentFactory<any>[], parent?: ComponentFactoryResolver): ComponentFactoryResolver;
+    compileViewFactory<T>(directive: CompiledDirectiveResult<T>): (parentInjector: Injector, declarationAppElement?: AppElement) => AppView<T>;
 }
 /**
  * Representation of a compiled directive.
@@ -70,10 +62,10 @@ export declare class RuntimeCompiler {
  * inforation if it is a directive or component.
  *
  * @export
- * @class CompileDirective
+ * @class CompiledDirectiveResult
  * @template T
  */
-export declare class CompileDirective<T> {
+export declare class CompiledDirectiveResult<T> {
     isComponent: boolean;
     type: ClassType<T>;
     changeDetection: ChangeDetectionStrategy;
