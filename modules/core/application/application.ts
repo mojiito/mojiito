@@ -15,7 +15,7 @@ export var DEFAULT_PROVIDERS = [
 export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: Array<ClassType<any> | Provider | { [key: string]: any }>, root?: Element): Application;
 export function bootstrap<C>(appComponentType: ClassType<C>, root?: HTMLElement): Application;
 export function bootstrap<C>(appComponentType: ClassType<C>, customProviders: any = [], root = document.body): Application {
-    if (customProviders instanceof Element) {
+    if (customProviders instanceof HTMLElement) {
         root = customProviders;
         customProviders = [];
     }
