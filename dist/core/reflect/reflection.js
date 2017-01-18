@@ -1,7 +1,6 @@
 "use strict";
 var map_1 = require('../../core/map/map');
-var debug_1 = require('../../debug/debug');
-debug_1.assert(!!(Reflect && Reflect.defineMetadata), 'reflect-metadata shim is required! Please make sure it is installed.');
+// assert(!!(Reflect && Reflect.defineMetadata), 'reflect-metadata shim is required! Please make sure it is installed.');
 var ClassReflection = (function () {
     function ClassReflection() {
         this._properties = new map_1.TypedMap();
@@ -31,14 +30,17 @@ var ClassReflection = (function () {
     });
     ClassReflection.peek = function (classType) {
         if (this.isReflected(classType)) {
-            return Reflect.getMetadata('reflection', classType);
+            // return Reflect.getMetadata('reflection', classType);
+            return classType['__reflection__'];
         }
         var reflection = new ClassReflection();
-        Reflect.defineMetadata('reflection', reflection, classType);
+        // Reflect.defineMetadata('reflection', reflection, classType);
+        classType['__reflection__'] = reflection;
         return reflection;
     };
     ClassReflection.isReflected = function (classType) {
-        return Reflect.hasMetadata('reflection', classType);
+        return !!classType['__reflection__'];
+        // return Reflect.hasMetadata('reflection', classType);
     };
     return ClassReflection;
 }());
