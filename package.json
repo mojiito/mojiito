@@ -13,5 +13,10 @@
   },
   "main": "dist/index.js",
   "scripts": {
+      "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'src/**/*.ts'"
+  },
+  "devDependencies": {
+    "tslint": "^4.4.2",
+    "typescript": "^2.1.5"
   }
 }
