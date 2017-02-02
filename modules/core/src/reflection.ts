@@ -18,7 +18,7 @@ export class ClassReflection {
         return this._annotations;
     }
 
-    static peek(classType: ClassType<any>): ClassReflection {
+    static peek(classType: ClassType<any> | Function): ClassReflection {
         if (this.isReflected(classType))  {
             return classType['__reflection__'];
         }
@@ -27,7 +27,7 @@ export class ClassReflection {
         return reflection;
     }
 
-    static isReflected(classType: ClassType<any>): boolean {
+    static isReflected(classType: ClassType<any> | Function): boolean {
         return !!classType['__reflection__'];
     }
 }
