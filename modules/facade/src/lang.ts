@@ -1,14 +1,12 @@
-import { ClassType } from '../type';
-
 /**
  * Returns the class name of a type.
  *
  * @export
  * @template T
- * @param {ClassType<T>} klass
+ * @param {Function} klass
  * @returns
  */
-export function getClassName<T>(klass: ClassType<T>) {
+export function getClassName<T>(klass: Function) {
   return klass.name ? klass.name : /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];
 }
 

@@ -1,5 +1,5 @@
 import { BaseError } from '../facade';
-import { stringify } from '../utils/lang';
+import { stringify } from '../facade';
 import { ClassType } from '../type';
 
 export class NoComponentsOrFactoriesProvidedError extends BaseError {

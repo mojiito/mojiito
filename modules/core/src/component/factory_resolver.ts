@@ -1,7 +1,6 @@
 import { ClassType } from '../type';
 import { ComponentFactory } from './factory';
-import { BaseError } from '../facade';
-import { stringify } from '../utils/lang';
+import { BaseError, stringify } from '../facade';
 
 export class ComponentFactoryResolver {
   private _factories = new Map<any, ComponentFactory<any>>();
