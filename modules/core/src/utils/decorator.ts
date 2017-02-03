@@ -1,9 +1,10 @@
 import { ClassType } from '../type';
 import { ClassReflection } from '../reflection';
+import { BaseError, stringify } from '../facade';
 
 export function createClassDecorator(metadataClass: ClassType<any>):
-  (objOrType: any) => ClassDecorator {
-  return function (objOrType: any): ClassDecorator {
+  (objOrType?: any) => ClassDecorator {
+  return function (objOrType?: any): ClassDecorator {
     return function (cls: ClassType<any>) {
       ClassReflection.peek(cls).annotations.set(metadataClass, new metadataClass(objOrType));
     };
@@ -13,13 +14,20 @@ export function createClassDecorator(metadataClass: ClassType<any>):
 export function createParameterDecorator(metadataClass: ClassType<any>):
   (objOrType: any) => ParameterDecorator {
   return function (objOrType: any): ParameterDecorator {
-    return function (cls: ClassType<any>, propertyKey: string | symbol,
-      parameterIndex: number): void {
-      if (typeof parameterIndex === 'number' && parameterIndex >= 0) {
-        ClassReflection.peek(cls).parameters[parameterIndex] = new metadataClass(objOrType);
-      } else {
-        ClassReflection.peek(cls).parameters.push(new metadataClass(objOrType));
+    return function (cls: ClassType<any>, propertyKey: string | symbol, index: number): void {
+      const parameters = ClassReflection.peek(cls).parameters;
+
+      // there might be gaps if some in between parameters do not have annotations.
+      // we pad with nulls.
+      while (parameters.length <= index) {
+        parameters.push(null);
       }
+
+      if (typeof index === 'number' && index >= 0) {
+        throw new NoIndexForParameterDecoratorError(cls, metadataClass);
+      }
+
+      parameters[index] = new metadataClass(objOrType);
     };
   };
 }
@@ -32,4 +40,12 @@ export function createPropertyDecoratory(metadataClass: ClassType<any>):
         .set(propertyKey, new metadataClass(objOrType || propertyKey));
     };
   };
+}
+
+
+export class NoIndexForParameterDecoratorError extends BaseError {
+  constructor(cls:  ClassType<any>, metadataClass: ClassType<any>) {
+    super(`The parameter decorated with ${stringify(metadataClass)} on ` +
+      `class ${stringify(cls)} has no index provided!`);
+  }
 }
