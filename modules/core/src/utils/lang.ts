@@ -1,9 +1,24 @@
 import { ClassType } from '../type';
 
+/**
+ * Returns the class name of a type.
+ *
+ * @export
+ * @template T
+ * @param {ClassType<T>} klass
+ * @returns
+ */
 export function getClassName<T>(klass: ClassType<T>) {
   return klass.name ? klass.name : /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];
 }
 
+/**
+ * Tries to stringify a token. A token can be any type.
+ *
+ * @export
+ * @param {*} token
+ * @returns {string}
+ */
 export function stringify(token: any): string {
   if (typeof token === 'string') {
     return token;
