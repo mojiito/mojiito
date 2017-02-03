@@ -12,11 +12,17 @@ import {
 import { ClassReflection } from '../reflection';
 import { ComponentMetadata } from '../component/metadata';
 
+/**
+ * This is a reference of a Mojito Application.
+ *
+ * @export
+ * @class ApplicationRef
+ */
 export class ApplicationRef {
   private _nativeElement: Element;
   private _componentFactoryResolver: ComponentFactoryResolver;
   private _componentTypes: ClassType<any>[];
-  private _components: ComponentRef<any>[] = [];
+  private _components = new Map<ClassType<any>, ComponentRef<any>[]>();
 
   constructor(nativeElement: Element) {
     this._nativeElement = nativeElement;
@@ -26,7 +32,29 @@ export class ApplicationRef {
   get componentFactoryResolver(): ComponentFactoryResolver {
     return this._componentFactoryResolver;
   };
-  get components(): ComponentRef<any>[] { return this._components; };
+
+  /**
+   * Will get you all the references of component that
+   * are instantiated on this application.
+   *
+   * @readonly
+   * @type {ComponentRef<any>[]}
+   * @memberOf ApplicationRef
+   */
+  get components(): ComponentRef<any>[] {
+    const refs = [];
+    this._components.forEach(r => refs.push(r));
+    return refs;
+  };
+
+  /**
+   * Will get you all the component type or classes this application
+   * contains and can instantiate.
+   *
+   * @readonly
+   * @type {ClassType<any>[]}
+   * @memberOf ApplicationRef
+   */
   get componentTypes(): ClassType<any>[] { return this._componentTypes; };
 
   bootstrap(componentsOrFactories: Array<ClassType<any> | ComponentFactory<any>>) {
@@ -73,10 +101,25 @@ export class ApplicationRef {
       if (foundElements && foundElements.length) {
         const factory = this._componentFactoryResolver.resolveComponentFactory(type);
         for (let i = 0, max = foundElements.length; i < max; i++) {
-          const ref = factory.create(foundElements[i]);
-          this._components.push(ref);
+          const element = foundElements[i];
+          let refs = this._components.get(type);
+          if (!Array.isArray(refs)) {
+            refs = [];
+            this._components.set(type, refs);
+          }
+
+          // Check if this component is already created on this element
+          // if so, the skip and continue with next element
+          if (refs.length && refs.find(r => r.location.nativeElement === element)) {
+            continue;
+          }
+
+          // create a new component on this element
+          const ref = factory.create(element);
+          refs.push(ref);
         }
       }
     });
   }
+
 }

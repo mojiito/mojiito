@@ -10,20 +10,12 @@ export class ComponentRef<C> {
   constructor(nativeElement: Element, componentType: ClassType<C>) {
     this._nativeElement = nativeElement;
     this._componentType = componentType;
-    this._instance = new componentType(this.element);
+    this._instance = new componentType(this.location);
   }
 
-  get element(): ElementRef {
-    return new ElementRef(this._nativeElement);
-  }
-
-  get instance(): C {
-    return this._instance;
-  }
-
-  get componentType(): ClassType<C> {
-    return this._componentType;
-  }
+  get location(): ElementRef { return new ElementRef(this._nativeElement); }
+  get instance(): C { return this._instance; }
+  get componentType(): ClassType<C> { return this._componentType; }
 
   parse() {
     throw new NotImplementedError();
