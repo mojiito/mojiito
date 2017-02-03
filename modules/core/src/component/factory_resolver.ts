@@ -1,6 +1,6 @@
-import { ClassType } from '../utils/facade';
+import { ClassType } from '../type';
 import { ComponentFactory } from './factory';
-import { BaseError } from '../error';
+import { BaseError } from '../facade';
 import { stringify } from '../utils/lang';
 
 export class ComponentFactoryResolver {

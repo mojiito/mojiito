@@ -1,6 +1,6 @@
-import { BaseError } from '../error';
+import { BaseError } from '../facade';
 import { stringify } from '../utils/lang';
-import { ClassType } from '../utils/facade';
+import { ClassType } from '../type';
 
 export class NoComponentsOrFactoriesProvidedError extends BaseError {
   constructor() {

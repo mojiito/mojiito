@@ -1,4 +1,4 @@
-import { ClassType } from './utils/facade';
+import { ClassType } from './type';
 
 /**
  * Includes is created as a reflection on a class and
@@ -37,12 +37,12 @@ export class ClassReflection {
      * if available or a new one will be created.
      *
      * @static
-     * @param {(ClassType<any> | Function)} classType
+     * @param {(ClassType<any>)} classType
      * @returns {ClassReflection}
      *
      * @memberOf ClassReflection
      */
-    static peek(classType: ClassType<any> | Function): ClassReflection {
+    static peek(classType: ClassType<any>): ClassReflection {
         if (this.isReflected(classType))  {
             return classType['__reflection__'];
         }
@@ -55,12 +55,12 @@ export class ClassReflection {
      * Checks if a class has already a reflection on it.
      *
      * @static
-     * @param {(ClassType<any> | Function)} classType
+     * @param {(ClassType<any>)} classType
      * @returns {boolean}
      *
      * @memberOf ClassReflection
      */
-    static isReflected(classType: ClassType<any> | Function): boolean {
+    static isReflected(classType: ClassType<any>): boolean {
         return !!classType['__reflection__'];
     }
 }

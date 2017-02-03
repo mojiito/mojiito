@@ -1,4 +1,4 @@
-import { ClassType } from './facade';
+import { ClassType } from '../type';
 
 export function getClassName<T>(klass: ClassType<T>) {
   return klass.name ? klass.name : /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];

@@ -1,7 +1,7 @@
 import { ComponentFactoryResolver } from '../component/factory_resolver';
 import { ComponentRef } from '../component/reference';
 import { ComponentFactory } from '../component/factory';
-import { ClassType } from '../utils/facade';
+import { ClassType } from '../type';
 import {
   InvalidComponentTypeError,
   NoComponentsOrFactoriesProvidedError,

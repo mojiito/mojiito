@@ -1,4 +1,4 @@
-import { ClassType } from '../utils/facade';
+import { ClassType } from '../type';
 import { ComponentRef } from './reference';
 
 export class ComponentFactory<C> {

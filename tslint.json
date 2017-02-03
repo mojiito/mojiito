@@ -51,7 +51,7 @@
         "variable-declaration": "nospace"
       }
     ],
-    "curly": true,
+    "curly": false,
     "variable-name": [
       true,
       "ban-keywords",

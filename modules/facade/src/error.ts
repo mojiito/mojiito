@@ -1,3 +1,18 @@
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+
+/**
+ * Convenience to throw an Error with 'unimplemented' as the message.
+ */
+export function unimplemented(): any {
+  throw new Error('unimplemented');
+}
+
 export class BaseError extends Error {
   /** @internal **/
   _nativeError: Error;
@@ -29,11 +44,5 @@ export class WrappedError extends BaseError {
   get stack() {
     return ((this.originalError instanceof Error ? this.originalError : this._nativeError) as any)
       .stack;
-  }
-}
-
-export class NotImplementedError extends BaseError {
-  constructor() {
-    super(`Not yet implemented"`);
   }
 }
