@@ -2,7 +2,7 @@ import {
   createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
   ClassType, ComponentFactory, ApplicationRef
 } from '../../core';
-import { ListWrapper } from '../../facade';
+import { ListWrapper, unimplemented } from '../../facade';
 
 @Injectable()
 export class BrowserPlatformRef extends PlatformRef {
@@ -17,7 +17,7 @@ export class BrowserPlatformRef extends PlatformRef {
   get destroyed(): boolean { return this._destroyed; }
 
   bootstrapFactory(): void {
-
+    unimplemented();
   }
 
   bootstrap(componentsOrFactories: Array<ClassType<any> | ComponentFactory<any> |
