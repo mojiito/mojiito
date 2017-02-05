@@ -12,24 +12,18 @@ import { ElementRef } from '../element_ref';
  * @template C
  */
 export class ComponentRef<C> {
-  private _nativeElement: Element;
-  private _componentType: ClassType<C>;
-  private _instance: C;
 
-  constructor(nativeElement: Element, componentType: ClassType<C>) {
-    this._nativeElement = nativeElement;
-    this._componentType = componentType;
-    this._instance = new componentType(this.location);
+  constructor(private _component: C, private _element: ElementRef) {
   }
 
   /** Location of the component instance */
-  get location(): ElementRef { return new ElementRef(this._nativeElement); }
+  get location(): ElementRef { return this._element; }
 
   /** The instance of the Component. */
-  get instance(): C { return this._instance; }
+  get instance(): C { return this._component; }
 
   /** The component type. */
-  get componentType(): ClassType<C> { return this._componentType; }
+  get componentType(): ClassType<C> { return <any>this._component.constructor; }
 
   /** Allows you to trigger a parse on the DOM managed by this component. */
   parse() {

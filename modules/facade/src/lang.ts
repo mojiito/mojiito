@@ -45,3 +45,48 @@ export function stringify(token: any): string {
   var newLineIndex = res.indexOf('\n');
   return (newLineIndex === -1) ? res : res.substring(0, newLineIndex);
 }
+
+export interface BrowserNodeGlobal {
+  Object: typeof Object;
+  Array: typeof Array;
+  Map: typeof Map;
+  Set: typeof Set;
+  Date: DateConstructor;
+  RegExp: RegExpConstructor;
+  JSON: typeof JSON;
+  Math: any;  // typeof Math;
+  assert(condition: any): void;
+  Reflect: any;
+  getAngularTestability: Function;
+  getAllAngularTestabilities: Function;
+  getAllAngularRootElements: Function;
+  frameworkStabilizers: Array<Function>;
+  setTimeout: Function;
+  clearTimeout: Function;
+  setInterval: Function;
+  clearInterval: Function;
+  encodeURI: Function;
+}
+
+declare var WorkerGlobalScope: any;
+declare var global: any;
+let globalScope: BrowserNodeGlobal;
+if (typeof window === 'undefined') {
+  if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
+    // TODO: Replace any with WorkerGlobalScope from lib.webworker.d.ts #3492
+    globalScope = <any>self;
+  } else {
+    globalScope = <any>global;
+  }
+} else {
+  globalScope = <any>window;
+}
+export {globalScope as global};
+
+export function isPresent(obj: any): boolean {
+  return obj != null;
+}
+
+export function isBlank(obj: any): boolean {
+  return obj == null;
+}

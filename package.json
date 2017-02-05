@@ -13,10 +13,13 @@
   },
   "main": "index.ts",
   "scripts": {
-      "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'"
+    "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'"
   },
   "devDependencies": {
     "tslint": "^4.4.2",
     "typescript": "^2.1.5"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.9"
   }
 }

@@ -1,1 +1,1 @@
-export * from '../../facade/src';
+export * from '../../facade';

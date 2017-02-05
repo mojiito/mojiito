@@ -9,8 +9,10 @@ import {
   ComponentAlreadyFoundError,
   NotYetBootstrappedError
 } from './application_errors';
-import { ClassReflection } from '../reflection';
-import { ComponentMetadata } from '../component/metadata';
+import { Component } from '../component/metadata';
+import { Injectable, Inject } from '../di/metadata';
+import { Injector, THROW_IF_NOT_FOUND } from '../di/injector';
+import {reflector} from '../reflection/reflection';
 
 /**
  * This is a reference of a Mojito Application.
@@ -18,20 +20,19 @@ import { ComponentMetadata } from '../component/metadata';
  * @export
  * @class ApplicationRef
  */
-export class ApplicationRef {
-  private _nativeElement: Element;
+@Injectable()
+export class ApplicationRef implements Injector {
   private _componentFactoryResolver: ComponentFactoryResolver;
   private _componentTypes: ClassType<any>[];
   private _components = new Map<ClassType<any>, ComponentRef<any>[]>();
 
-  constructor(nativeElement: Element) {
-    this._nativeElement = nativeElement;
-  }
+  constructor(@Inject(Injector) public parent: Injector) { }
 
-  get nativeElement(): Element { return this._nativeElement; }
   get componentFactoryResolver(): ComponentFactoryResolver {
     return this._componentFactoryResolver;
   };
+
+  get injector(): Injector { return this; }
 
   /**
    * Will get you all the references of component that
@@ -42,8 +43,8 @@ export class ApplicationRef {
    * @memberOf ApplicationRef
    */
   get components(): ComponentRef<any>[] {
-    const refs = [];
-    this._components.forEach(r => refs.push(r));
+    const refs: ComponentRef<any>[] = [];
+    // this._components.forEach(r => refs.push(r));
     return refs;
   };
 
@@ -87,17 +88,31 @@ export class ApplicationRef {
     this.parse();
   }
 
+  get(token: any, notFoundValue: any = THROW_IF_NOT_FOUND): any {
+    if (token === Injector) {
+      return this;
+    }
+    if (token === ComponentFactoryResolver) {
+      return this._componentFactoryResolver;
+    }
+
+    let result = this._components.get(token);
+    return result || this.parent.get(token, notFoundValue);
+  }
+
   parse() {
     if (!this._componentFactoryResolver) {
       throw new NotYetBootstrappedError('parse');
     }
     this._componentTypes.forEach(type => {
-      const reflection = ClassReflection.peek(type);
-      const metadata = reflection.annotations.get(ComponentMetadata) as ComponentMetadata;
-      if (!(metadata instanceof ComponentMetadata)) {
-        throw new NoMetadataFoundError(type);
-      }
-      const foundElements = this._nativeElement.querySelectorAll(metadata.selector);
+      const annotations = reflector.annotations(type);
+      let selector: string;
+      annotations.forEach(a => {
+        if (a.selector)
+          selector = a.selector;
+      });
+
+      const foundElements = document.querySelectorAll(selector);
       if (foundElements && foundElements.length) {
         const factory = this._componentFactoryResolver.resolveComponentFactory(type);
         for (let i = 0, max = foundElements.length; i < max; i++) {
@@ -115,8 +130,8 @@ export class ApplicationRef {
           }
 
           // create a new component on this element
-          const ref = factory.create(element);
-          refs.push(ref);
+          const ref = factory.create(this, element);
+          // refs.push(ref);
         }
       }
     });

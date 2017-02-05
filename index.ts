@@ -1,1 +1,2 @@
-export * from './modules/core/src';
+export * from './modules/core';
+export * from './modules/platform-browser';

@@ -1,5 +1,6 @@
 export interface ClassType<T> extends Function {
     new (...args: Array<any>): T;
+    constructor: Function | any[];
     [propertyName: string]: any;
     name: string;
 }
