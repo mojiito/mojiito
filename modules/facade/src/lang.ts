@@ -57,10 +57,6 @@ export interface BrowserNodeGlobal {
   Math: any;  // typeof Math;
   assert(condition: any): void;
   Reflect: any;
-  getAngularTestability: Function;
-  getAllAngularTestabilities: Function;
-  getAllAngularRootElements: Function;
-  frameworkStabilizers: Array<Function>;
   setTimeout: Function;
   clearTimeout: Function;
   setInterval: Function;

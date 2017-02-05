@@ -15,7 +15,7 @@ export interface Component {
   /**
    * The CSS selector that triggers the instantiation of a directive.
    *
-   * Angular only allows directives to trigger on CSS selectors that do not cross element
+   * Mojito only allows directives to trigger on CSS selectors that do not cross element
    * boundaries.
    *
    * `selector` may be declared as one of the following:
