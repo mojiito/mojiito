@@ -4,15 +4,16 @@ import { ComponentFactory } from '../component/factory';
 import { ClassType } from '../type';
 import {
   InvalidComponentTypeError,
-  NoComponentsOrFactoriesProvidedError,
   NoMetadataFoundError,
   ComponentAlreadyFoundError,
-  NotYetBootstrappedError
+  NotYetBootstrappedError,
+  AlreadyBootstrappedError
 } from './application_errors';
 import { Component } from '../component/metadata';
 import { Injectable, Inject } from '../di/metadata';
 import { Injector, THROW_IF_NOT_FOUND } from '../di/injector';
 import {reflector} from '../reflection/reflection';
+import { getPlatform } from './platform';
 
 /**
  * This is a reference of a Mojito Application.
@@ -26,7 +27,7 @@ export class ApplicationRef implements Injector {
   private _componentTypes: ClassType<any>[];
   private _components = new Map<ClassType<any>, ComponentRef<any>[]>();
 
-  constructor(@Inject(Injector) public parent: Injector) { }
+  constructor(public parent: Injector) { }
 
   get componentFactoryResolver(): ComponentFactoryResolver {
     return this._componentFactoryResolver;
@@ -58,34 +59,42 @@ export class ApplicationRef implements Injector {
    */
   get componentTypes(): ClassType<any>[] { return this._componentTypes; };
 
-  bootstrap(componentsOrFactories: Array<ClassType<any> | ComponentFactory<any>>) {
-    if (!Array.isArray(componentsOrFactories) || !componentsOrFactories.length) {
-      throw new NoComponentsOrFactoriesProvidedError();
+  bootstrap<C>(componentOrFactory: ClassType<C> | ComponentFactory<C>) {
+    if (this._componentFactoryResolver) {
+      throw new AlreadyBootstrappedError();
     }
-    const factories: ComponentFactory<any>[] = [];
-    const types: ClassType<any>[] = [];
-    componentsOrFactories.forEach(c => {
-      let factory: ComponentFactory<any>;
-      let type: ClassType<any>;
-      if (c instanceof ComponentFactory) {
-        factory = c;
-        type = factory.componentType;
-      } else if (c instanceof Function) {
-        factory = new ComponentFactory(c);
-        type = c;
-      } else {
-        throw new InvalidComponentTypeError(c);
-      }
-      if (types.indexOf(type) === -1) {
-        factories.push(factory);
-        types.push(type);
-      } else {
-        throw new ComponentAlreadyFoundError(type);
-      }
-    });
-    this._componentTypes = types;
-    this._componentFactoryResolver = new ComponentFactoryResolver(factories);
-    this.parse();
+
+    let componentFactory: ComponentFactory<C>;
+    if (componentOrFactory instanceof ComponentFactory) {
+      componentFactory = componentOrFactory;
+    } else {
+      componentFactory = this._componentFactoryResolver.resolveComponentFactory(componentOrFactory);
+    }
+
+    // const factories: ComponentFactory<any>[] = [];
+    // const types: ClassType<any>[] = [];
+    // componentsOrFactories.forEach(c => {
+    //   let factory: ComponentFactory<any>;
+    //   let type: ClassType<any>;
+    //   if (c instanceof ComponentFactory) {
+    //     factory = c;
+    //     type = factory.componentType;
+    //   } else if (c instanceof Function) {
+    //     factory = new ComponentFactory(c);
+    //     type = c;
+    //   } else {
+    //     throw new InvalidComponentTypeError(c);
+    //   }
+    //   if (types.indexOf(type) === -1) {
+    //     factories.push(factory);
+    //     types.push(type);
+    //   } else {
+    //     throw new ComponentAlreadyFoundError(type);
+    //   }
+    // });
+    // this._componentTypes = types;
+    // this._componentFactoryResolver = new ComponentFactoryResolver(factories);
+    // this.parse();
   }
 
   get(token: any, notFoundValue: any = THROW_IF_NOT_FOUND): any {
@@ -104,6 +113,7 @@ export class ApplicationRef implements Injector {
     if (!this._componentFactoryResolver) {
       throw new NotYetBootstrappedError('parse');
     }
+
     this._componentTypes.forEach(type => {
       const annotations = reflector.annotations(type);
       let selector: string;

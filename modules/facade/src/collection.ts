@@ -48,4 +48,10 @@ export class ListWrapper {
       return (<T[]>flat).concat(flatItem);
     }, []);
   }
+
+  static forEach(list: ArrayLike<any>, callback: (item: any, index: number) => void): void {
+    for (let i = 0, max = list.length; i < max; i++) {
+      callback.call(callback, list[i], i);
+    }
+  }
 }

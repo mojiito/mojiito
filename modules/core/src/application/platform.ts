@@ -9,9 +9,7 @@ import { ComponentFactory } from '../component/factory';
 let _platform: PlatformRef;
 
 export abstract class PlatformRef {
-  abstract bootstrapFactory(): void;
-  abstract bootstrap(componentsOrFactories: Array<ClassType<any> | ComponentFactory<any> |
-    Array<ClassType<any> | ComponentFactory<any>>>): void
+  abstract bootstrapComponent<C>(component: ClassType<C>): void
   abstract get injector(): Injector;
   abstract onDestroy(callback: () => void): void;
   abstract destroy(): void;

@@ -2,12 +2,6 @@ import { BaseError } from '../facade';
 import { stringify } from '../facade';
 import { ClassType } from '../type';
 
-export class NoComponentsOrFactoriesProvidedError extends BaseError {
-  constructor() {
-    super(`No components or factories have been provided to bootstrap the application.`);
-  }
-}
-
 export class InvalidComponentTypeError extends BaseError {
   constructor(type: any) {
     super(`Invalid component type "${stringify(type)}" provided to bootstrap the application!` +
@@ -31,5 +25,11 @@ export class ComponentAlreadyFoundError extends BaseError {
 export class NotYetBootstrappedError extends BaseError {
   constructor(methodName: string) {
     super(`You have bootstrap the application first before calling the "${methodName}" method`);
+  }
+}
+
+export class AlreadyBootstrappedError extends BaseError {
+  constructor() {
+    super(`This application has already been bootstrapped.`);
   }
 }

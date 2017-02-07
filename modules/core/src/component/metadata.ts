@@ -3,6 +3,7 @@
 import { makeDecorator, TypeDecorator } from '../utils/decorator';
 import { stringify } from '../facade';
 import { ClassType } from '../type';
+import { Provider } from '../di/provider';
 
 /** Type of the Component decorator / constructor function. */
 export interface ComponentDecorator {
@@ -15,7 +16,7 @@ export interface Component {
   /**
    * The CSS selector that triggers the instantiation of a directive.
    *
-   * Mojito only allows directives to trigger on CSS selectors that do not cross element
+   * Mojito only allows components to trigger on CSS selectors that do not cross element
    * boundaries.
    *
    * `selector` may be declared as one of the following:
@@ -26,28 +27,27 @@ export interface Component {
    * - `[attribute=value]`: select by attribute name and value.
    * - `:not(sub_selector)`: select only if the element does not match the `sub_selector`.
    * - `selector1, selector2`: select if either `selector1` or `selector2` matches.
-   *
-   *
-   * ### Example
-   *
-   * Suppose we have a directive with an `input[type=text]` selector.
-   *
-   * And the following HTML:
-   *
-   * ```html
-   * <form>
-   *   <input type="text">
-   *   <input type="radio">
-   * <form>
-   * ```
-   *
-   * The directive would only be instantiated on the `<input type="text">` element.
-   *
    */
   selector?: string;
+
+  /**
+   * Defines the set of injectable objects that are visible to a Components.
+   */
+  providers?: Provider[];
+
+  /**
+   * Defines a list of components which belong to this component and
+   * can be instantiated.
+   *
+   * When creating this component, mojito will look for them in the
+   * DOM and create them if found.
+   */
+  components?: ClassType<any>[] | ClassType<any>[][];
 }
 
 /** Component decorator and metadata. */
 export const Component: ComponentDecorator = <ComponentDecorator>makeDecorator('Component', {
-    selector: undefined
+  selector: undefined,
+  providers: undefined,
+  components: undefined
 });
