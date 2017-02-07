@@ -1,10 +1,4 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
+import { ListWrapper } from '../../facade';
 
 const _SELECTOR_REGEXP = new RegExp(
   '(\\:not\\()|' +           // ":not("
@@ -26,6 +20,18 @@ export class CssSelector {
   classNames: string[] = [];
   attrs: string[] = [];
   notSelectors: CssSelector[] = [];
+
+  static fromElement(element: Element): CssSelector {
+    const selector = new CssSelector();
+    selector.setElement(element.tagName.toLocaleLowerCase());
+    ListWrapper.forEach(element.attributes, (attr: Attr) => {
+      if (attr.name.toLocaleLowerCase() !== 'class') {
+        selector.addAttribute(attr.name.trim(), attr.value.trim());
+      }
+    });
+    ListWrapper.forEach(element.classList, (c: string) => selector.classNames.push(c));
+    return selector;
+  }
 
   static parse(selector: string): CssSelector[] {
     const results: CssSelector[] = [];
@@ -224,7 +230,8 @@ export class SelectorMatcher {
    * @param matchedCallback This callback will be called with the object handed into `addSelectable`
    * @return boolean true if a match was found
   */
-  match(cssSelector: CssSelector, matchedCallback: (c: CssSelector, a: any) => void): boolean {
+  match(cssSelector: CssSelector,
+    matchedCallback: (c: CssSelector, a: any) => void = function () { }): boolean {
     let result = false;
     const element = cssSelector.element;
     const classNames = cssSelector.classNames;

@@ -30,7 +30,7 @@ export class BrowserPlatformRef extends PlatformRef {
     const rootElements = this._renderer.selectElements(compiled.metadata.selector);
     ListWrapper.forEach(rootElements, el => {
       const traverser = new DomTraverser();
-      traverser.traverse(el);
+      traverser.traverse(el, compiled.visitor);
     });
     console.timeEnd('mojito bootstrap');
   }
