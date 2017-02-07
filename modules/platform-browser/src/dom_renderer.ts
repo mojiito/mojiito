@@ -7,6 +7,10 @@ export class DomRenderer implements Renderer {
 
   constructor(@Inject(DOCUMENT) public document: Document) {}
 
+  render() {
+
+  }
+
   selectElements(selector: string): Element[] {
     const elements = this.document.querySelectorAll(selector);
     return Array.prototype.slice.call(elements);

@@ -13,6 +13,7 @@ export { ComponentResolver };
 export { ComponentFactory } from './src/component/factory';
 export { ComponentFactoryResolver } from './src/component/factory_resolver';
 export { ComponentRef } from './src/component/reference';
+export { AppView } from './src/component/view';
 export { ElementRef } from './src/element_ref';
 export { forwardRef } from './src/di/forward_ref';
 export { InjectionToken } from './src/di/injection_token';

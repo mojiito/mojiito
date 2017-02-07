@@ -1,12 +1,25 @@
-import { ComponentFactory, ClassType, Component, ComponentResolver } from '../../core';
+import {
+  ComponentFactory, ClassType, Component, ComponentResolver, Injectable,
+  AppView, Renderer, ComponentRef, ComponentFactoryResolver,
+  resolveReflectiveProviders, ElementRef
+} from '../../core';
 import { stringify, ListWrapper } from '../../facade';
 import { CssSelector, SelectorMatcher } from './selector';
 import { DomVisitor } from './dom_visitor';
 
+@Injectable()
 export class Compiler {
   private _results = new Map<ClassType<any>, ComponentCompiledResult<any>>();
 
-  constructor(private _resolver: ComponentResolver) { }
+  constructor(private _resolver: ComponentResolver, private _renderer: Renderer) { }
+
+  get componentFactoryResolver() {
+    const factories: ComponentFactory<any>[] = [];
+    this._results.forEach((r, c) => {
+      factories.push(new ComponentFactory(r.viewClass, c));
+    });
+    return new ComponentFactoryResolver(factories);
+  }
 
   get<C>(component: ClassType<C>): ComponentCompiledResult<C> {
     return this._results.get(component);
@@ -27,17 +40,50 @@ export class Compiler {
     }
     const matcher = new SelectorMatcher();
     matcher.addSelectables(CssSelector.parse(selector));
-    const result = new ComponentCompiledResult(new ComponentFactory(component), metadata,
-     matcher , visitor);
+    const result =
+      new ComponentCompiledResult(this._compileView(component, this._renderer), matcher, visitor);
     this._results.set(component, result);
     return result;
   }
+
+  private _compileView<C>(component: ClassType<C>, _renderer: Renderer): ClassType<AppView<C>> {
+    return class extends AppView<C> {
+      renderer = _renderer;
+      rootNode: Element;
+      clazz = component;
+
+      createInternal(rootSelectorOrNode: string | any): ComponentRef<C> {
+        if (typeof rootSelectorOrNode === 'string') {
+          const elements = this.renderer.selectElements(rootSelectorOrNode);
+          if (!elements.length) return;
+          this.rootNode = elements[0];
+        } else if (rootSelectorOrNode instanceof Element) {
+          this.rootNode = rootSelectorOrNode;
+        }
+
+        let provider = resolveReflectiveProviders([component])[0];
+        if (!provider.resolvedFactories.length) {
+          throw new Error(`Could not create component "${stringify(component)}". ` +
+            `No factory found.`);
+        }
+        const resolved = provider.resolvedFactories[0];
+        const deps = resolved.dependencies.map(d => {
+          if (d.key.token === ElementRef) {
+            return this.rootNode;
+          }
+          return this.injector.get(d.key.token);
+        });
+        this.context = resolved.factory(...deps);
+        return new ComponentRef(this);
+      }
+    };
+  }
+
 }
 
 export class ComponentCompiledResult<C> {
-  constructor(public factory: ComponentFactory<C>, public metadata: Component,
-    public matcher: SelectorMatcher, public visitor?: DomVisitor) { }
-  get componentType(): ClassType<C> { return this.factory.componentType; }
+  constructor(public viewClass: ClassType<AppView<C>>, public matcher: SelectorMatcher,
+    public visitor?: DomVisitor) { }
 
   visitElement(element: Element) {
     // this.factory.create()

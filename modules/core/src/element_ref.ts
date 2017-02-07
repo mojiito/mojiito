@@ -1,4 +1,4 @@
 export class ElementRef {
-  public nativeElement: Element;
-  constructor(nativeElement: Element) { this.nativeElement = nativeElement; }
+  public nativeElement: any;
+  constructor(nativeElement: any) { this.nativeElement = nativeElement; }
 }

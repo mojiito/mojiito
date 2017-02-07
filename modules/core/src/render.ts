@@ -1,4 +1,5 @@
 export abstract class Renderer {
+  abstract render(): void;
   abstract selectElements(selector: string): any[];
   abstract createElement(parentElement: any, name: string): any;
   abstract createText(parentElement: any, value: string): any;

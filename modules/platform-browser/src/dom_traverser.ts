@@ -1,4 +1,5 @@
 import { DomVisitor } from './dom_visitor';
+
 export class DomTraverser {
 
   private _nodeCount = 0;

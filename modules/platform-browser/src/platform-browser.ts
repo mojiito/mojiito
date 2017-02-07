@@ -1,7 +1,7 @@
 import {
   createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
   InjectionToken, ClassType, ComponentFactory, ApplicationRef, Renderer,
-  CORE_PROVIDERS, ComponentResolver
+  CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
 } from '../../core';
 import { ListWrapper, unimplemented } from '../../facade';
 import { DOCUMENT } from './tokens';
@@ -13,13 +13,11 @@ import { DomTraverser } from './dom_traverser';
 export class BrowserPlatformRef extends PlatformRef {
   private _destroyed = false;
   private _destroyListeners: Function[] = [];
-  private _compiler: Compiler;
 
   constructor(private _injector: Injector, private _resolver: ComponentResolver,
-  private _renderer: Renderer) {
+  private _renderer: Renderer, private _compiler: Compiler) {
     super();
     console.time('mojito bootstrap');
-    this._compiler = new Compiler(_resolver);
   }
 
   get injector(): Injector { return this._injector; }
@@ -27,11 +25,13 @@ export class BrowserPlatformRef extends PlatformRef {
 
   bootstrapComponent<C>(component: ClassType<C>): void {
     const compiled = this._compiler.compileComponent(component);
-    const rootElements = this._renderer.selectElements(compiled.metadata.selector);
-    ListWrapper.forEach(rootElements, el => {
-      const traverser = new DomTraverser();
-      traverser.traverse(el, compiled.visitor);
-    });
+    const resolver = this._compiler.componentFactoryResolver;
+    const appInjector = ReflectiveInjector.resolveAndCreate([
+      { provide: ComponentFactoryResolver, useValue: resolver },
+      ApplicationRef
+    ], this._injector);
+    const app = appInjector.get(ApplicationRef) as ApplicationRef;
+    app.bootstrap(component);
     console.timeEnd('mojito bootstrap');
   }
 
@@ -53,6 +53,8 @@ export const PLATFORM_PROVIDERS = [
   { provide: PlatformRef, useClass: BrowserPlatformRef },
   { provide: Renderer, useClass: DomRenderer },
   { provide: DOCUMENT, useValue: document },
+  Compiler,
+  DomTraverser
 ];
 
 export const platformBrowser = createPlatformFactory([PLATFORM_PROVIDERS, CORE_PROVIDERS]);

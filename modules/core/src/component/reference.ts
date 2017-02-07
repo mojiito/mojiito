@@ -1,6 +1,7 @@
 import { ClassType } from '../type';
 import { unimplemented } from '../facade';
 import { ElementRef } from '../element_ref';
+import { AppView } from './view';
 
 /**
  * Represents an instance of a Component created via a ComponentFactory.
@@ -13,17 +14,19 @@ import { ElementRef } from '../element_ref';
  */
 export class ComponentRef<C> {
 
-  constructor(private _component: C, private _element: ElementRef) {
+  constructor(private _view: AppView<C>) {
   }
 
   /** Location of the component instance */
-  get location(): ElementRef { return this._element; }
+  get location(): ElementRef { return new ElementRef(this._view.rootNode); }
 
   /** The instance of the Component. */
-  get instance(): C { return this._component; }
+  get instance(): C { return this._view.context; }
 
   /** The component type. */
-  get componentType(): ClassType<C> { return <any>this._component.constructor; }
+  get componentType(): ClassType<C> { return <any>this.instance.constructor; }
+
+  get view(): AppView<C> { return this._view; }
 
   /** Allows you to trigger a parse on the DOM managed by this component. */
   parse() {

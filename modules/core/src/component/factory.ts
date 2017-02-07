@@ -4,14 +4,10 @@ import { ComponentRef } from './reference';
 import { Injector } from '../di/injector';
 import { resolveReflectiveProviders } from '../di/reflective_provider';
 import { ElementRef } from '../element_ref';
+import { AppView } from './view';
 
 export class ComponentFactory<C> {
-
-  private _componentType: ClassType<C>;
-
-  constructor(componentType: ClassType<C>) {
-    this._componentType = componentType;
-  }
+  constructor(private _viewClass: ClassType<AppView<C>>, private _componentType: ClassType<C>) { }
 
   get componentType(): ClassType<C> { return this._componentType; }
 
@@ -24,24 +20,9 @@ export class ComponentFactory<C> {
    *
    * @memberOf ComponentFactory
    */
-  create(injector: Injector, nativeElement: Element): ComponentRef<C> {
-    const type = this._componentType;
-
-    let provider = resolveReflectiveProviders([type])[0];
-    if (!provider.resolvedFactories.length) {
-      throw new NoFactoryForComponentError(type);
-    }
-    const resolved = provider.resolvedFactories[0];
-    const element = new ElementRef(nativeElement);
-    const deps = resolved.dependencies.map(d => {
-      if (d.key.token === ElementRef) {
-        return element;
-      }
-      return injector.get(d.key.token);
-    });
-
-    const component = resolved.factory(...deps);
-    return new ComponentRef(component, element);
+  create(rootSelectorOrNode: string|any, injector: Injector): ComponentRef<C> {
+    const view = new this._viewClass();
+    return view.create(rootSelectorOrNode, injector);
   }
 }
 
