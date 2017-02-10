@@ -1,11 +1,11 @@
 import {
   createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
-  InjectionToken, ClassType, ComponentFactory, ApplicationRef, Renderer,
+  InjectionToken, ClassType, ComponentFactory, ApplicationRef, RootRenderer,
   CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
 } from '../../core';
 import { ListWrapper, unimplemented } from '../../facade';
 import { DOCUMENT } from './tokens';
-import { DomRenderer } from './dom_renderer';
+import { DomRootRenderer } from './dom_renderer';
 import { Compiler } from './compiler';
 import { DomTraverser } from './dom_traverser';
 
@@ -15,7 +15,7 @@ export class BrowserPlatformRef extends PlatformRef {
   private _destroyListeners: Function[] = [];
 
   constructor(private _injector: Injector, private _resolver: ComponentResolver,
-  private _renderer: Renderer, private _compiler: Compiler) {
+    private _compiler: Compiler) {
     super();
     console.time('mojito bootstrap');
   }
@@ -28,7 +28,7 @@ export class BrowserPlatformRef extends PlatformRef {
     const resolver = this._compiler.componentFactoryResolver;
     const appInjector = ReflectiveInjector.resolveAndCreate([
       { provide: ComponentFactoryResolver, useValue: resolver },
-      ApplicationRef
+      ApplicationRef,
     ], this._injector);
     const app = appInjector.get(ApplicationRef) as ApplicationRef;
     app.bootstrap(component);
@@ -51,10 +51,9 @@ export class BrowserPlatformRef extends PlatformRef {
 
 export const PLATFORM_PROVIDERS = [
   { provide: PlatformRef, useClass: BrowserPlatformRef },
-  { provide: Renderer, useClass: DomRenderer },
+  { provide: RootRenderer, useClass: DomRootRenderer },
   { provide: DOCUMENT, useValue: document },
   Compiler,
-  DomTraverser
 ];
 
 export const platformBrowser = createPlatformFactory([PLATFORM_PROVIDERS, CORE_PROVIDERS]);

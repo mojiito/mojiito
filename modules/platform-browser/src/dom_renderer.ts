@@ -1,18 +1,52 @@
-import { Renderer, RootRenderer,  Inject, Injectable } from '../../core';
+import { Renderer, RootRenderer,  Inject, Injectable, AppView } from '../../core';
 import { isPresent, stringify } from '../../facade';
 import { DOCUMENT } from './tokens';
+import { DomTraverser } from './dom_traverser';
 
 @Injectable()
-export class DomRenderer implements Renderer {
+export abstract class DomRootRenderer implements RootRenderer {
+  protected registeredComponents = new Map<Element, DomRenderer>();
 
   constructor(@Inject(DOCUMENT) public document: Document) {}
 
-  render() {
+  renderComponent(elementOrSelector: Element | string): Renderer {
+    let element = elementOrSelector as Element;
+    if (typeof elementOrSelector === 'string') {
+      element = this.selectRootElement(elementOrSelector);
+    }
+    let renderer = this.registeredComponents.get(element);
+    if (!renderer) {
+      renderer = new DomRenderer(this, element);
+      this.registeredComponents.set(element, renderer);
+    }
+    return renderer;
+  }
 
+  selectRootElement(selector: string): Element {
+    const el = this.document.querySelector(selector);
+    if (!el) {
+      throw new Error(`The selector "${selector}" did not match any elements`);
+    }
+    return el;
+  }
+}
+
+export class DomRenderer implements Renderer {
+
+  constructor(private _rootRenderer: DomRootRenderer, private _element: Element) { }
+
+  get location(): Element { return this._element; }
+
+  parse(element: Element) {
+    // this._traverser.traverse(element, )
+  }
+
+  selectRootElement(selector: string): Element {
+    return this._rootRenderer.selectRootElement(selector);
   }
 
   selectElements(selector: string): Element[] {
-    const elements = this.document.querySelectorAll(selector);
+    const elements = this._element.querySelectorAll(selector);
     return Array.prototype.slice.call(elements);
   }
 

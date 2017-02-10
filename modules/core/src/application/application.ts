@@ -26,7 +26,8 @@ import { getPlatform } from './platform';
 @Injectable()
 export class ApplicationRef {
 
-  private _rootComponentTypes: ClassType<any>[];
+  private _rootComponents: ComponentRef<any>[] = [];
+  private _rootComponentTypes: ClassType<any>[] = [];
   private _views: AppView<any>[] = [];
 
   constructor(public injector: Injector, private _resolver: ComponentResolver,
@@ -34,10 +35,6 @@ export class ApplicationRef {
 
 
   bootstrap<C>(componentOrFactory: ClassType<C> | ComponentFactory<C>): ComponentRef<C> {
-    // if (this._componentFactoryResolver) {
-    //   throw new AlreadyBootstrappedError();
-    // }
-
     let componentFactory: ComponentFactory<C>;
     if (componentOrFactory instanceof ComponentFactory) {
       componentFactory = componentOrFactory;
@@ -48,7 +45,12 @@ export class ApplicationRef {
     this._rootComponentTypes.push(componentFactory.componentType);
     const ref = componentFactory.create(metadata.selector, this.injector);
     this._views.push(ref.view);
+    ref.parse();
     return ref;
+  }
+
+  _loadComponent(componentRef: ComponentRef<any>): void {
+    this._rootComponents.push(componentRef);
   }
 
 }

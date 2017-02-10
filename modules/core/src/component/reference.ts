@@ -2,6 +2,7 @@ import { ClassType } from '../type';
 import { unimplemented } from '../facade';
 import { ElementRef } from '../element_ref';
 import { AppView } from './view';
+import { Injector } from '../di/injector';
 
 /**
  * Represents an instance of a Component created via a ComponentFactory.
@@ -14,11 +15,14 @@ import { AppView } from './view';
  */
 export class ComponentRef<C> {
 
-  constructor(private _view: AppView<C>) {
+  constructor(private _view: AppView<C>, private _nativeElement: any) {
   }
 
   /** Location of the component instance */
-  get location(): ElementRef { return new ElementRef(this._view.rootNode); }
+  get location(): ElementRef { return new ElementRef(this._nativeElement); }
+
+  /** The injector on which the component instance exists. */
+  get injector(): Injector { return this._view.injector; }
 
   /** The instance of the Component. */
   get instance(): C { return this._view.context; }
@@ -30,7 +34,7 @@ export class ComponentRef<C> {
 
   /** Allows you to trigger a parse on the DOM managed by this component. */
   parse() {
-    throw unimplemented();
+    this._view.parse();
   }
 
   /** Destroys the component instance and all of the data structures associated with it. */

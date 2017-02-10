@@ -21,7 +21,7 @@ export class ComponentFactory<C> {
    * @memberOf ComponentFactory
    */
   create(rootSelectorOrNode: string|any, injector: Injector): ComponentRef<C> {
-    const view = new this._viewClass();
+    const view = new this._viewClass(null);
     return view.create(rootSelectorOrNode, injector);
   }
 }

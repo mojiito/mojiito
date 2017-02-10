@@ -1,5 +1,7 @@
 export abstract class Renderer {
-  abstract render(): void;
+  abstract location: any;
+  abstract parse(element: any): void;
+  abstract selectRootElement(selector: string): any;
   abstract selectElements(selector: string): any[];
   abstract createElement(parentElement: any, name: string): any;
   abstract createText(parentElement: any, value: string): any;
@@ -13,5 +15,6 @@ export abstract class Renderer {
 }
 
 export abstract class RootRenderer {
-  abstract renderComponent(): Renderer;
+  abstract selectRootElement(selector: string): any;
+  abstract renderComponent(elementOrSelector: Element | string): Renderer;
 }

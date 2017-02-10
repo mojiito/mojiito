@@ -1,17 +1,24 @@
 import {
   ComponentFactory, ClassType, Component, ComponentResolver, Injectable,
-  AppView, Renderer, ComponentRef, ComponentFactoryResolver,
-  resolveReflectiveProviders, ElementRef
+  AppView, Renderer, RootRenderer, ComponentRef, ComponentFactoryResolver,
+  resolveReflectiveProviders, ElementRef, Injector, ApplicationRef
 } from '../../core';
 import { stringify, ListWrapper } from '../../facade';
 import { CssSelector, SelectorMatcher } from './selector';
-import { DomVisitor } from './dom_visitor';
+import { Visitor, DomVisitor } from './dom_visitor';
+import { DomRenderer } from './dom_renderer';
+import { DomTraverser } from './dom_traverser';
+
+export class ComponentCompiledResult<C> {
+  constructor(public componentType: ClassType<C>, public viewClass: ClassType<AppView<C>>,
+    public matcher: SelectorMatcher, public visitor: Visitor) { }
+}
 
 @Injectable()
 export class Compiler {
   private _results = new Map<ClassType<any>, ComponentCompiledResult<any>>();
 
-  constructor(private _resolver: ComponentResolver, private _renderer: Renderer) { }
+  constructor(private _resolver: ComponentResolver) { }
 
   get componentFactoryResolver() {
     const factories: ComponentFactory<any>[] = [];
@@ -31,35 +38,38 @@ export class Compiler {
 
   compileComponent<C>(component: ClassType<C>): ComponentCompiledResult<C> {
     const metadata = this._resolver.resolve(component);
-    let selector = metadata.selector;
+    const matcher = new SelectorMatcher();
+    matcher.addSelectables(CssSelector.parse(metadata.selector));
 
-    let visitor: DomVisitor;
+    let visitor: Visitor = null;
     if (metadata.components) {
       let compiled = this.compileComponents(ListWrapper.flatten(metadata.components));
       visitor = new DomVisitor(compiled);
+      compiled.forEach(c => {
+        if (!c.visitor) {
+          c.visitor = visitor;
+        }
+      });
     }
-    const matcher = new SelectorMatcher();
-    matcher.addSelectables(CssSelector.parse(selector));
+    const viewClass = this._compileView(component);
     const result =
-      new ComponentCompiledResult(this._compileView(component, this._renderer), matcher, visitor);
+      new ComponentCompiledResult(component, viewClass, matcher, visitor);
     this._results.set(component, result);
     return result;
   }
 
-  private _compileView<C>(component: ClassType<C>, _renderer: Renderer): ClassType<AppView<C>> {
+  private _compileView<C>(component: ClassType<C>): ClassType<AppView<C>> {
+    const compiler = this;
     return class extends AppView<C> {
-      renderer = _renderer;
-      rootNode: Element;
+      private _ref: ComponentRef<C>;
+      renderer: Renderer;
       clazz = component;
 
-      createInternal(rootSelectorOrNode: string | any): ComponentRef<C> {
-        if (typeof rootSelectorOrNode === 'string') {
-          const elements = this.renderer.selectElements(rootSelectorOrNode);
-          if (!elements.length) return;
-          this.rootNode = elements[0];
-        } else if (rootSelectorOrNode instanceof Element) {
-          this.rootNode = rootSelectorOrNode;
-        }
+      createInternal(rootSelectorOrNode: string | Element): ComponentRef<C> {
+        let rootRenderer =
+          this._parentInjector.get(RootRenderer);
+        let renderer = rootRenderer.renderComponent(rootSelectorOrNode);
+        this.renderer = renderer;
 
         let provider = resolveReflectiveProviders([component])[0];
         if (!provider.resolvedFactories.length) {
@@ -67,65 +77,31 @@ export class Compiler {
             `No factory found.`);
         }
         const resolved = provider.resolvedFactories[0];
-        const deps = resolved.dependencies.map(d => {
-          if (d.key.token === ElementRef) {
-            return this.rootNode;
-          }
-          return this.injector.get(d.key.token);
-        });
+        const deps = resolved.dependencies.map(d => this.get(d.key.token));
         this.context = resolved.factory(...deps);
-        return new ComponentRef(this);
+        const ref = this._ref = new ComponentRef(this, renderer.location);
+        return ref;
+      }
+
+      parseInternal(): void {
+        const visitor = compiler.get(this.clazz).visitor;
+        const traverser = new DomTraverser();
+        traverser.traverse(this.renderer.location, visitor, this._ref);
+      }
+
+      getInternal(token: any, notFoundValue?: any): any {
+        if (token === Injector) {
+          return this;
+        }
+        if (token === ElementRef) {
+          return new ElementRef(this.renderer.location);
+        }
+        if (token === Renderer) {
+          return this.renderer;
+        }
+        return this._parentInjector.get(token, notFoundValue);
       }
     };
   }
 
 }
-
-export class ComponentCompiledResult<C> {
-  constructor(public viewClass: ClassType<AppView<C>>, public matcher: SelectorMatcher,
-    public visitor?: DomVisitor) { }
-
-  visitElement(element: Element) {
-    // this.factory.create()
-  }
-}
-
-// Check if a selector is specified in the metadata.
-    // Every directive must have a selector
-// if (typeof selector !== 'string')
-//   throw new Error(`The component ${stringify(component)} has no ` +
-//     `selector specified in the metadata!`);
-
-// selector = selector.trim();
-
-// if (selector.indexOf(' ') !== -1) {
-//   throw new Error(`The selector of the component ${stringify(component)} does ` +
-//     `cross element boundaries which is not allowed.`);
-// }
-
-// if (!selector.match(/^([a-z#\-\.\[\]\=\"\']*)+$/)) {
-//   throw new Error(`The selector of the component ${stringify(component)} is not valid.`);
-// }
-
-// let selectorList =
-//   selector.split('.').join(' .').split('#').join(' #').split('[').join(' [').trim().split(' ');
-
-// for (let i = 0, max = selectorList.length; i < max; i++) {
-//   let selectorPart = selectorList[i];
-//   if (!selectorPart.length) {
-//     continue;
-//   }
-
-//   if (!/^\w+(-\w+)*$/.test(selectorPart)) {
-//     continue;
-//   }
-
-//   // Check if the selector contains element names whicht are not allowed
-//   // eg. custom elements without a "-" in it
-//   if (document.createElement(selectorPart) instanceof HTMLUnknownElement &&
-//     !/^\w+(-\w+)+$/.test(selectorPart)) {
-//     throw new Error(`The selector "${selector}" of the component contains an element ` +
-//       `name "${selectorPart}" which is not allowed.
-//       If you are using a custom element, there has to be a "-" char in it. E.g.: my-component`);
-//   }
-// }
