@@ -1,13 +1,16 @@
 import {
   ComponentFactory, ClassType, Component, ComponentResolver, Injectable,
   AppView, Renderer, RootRenderer, ComponentRef, ComponentFactoryResolver,
-  resolveReflectiveProviders, ElementRef, Injector, ApplicationRef
+  resolveReflectiveProviders, ElementRef, Injector, ApplicationRef, Provider,
+  ReflectiveInjector
 } from '../../core';
 import { stringify, ListWrapper } from '../../facade';
 import { CssSelector, SelectorMatcher } from './selector';
 import { Visitor, DomVisitor } from './dom_visitor';
 import { DomRenderer } from './dom_renderer';
 import { DomTraverser } from './dom_traverser';
+
+const UNDEFINED = new Object();
 
 export class ComponentCompiledResult<C> {
   constructor(public componentType: ClassType<C>, public viewClass: ClassType<AppView<C>>,
@@ -51,15 +54,19 @@ export class Compiler {
         }
       });
     }
-    const viewClass = this._compileView(component);
+    const viewClass = this._compileView(component, metadata.providers);
     const result =
       new ComponentCompiledResult(component, viewClass, matcher, visitor);
     this._results.set(component, result);
     return result;
   }
 
-  private _compileView<C>(component: ClassType<C>): ClassType<AppView<C>> {
+  private _compileView<C>(component: ClassType<C>, providers?: Provider[]): ClassType<AppView<C>> {
     const compiler = this;
+    let internalInjector: Injector;
+    if (providers) {
+      internalInjector = ReflectiveInjector.resolveAndCreate(providers);
+    }
     return class extends AppView<C> {
       private _ref: ComponentRef<C>;
       renderer: Renderer;
@@ -77,7 +84,7 @@ export class Compiler {
             `No factory found.`);
         }
         const resolved = provider.resolvedFactories[0];
-        const deps = resolved.dependencies.map(d => this.get(d.key.token));
+        const deps = resolved.dependencies.map(d => this.getInternal(d.key.token));
         this.context = resolved.factory(...deps);
         const ref = this._ref = new ComponentRef(this, renderer.location);
         return ref;
@@ -99,7 +106,14 @@ export class Compiler {
         if (token === Renderer) {
           return this.renderer;
         }
-        return this._parentInjector.get(token, notFoundValue);
+        let result = UNDEFINED;
+        if (internalInjector) {
+          result = internalInjector.get(token, UNDEFINED);
+        }
+        if (result === UNDEFINED) {
+          result = this._parentInjector.get(token, notFoundValue);
+        }
+        return result;
       }
     };
   }
