@@ -32,6 +32,7 @@ export {
 export { reflector, Reflector } from './src/reflection/reflection';
 export * from './src/type';
 export * from './src/render';
+export * from './src/benchmark'
 
 export const CORE_PROVIDERS: Provider[] = [
   { provide: ReflectorReader, useValue: reflector },

@@ -1,7 +1,7 @@
 import {
-  createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
+  createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider, Optional,
   InjectionToken, ClassType, ComponentFactory, ApplicationRef, RootRenderer,
-  CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
+  CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver, Benchmark
 } from '../../core';
 import { ListWrapper, unimplemented } from '../../facade';
 import { DOCUMENT } from './tokens';
@@ -15,7 +15,7 @@ export class BrowserPlatformRef extends PlatformRef {
   private _destroyListeners: Function[] = [];
 
   constructor(private _injector: Injector, private _resolver: ComponentResolver,
-    private _compiler: Compiler) {
+    private _compiler: Compiler, @Optional() private _bench: Benchmark) {
     super();
     console.time('mojito bootstrap');
   }
@@ -24,6 +24,10 @@ export class BrowserPlatformRef extends PlatformRef {
   get destroyed(): boolean { return this._destroyed; }
 
   bootstrapComponent<C>(component: ClassType<C>): void {
+    let bootstrapTask: any;
+    if (this._bench) {
+      bootstrapTask = this._bench.startTask('bootstrap');
+    }
     const compiled = this._compiler.compileComponent(component);
     const resolver = this._compiler.componentFactoryResolver;
     const appInjector = ReflectiveInjector.resolveAndCreate([
@@ -32,6 +36,10 @@ export class BrowserPlatformRef extends PlatformRef {
     ], this._injector);
     const app = appInjector.get(ApplicationRef) as ApplicationRef;
     app.bootstrap(component);
+    if (bootstrapTask) {
+      const result = this._bench.endTask(bootstrapTask);
+      this._bench.log(result);
+    }
     console.timeEnd('mojito bootstrap');
   }
 
