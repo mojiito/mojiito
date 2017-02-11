@@ -11,5 +11,4 @@ It takes many usefull core concepts provided by Angular, like Dependency Injecti
 
 ## Status
 We currently working very hard on developing the new Version 1.0 completely rewritten in TypeScript.    
-If you want to use the older Version 0.5.5 (ES&) go to the [master branch](https://github.com/thomaspink/mojito.js/tree/master).
-
+If you want to use the older Version 0.5.5 (ES5) it is available in the releases section.
