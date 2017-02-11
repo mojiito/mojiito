@@ -29,7 +29,7 @@ export class CssSelector {
         selector.addAttribute(attr.name.trim(), attr.value.trim());
       }
     });
-    ListWrapper.forEach(element.classList, (c: string) => selector.classNames.push(c));
+    ListWrapper.forEach(element.classList, (c: string) => selector.addClassName(c));
     return selector;
   }
 
