@@ -17,7 +17,6 @@ export class BrowserPlatformRef extends PlatformRef {
   constructor(private _injector: Injector, private _resolver: ComponentResolver,
     private _compiler: Compiler) {
     super();
-    console.time('mojito bootstrap');
   }
 
   get injector(): Injector { return this._injector; }
@@ -32,7 +31,6 @@ export class BrowserPlatformRef extends PlatformRef {
     ], this._injector);
     const app = appInjector.get(ApplicationRef) as ApplicationRef;
     app.bootstrap(component);
-    console.timeEnd('mojito bootstrap');
   }
 
   onDestroy(callback: () => void): void {
