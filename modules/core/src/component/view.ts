@@ -8,14 +8,14 @@ export abstract class AppView<C> implements Injector {
   abstract renderer: Renderer;
   abstract clazz: ClassType<C>;
   context: C;
-  protected _parentInjector: Injector;
+  protected _hostInjector: Injector;
 
   constructor(public parentView: AppView<any>) { }
 
   get injector(): Injector { return this; }
 
   create(rootSelectorOrNode: string | any, injector: Injector): ComponentRef<any> {
-    this._parentInjector = injector;
+    this._hostInjector = injector;
     if (rootSelectorOrNode) {
       return this.createInternal(rootSelectorOrNode);
     }

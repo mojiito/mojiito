@@ -43,6 +43,10 @@ export class Compiler {
     const metadata = this._resolver.resolve(component);
     const matcher = new SelectorMatcher();
     matcher.addSelectables(CssSelector.parse(metadata.selector));
+    let injector = null;
+    if (metadata.providers) {
+      injector = ReflectiveInjector.resolveAndCreate(metadata.providers);
+    }
 
     let visitor: Visitor = null;
     if (metadata.components) {
@@ -54,27 +58,22 @@ export class Compiler {
         }
       });
     }
-    const viewClass = this._compileView(component, metadata.providers);
+    const viewClass = this._compileView(component, injector);
     const result =
       new ComponentCompiledResult(component, viewClass, matcher, visitor);
     this._results.set(component, result);
     return result;
   }
 
-  private _compileView<C>(component: ClassType<C>, providers?: Provider[]): ClassType<AppView<C>> {
+  private _compileView<C>(component: ClassType<C>, injector: Injector): ClassType<AppView<C>> {
     const compiler = this;
-    let internalInjector: Injector;
-    if (providers) {
-      internalInjector = ReflectiveInjector.resolveAndCreate(providers);
-    }
     return class extends AppView<C> {
       private _ref: ComponentRef<C>;
       renderer: Renderer;
       clazz = component;
 
       createInternal(rootSelectorOrNode: string | Element): ComponentRef<C> {
-        let rootRenderer =
-          this._parentInjector.get(RootRenderer);
+        let rootRenderer = this.getInternal(RootRenderer) as RootRenderer;
         let renderer = rootRenderer.renderComponent(rootSelectorOrNode);
         this.renderer = renderer;
 
@@ -90,13 +89,13 @@ export class Compiler {
         return ref;
       }
 
-      parseInternal(): void {
+      protected parseInternal(): void {
         const visitor = compiler.get(this.clazz).visitor;
         const traverser = new DomTraverser();
         traverser.traverse(this.renderer.location, visitor, this._ref);
       }
 
-      getInternal(token: any, notFoundValue?: any): any {
+      protected getInternal(token: any, notFoundValue?: any): any {
         if (token === Injector) {
           return this;
         }
@@ -107,11 +106,14 @@ export class Compiler {
           return this.renderer;
         }
         let result = UNDEFINED;
-        if (internalInjector) {
-          result = internalInjector.get(token, UNDEFINED);
+        if (injector) {
+          result = injector.get(token, UNDEFINED);
         }
         if (result === UNDEFINED) {
-          result = this._parentInjector.get(token, notFoundValue);
+          result = this._hostInjector.get(token, this.parentView ? UNDEFINED : notFoundValue);
+        }
+        if (this.parentView) {
+          result = this.parentView.get(token, notFoundValue);
         }
         return result;
       }
