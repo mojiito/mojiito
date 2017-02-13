@@ -4,3 +4,4 @@
 
 ## Topics
 * [Getting Started](./getting-started.md)
+* [Components](./components.md)
