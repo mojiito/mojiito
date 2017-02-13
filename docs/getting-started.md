@@ -22,7 +22,7 @@ export class AppComponent {
 
 ```typescript
 import {plattformBrowser} from 'mojito';
-import {AppComponent} from 'app.component.ts`;
+import {AppComponent} from 'app.component.ts';
 
 platformBrowser().bootstrapComponent(AppComponent);
 ```
