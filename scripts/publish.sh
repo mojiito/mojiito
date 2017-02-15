@@ -10,4 +10,5 @@ do
   DESTDIR=${PWD}/dist/packages-dist/${PACKAGE}
   cd $DESTDIR
   npm publish
+  cd ../../../
 done
