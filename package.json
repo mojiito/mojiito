@@ -15,7 +15,8 @@
   "main": "index.ts",
   "scripts": {
     "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'",
-    "build": "./build.sh"
+    "build": "./scripts/build.sh",
+    "publish": "npm run build && ./scripts/publish.sh"
   },
   "devDependencies": {
     "rollup": "^0.41.4",
