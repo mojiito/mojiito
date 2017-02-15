@@ -6,6 +6,12 @@ BUNDLE=true
 VERSION_PREFIX=$(node -p "require('./package.json').version")
 VERSION_SUFFIX="-$(git log --oneline -1 | awk '{print $1}')"
 
+bold=$(tput bold)
+normal=$(tput sgr0)
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
 echo $VERSION_PREFIX
 echo $VERSION_SUFFIX
 
@@ -21,11 +27,11 @@ for ARG in "$@"; do
   esac
 done
 
-echo "====== LINTING ====="
+echo "====== ${bold}LINTING${normal} ====="
 npm run lint
 
 VERSION="${VERSION_PREFIX}${VERSION_SUFFIX}"
-echo "====== BUILDING: Version ${VERSION} ====="
+echo "====== ${bold}BUILDING${normal}: Version ${VERSION} ====="
 
 rm -rf ./dist/packages-dist
 
@@ -41,13 +47,17 @@ do
   UMD_ES5_MIN_PATH=${DESTDIR}/bundles/${PACKAGE}.umd.min.js
   rm -rf ${DESTDIR}
 
-  echo "======      COMPILING: ${TSC} -p ${SRCDIR}/tsconfig-build.json        ====="
+  echo ""
+  echo "====== ${bold}PACKAGE: ${green}${PACKAGE}${normal} ====="
+
+  echo "====== ${bold}COMPILING${normal}: ${TSC} -p ${SRCDIR}/tsconfig-build.json ====="
   $TSC -p ${SRCDIR}/tsconfig-build.json
 
   cp ${SRCDIR}/package.json ${DESTDIR}/
+  cp ${PWD}/modules/README.md ${DESTDIR}/
 
   if [[ ${BUNDLE} == true ]]; then
-    echo "======      BUNDLING: ${SRCDIR} ====="
+    echo "====== ${bold}BUNDLING${normal}: ${SRCDIR} ====="
     mkdir ${DESTDIR}/bundles
 
     (
@@ -60,9 +70,9 @@ do
   fi
 
   (
-    echo "======      VERSION: Updating version references"
+    echo "====== ${bold}VERSION${normal}: Updating version references"
     cd ${DESTDIR}
-    echo "======       EXECUTE: perl -p -i -e \"s/0\.0\.0\-PLACEHOLDER/${VERSION}/g\" $""(grep -ril 0\.0\.0\-PLACEHOLDER .)"
+    echo "====== ${bold}EXECUTE${normal}: perl -p -i -e \"s/0\.0\.0\-PLACEHOLDER/${VERSION}/g\" $""(grep -ril 0\.0\.0\-PLACEHOLDER .)"
     perl -p -i -e "s/0\.0\.0\-PLACEHOLDER/${VERSION}/g" $(grep -ril 0\.0\.0\-PLACEHOLDER .) < /dev/null 2> /dev/null
   )
 done
