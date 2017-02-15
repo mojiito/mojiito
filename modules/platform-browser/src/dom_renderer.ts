@@ -1,4 +1,4 @@
-import { Renderer, RootRenderer,  Inject, Injectable, AppView } from '@mojiito/core';
+import { Renderer, RootRenderer,  Inject, Injectable, AppView } from 'mojiito-core';
 import { isPresent, stringify } from './facade/lang';
 import { DOCUMENT } from './tokens';
 import { DomTraverser } from './dom_traverser';
@@ -7,7 +7,7 @@ import { DomTraverser } from './dom_traverser';
 export abstract class DomRootRenderer implements RootRenderer {
   protected registeredComponents = new Map<AppView<any>, DomRenderer>();
 
-  constructor(@Inject(DOCUMENT) public document: Document) {}
+  constructor(@Inject(DOCUMENT) public document: any) {}
 
   renderComponent(view: AppView<any>): Renderer {
     let renderer = this.registeredComponents.get(view);

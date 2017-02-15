@@ -1,6 +1,6 @@
 import { CssSelector, SelectorMatcher } from './selector';
 import { ComponentCompiledResult } from './compiler';
-import { Injector, AppView, ComponentRef, ApplicationRef, ClassType } from '@mojiito/core';
+import { Injector, AppView, ComponentRef, ApplicationRef, ClassType } from 'mojiito-core';
 import { WrappedError } from './facade/error';
 import { stringify } from './facade/lang';
 
