@@ -1,4 +1,4 @@
-import { Renderer, RootRenderer,  Inject, Injectable, AppView } from '@mojito/core';
+import { Renderer, RootRenderer,  Inject, Injectable, AppView } from '@mojiito/core';
 import { isPresent, stringify } from './facade/lang';
 import { DOCUMENT } from './tokens';
 import { DomTraverser } from './dom_traverser';

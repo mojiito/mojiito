@@ -18,7 +18,7 @@ import {reflector} from '../reflection/reflection';
 import { getPlatform } from './platform';
 
 /**
- * This is a reference of a Mojito Application.
+ * This is a reference of a Mojiito Application.
  *
  * @export
  * @class ApplicationRef

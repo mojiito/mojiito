@@ -2,15 +2,15 @@
 <h1 align="center">
   <a href="http://standardjs.com"><img src="https://avatars0.githubusercontent.com/u/20876637?v=3&s=260" width="180">  </a>
   <br>
-  Mojito
+  Mojiito
   <br>
   <br>
 </h1>
-Mojito is a JavaScript framework, heavily inspired by Angular, which brings the benefits of components, services, ... to your (static) website.
+Mojiito is a JavaScript framework, heavily inspired by Angular, which brings the benefits of components, services, ... to your (static) website.
 It takes many usefull core concepts provided by Angular, like Dependency Injection or the component architecture, and makes it accessible through an Angular like API.
 
-## What Mojito is NOT
-Mojito is not a JavaScript framework for Web Applications. Use Angular, Ember, React, ... instead. Mojito shines when used on your website where your DOM is already in place.
+## What Mojiito is NOT
+Mojiito is not a JavaScript framework for Web Applications. Use Angular, Ember, React, ... instead. Mojiito shines when used on your website where your DOM is already in place.
 
 ## Status
 We currently working very hard on developing the new Version 1.0 completely rewritten in TypeScript.    

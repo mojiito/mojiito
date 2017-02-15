@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "outDir": "../../dist/packages-dist/platform-browser",
     "paths": {
-      "@mojito/core": ["../../dist/packages-dist/core"]
+      "@mojiito/core": ["../../dist/packages-dist/core"]
     },
     "rootDir": ".",
     "sourceMap": true,

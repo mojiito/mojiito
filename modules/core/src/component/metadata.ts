@@ -16,7 +16,7 @@ export interface Component {
   /**
    * The CSS selector that triggers the instantiation of a directive.
    *
-   * Mojito only allows components to trigger on CSS selectors that do not cross element
+   * Mojiito only allows components to trigger on CSS selectors that do not cross element
    * boundaries.
    *
    * `selector` may be declared as one of the following:
@@ -39,7 +39,7 @@ export interface Component {
    * Defines a list of components which belong to this component and
    * can be instantiated.
    *
-   * When creating this component, mojito will look for them in the
+   * When creating this component, mojiito will look for them in the
    * DOM and create them if found.
    */
   components?: any[] | any[][];

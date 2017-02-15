@@ -1,13 +1,13 @@
 {
-  "name": "mojito",
-  "description": "Mojito is a JavaScript framework, heavily inspired by Angular and Ember, which brings the benefits of components, services, ... to your (static) website.",
-  "author": "Mojito Team",
+  "name": "mojiito",
+  "description": "Mojiito is a JavaScript framework, heavily inspired by Angular and Ember, which brings the benefits of components, services, ... to your (static) website.",
+  "author": "Mojiito Team",
   "version": "2.0.0-alpha.2",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mojito-js/mojito"
+    "url": "https://github.com/mojiito-js/mojiito"
   },
-  "bugs": "https://github.com/mojito-js/mojito/issues",
+  "bugs": "https://github.com/mojiito-js/mojiito/issues",
   "license": "MIT",
   "engines": {
     "node": ">= 5.4.1"
