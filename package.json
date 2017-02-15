@@ -14,7 +14,8 @@
   },
   "main": "index.ts",
   "scripts": {
-    "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'"
+    "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'",
+    "build": "./build.sh"
   },
   "devDependencies": {
     "rollup": "^0.41.4",
