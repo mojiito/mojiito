@@ -23,6 +23,7 @@
     "uglifyjs": "^2.4.10"
   },
   "dependencies": {
+    "core-js": "^2.4.1",
     "reflect-metadata": "^0.1.9"
   }
 }
