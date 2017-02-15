@@ -5,6 +5,6 @@
   <br>
   <br>
 </h1>
-The sources for this package are in the main [Mojiito](https://github.com/mojiito-js/mojiito) repo. Please file issues and pull requests against that repo.
+The sources for this package are in the main [Mojiito](https://github.com/mojiito/mojiito) repo. Please file issues and pull requests against that repo.
 
 License: MIT

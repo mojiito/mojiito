@@ -3,7 +3,7 @@
 ## Install
 The latest release of Mojiito can be installed using npm:     
 
-`npm install --save git+https://github.com/mojiito-js/mojiito.git`    
+`npm install --save git+https://github.com/mojiito/mojiito.git`    
 **Note**: We will move Mojiito in its own npm package soon.
 
 ## Quickstart
