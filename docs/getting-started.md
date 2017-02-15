@@ -3,7 +3,7 @@
 ## Install
 The latest release of Mojiito can be installed using npm:     
 
-`npm install --save git+https://github.com/mojiito/mojiito.git`    
+`npm install --save mojiito-core mojiito-platform-browser`
 **Note**: We will move Mojiito in its own npm package soon.
 
 ## Quickstart
@@ -11,7 +11,7 @@ The latest release of Mojiito can be installed using npm:     
 Create you first Component. This component is the start of your application and will be used for bootstrapping.
 
 ```typescript
-import {Component} from 'mojiito';
+import {Component} from 'mojiito-core';
 
 @Component({
   selector: 'body'
@@ -21,7 +21,7 @@ export class AppComponent {
 ```
 
 ```typescript
-import {plattformBrowser} from 'mojiito';
+import {plattformBrowser} from 'mojiito-platform-browser';
 import {AppComponent} from 'app.component.ts';
 
 platformBrowser().bootstrapComponent(AppComponent);
