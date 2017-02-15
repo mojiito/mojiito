@@ -21,6 +21,9 @@ for ARG in "$@"; do
   esac
 done
 
+echo "====== LINTING ====="
+npm run lint
+
 VERSION="${VERSION_PREFIX}${VERSION_SUFFIX}"
 echo "====== BUILDING: Version ${VERSION} ====="
 
