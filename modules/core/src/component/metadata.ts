@@ -42,7 +42,7 @@ export interface Component {
    * When creating this component, mojito will look for them in the
    * DOM and create them if found.
    */
-  components?: ClassType<any>[] | ClassType<any>[][];
+  components?: any[] | any[][];
 }
 
 /** Component decorator and metadata. */
