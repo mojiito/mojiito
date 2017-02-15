@@ -7,16 +7,15 @@
     "module": "es2015",
     "moduleResolution": "node",
     "outDir": "../../dist/packages-dist/platform-browser",
+    "paths": {
+      "@mojito/core": ["../../dist/packages-dist/core"]
+    },
     "rootDir": ".",
     "sourceMap": true,
     "inlineSources": true,
     "target": "es5",
     "lib": ["es2015", "dom"],
-    "skipLibCheck": true,
-    "types": [],
-    "paths": {
-      "@mojito/core": ["../../dist/packages-dist/core"]
-    }
+    "skipLibCheck": true
   },
   "files": [
     "index.ts"
