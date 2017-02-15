@@ -8,6 +8,12 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "lib": ["es5", "dom", "es2015"],
-    "target": "es5"
+    "target": "es5",
+    "paths": {
+      "@mojito/*": ["./*"]
+    },
+    "outDir": "../dist/all/",
+    "rootDir": ".",
+    "inlineSourceMap": true
   }
 }

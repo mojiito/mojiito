@@ -1,3 +1,3 @@
-import { InjectionToken } from '../../core';
+import { InjectionToken } from '@mojito/core';
 
 export const DOCUMENT = new InjectionToken<Document>('DocumentToken');

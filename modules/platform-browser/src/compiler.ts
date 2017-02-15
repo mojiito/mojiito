@@ -3,7 +3,7 @@ import {
   AppView, Renderer, RootRenderer, ComponentRef, ComponentFactoryResolver,
   resolveReflectiveProviders, ElementRef, Injector, ApplicationRef, Provider,
   ReflectiveInjector
-} from '../../core';
+} from '@mojito/core';
 
 import { ListWrapper } from './facade/collection';
 import { stringify } from './facade/lang';

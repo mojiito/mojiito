@@ -2,7 +2,7 @@ import {
   createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
   InjectionToken, ClassType, ComponentFactory, ApplicationRef, RootRenderer,
   CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
-} from '../../core';
+} from '@mojito/core';
 import { unimplemented } from './facade/error';
 import { ListWrapper } from './facade/collection';
 import { DOCUMENT } from './tokens';
