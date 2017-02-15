@@ -1,5 +1,5 @@
 import { ClassType } from '../type';
-import { unimplemented } from '../facade';
+import { unimplemented } from '../facade/error';
 import { ElementRef } from '../element_ref';
 import { AppView } from './view';
 import { Injector } from '../di/injector';

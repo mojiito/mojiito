@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import { BaseError, WrappedError } from '../facade';
-import { stringify } from '../facade';
+import { BaseError, WrappedError } from '../facade/error';
+import { stringify } from '../facade/lang';
 import { ClassType } from '../type';
 
 import { ReflectiveInjector } from './reflective_injector';

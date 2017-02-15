@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import { global, isPresent, stringify } from '../facade';
+import { global, isPresent, stringify } from '../facade/lang';
 import { ClassType } from '../type';
 
 import { PlatformReflectionCapabilities } from './platform_reflection_capabilities';

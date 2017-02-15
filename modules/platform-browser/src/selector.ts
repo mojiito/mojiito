@@ -1,4 +1,4 @@
-import { ListWrapper } from '../../facade';
+import { ListWrapper } from './facade/collection';
 
 const _SELECTOR_REGEXP = new RegExp(
   '(\\:not\\()|' +           // ":not("

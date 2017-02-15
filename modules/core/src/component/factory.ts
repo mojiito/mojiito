@@ -1,5 +1,6 @@
 import { ClassType } from '../type';
-import { BaseError, stringify } from '../facade';
+import { BaseError } from '../facade/error';
+import { stringify } from '../facade/lang';
 import { ComponentRef } from './reference';
 import { Injector } from '../di/injector';
 import { resolveReflectiveProviders } from '../di/reflective_provider';

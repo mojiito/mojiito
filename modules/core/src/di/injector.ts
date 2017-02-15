@@ -1,4 +1,4 @@
-import { stringify } from '../facade';
+import { stringify } from '../facade/lang';
 import { ClassType } from '../type';
 import { InjectionToken } from './injection_token';
 

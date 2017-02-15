@@ -1,5 +1,5 @@
-import { BaseError } from '../facade';
-import { stringify } from '../facade';
+import { BaseError } from '../facade/error';
+import { stringify } from '../facade/lang';
 import { ClassType } from '../type';
 
 export class InvalidComponentTypeError extends BaseError {

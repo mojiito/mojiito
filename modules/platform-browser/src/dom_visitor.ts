@@ -1,7 +1,8 @@
 import { CssSelector, SelectorMatcher } from './selector';
 import { ComponentCompiledResult } from './compiler';
 import { Injector, AppView, ComponentRef, ApplicationRef, ClassType } from '../../core';
-import { stringify, WrappedError } from '../../facade';
+import { WrappedError } from './facade/error';
+import { stringify } from './facade/lang';
 
 export interface Visitor {
   visitElement(element: Element, context: AppView<any>): any;

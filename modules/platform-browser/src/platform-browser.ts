@@ -3,7 +3,8 @@ import {
   InjectionToken, ClassType, ComponentFactory, ApplicationRef, RootRenderer,
   CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
 } from '../../core';
-import { ListWrapper, unimplemented } from '../../facade';
+import { unimplemented } from './facade/error';
+import { ListWrapper } from './facade/collection';
 import { DOCUMENT } from './tokens';
 import { DomRootRenderer } from './dom_renderer';
 import { Compiler } from './compiler';

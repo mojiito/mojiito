@@ -1,5 +1,5 @@
 import { Renderer, RootRenderer,  Inject, Injectable, AppView } from '../../core';
-import { isPresent, stringify } from '../../facade';
+import { isPresent, stringify } from './facade/lang';
 import { DOCUMENT } from './tokens';
 import { DomTraverser } from './dom_traverser';
 

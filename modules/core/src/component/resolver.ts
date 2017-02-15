@@ -1,4 +1,5 @@
-import { ListWrapper, stringify } from '../facade';
+import { ListWrapper } from '../facade/collection';
+import { stringify } from '../facade/lang';
 import { ClassType } from '../type';
 import { Component } from './metadata';
 import { reflector } from '../reflection/reflection';

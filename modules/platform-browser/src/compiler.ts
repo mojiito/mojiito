@@ -4,7 +4,9 @@ import {
   resolveReflectiveProviders, ElementRef, Injector, ApplicationRef, Provider,
   ReflectiveInjector
 } from '../../core';
-import { stringify, ListWrapper } from '../../facade';
+
+import { ListWrapper } from './facade/collection';
+import { stringify } from './facade/lang';
 import { CssSelector, SelectorMatcher } from './selector';
 import { Visitor, DomVisitor } from './dom_visitor';
 import { DomRenderer } from './dom_renderer';

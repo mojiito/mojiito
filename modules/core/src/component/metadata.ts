@@ -1,7 +1,7 @@
 // tslint:disable:variable-name
 
 import { makeDecorator, TypeDecorator } from '../utils/decorator';
-import { stringify } from '../facade';
+import { stringify } from '../facade/lang';
 import { ClassType } from '../type';
 import { Provider } from '../di/provider';
 
