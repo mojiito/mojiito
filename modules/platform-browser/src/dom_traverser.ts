@@ -28,7 +28,7 @@ export class DomTraverser {
     // Check if context has changed and look up the corresponding
     // NodeVisitor if available
     if (!!ctx && ctx !== context) {
-      visitor = visitor.get(ctx);
+      visitor = visitor.getVisitorForContext(ctx);
     } else {
       // Traverse through all the attributes of the node
       // if it is type of Element

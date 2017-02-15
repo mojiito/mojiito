@@ -5,10 +5,12 @@ import { ClassType } from '../type';
 import { ElementRef } from '../element_ref';
 
 export abstract class AppView<C> implements Injector {
+  public nestedViews: AppView<any>[] = [];
+  public nativeElement: any;
+  protected _hostInjector: Injector;
   abstract renderer: Renderer;
   abstract clazz: ClassType<C>;
   context: C;
-  protected _hostInjector: Injector;
 
   constructor(public parentView: AppView<any>) { }
 
@@ -27,6 +29,19 @@ export abstract class AppView<C> implements Injector {
 
   get(token: any, notFoundValue?: any): any {
     return this.getInternal(token, notFoundValue);
+  }
+
+  attachView(view: AppView<any>, viewIndex: number) {
+    let nestedViews = this.nestedViews;
+    if (!Array.isArray(nestedViews)) {
+      nestedViews = [];
+      this.nestedViews = nestedViews;
+    }
+    if (viewIndex >= nestedViews.length) {
+      nestedViews.push(view);
+    } else {
+      nestedViews.splice(viewIndex, 0, view);
+    }
   }
 
   protected abstract createInternal(rootSelectorOrNode: string | any): ComponentRef<any>;

@@ -5,19 +5,15 @@ import { DomTraverser } from './dom_traverser';
 
 @Injectable()
 export abstract class DomRootRenderer implements RootRenderer {
-  protected registeredComponents = new Map<Element, DomRenderer>();
+  protected registeredComponents = new Map<AppView<any>, DomRenderer>();
 
   constructor(@Inject(DOCUMENT) public document: Document) {}
 
-  renderComponent(elementOrSelector: Element | string): Renderer {
-    let element = elementOrSelector as Element;
-    if (typeof elementOrSelector === 'string') {
-      element = this.selectRootElement(elementOrSelector);
-    }
-    let renderer = this.registeredComponents.get(element);
+  renderComponent(view: AppView<any>): Renderer {
+    let renderer = this.registeredComponents.get(view);
     if (!renderer) {
-      renderer = new DomRenderer(this, element);
-      this.registeredComponents.set(element, renderer);
+      renderer = new DomRenderer(this, view);
+      this.registeredComponents.set(view, renderer);
     }
     return renderer;
   }
@@ -33,12 +29,10 @@ export abstract class DomRootRenderer implements RootRenderer {
 
 export class DomRenderer implements Renderer {
 
-  constructor(private _rootRenderer: DomRootRenderer, private _element: Element) { }
+  constructor(private _rootRenderer: DomRootRenderer, private _view: AppView<any>) { }
 
-  get location(): Element { return this._element; }
-
-  parse(element: Element) {
-    // this._traverser.traverse(element, )
+  parse() {
+    this._view.parse();
   }
 
   selectRootElement(selector: string): Element {
@@ -46,7 +40,7 @@ export class DomRenderer implements Renderer {
   }
 
   selectElements(selector: string): Element[] {
-    const elements = this._element.querySelectorAll(selector);
+    const elements = this._view.nativeElement.querySelectorAll(selector);
     return Array.prototype.slice.call(elements);
   }
 

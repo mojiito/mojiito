@@ -42,15 +42,12 @@ export class ApplicationRef {
       componentFactory = this._componentFactoryResolver.resolveComponentFactory(componentOrFactory);
     }
     const metadata = this._resolver.resolve(componentFactory.componentType);
-    this._rootComponentTypes.push(componentFactory.componentType);
     const ref = componentFactory.create(metadata.selector, this.injector);
     this._views.push(ref.view);
+    this._rootComponents.push(ref);
+    this._rootComponentTypes.push(componentFactory.componentType);
     ref.parse();
     return ref;
-  }
-
-  _loadComponent(componentRef: ComponentRef<any>): void {
-    this._rootComponents.push(componentRef);
   }
 
 }

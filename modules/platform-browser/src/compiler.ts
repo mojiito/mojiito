@@ -74,7 +74,12 @@ export class Compiler {
 
       createInternal(rootSelectorOrNode: string | Element): ComponentRef<C> {
         let rootRenderer = this.getInternal(RootRenderer) as RootRenderer;
-        let renderer = rootRenderer.renderComponent(rootSelectorOrNode);
+        let element = rootSelectorOrNode as Element;
+        if (typeof rootSelectorOrNode === 'string') {
+          element = rootRenderer.selectRootElement(rootSelectorOrNode);
+        }
+        this.nativeElement = element;
+        let renderer = rootRenderer.renderComponent(this);
         this.renderer = renderer;
 
         let provider = resolveReflectiveProviders([component])[0];
@@ -85,14 +90,14 @@ export class Compiler {
         const resolved = provider.resolvedFactories[0];
         const deps = resolved.dependencies.map(d => this.getInternal(d.key.token));
         this.context = resolved.factory(...deps);
-        const ref = this._ref = new ComponentRef(this, renderer.location);
+        const ref = this._ref = new ComponentRef(this, this.nativeElement);
         return ref;
       }
 
       protected parseInternal(): void {
         const visitor = compiler.get(this.clazz).visitor;
         const traverser = new DomTraverser();
-        traverser.traverse(this.renderer.location, visitor, this._ref);
+        traverser.traverse(this.nativeElement, visitor, this);
       }
 
       protected getInternal(token: any, notFoundValue?: any): any {
@@ -100,7 +105,7 @@ export class Compiler {
           return this;
         }
         if (token === ElementRef) {
-          return new ElementRef(this.renderer.location);
+          return new ElementRef(this.nativeElement);
         }
         if (token === Renderer) {
           return this.renderer;
@@ -109,10 +114,11 @@ export class Compiler {
         if (injector) {
           result = injector.get(token, UNDEFINED);
         }
-        if (result === UNDEFINED) {
+
+        if (result === UNDEFINED && this._hostInjector) {
           result = this._hostInjector.get(token, this.parentView ? UNDEFINED : notFoundValue);
         }
-        if (this.parentView) {
+        if (result === UNDEFINED && this.parentView) {
           result = this.parentView.get(token, notFoundValue);
         }
         return result;
