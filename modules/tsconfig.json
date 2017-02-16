@@ -10,7 +10,7 @@
     "lib": ["es5", "dom", "es2015"],
     "target": "es5",
     "paths": {
-      "@mojiito/*": ["./*"]
+      "mojiito-*": ["./*"]
     },
     "outDir": "../dist/all/",
     "rootDir": ".",
