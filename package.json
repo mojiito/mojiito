@@ -19,9 +19,10 @@
     "publish": "npm run build && ./scripts/publish.sh"
   },
   "devDependencies": {
+    "@angular/tsc-wrapped": "^0.5.2",
     "rollup": "^0.41.4",
     "tslint": "^4.4.2",
-    "typescript": "^2.1.5",
+    "typescript": "2.0.2",
     "uglifyjs": "^2.4.10"
   },
   "dependencies": {

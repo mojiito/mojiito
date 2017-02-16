@@ -39,7 +39,8 @@ for PACKAGE in ${PACKAGES[@]}
 do
   PWD=`pwd`
   UGLIFYJS=`pwd`/node_modules/.bin/uglifyjs
-  TSC="./node_modules/typescript/bin/tsc"
+  # TSC="./node_modules/typescript/bin/tsc"
+  TSC="node --max-old-space-size=3000 ./node_modules/@angular/tsc-wrapped/src/main"
   ROLLUP="../../node_modules/rollup/bin/rollup"
   SRCDIR=${PWD}/modules/${PACKAGE}
   DESTDIR=${PWD}/dist/packages-dist/${PACKAGE}

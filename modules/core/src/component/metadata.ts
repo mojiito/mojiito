@@ -45,7 +45,11 @@ export interface Component {
   components?: any[] | any[][];
 }
 
-/** Component decorator and metadata. */
+/**
+ * Component decorator and metadata.
+ *
+ * @Annotation
+ */
 export const Component: ComponentDecorator = <ComponentDecorator>makeDecorator('Component', {
   selector: undefined,
   providers: undefined,
