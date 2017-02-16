@@ -2,7 +2,7 @@
   "name": "mojiito",
   "description": "Mojiito is a JavaScript framework, heavily inspired by Angular and Ember, which brings the benefits of components, services, ... to your (static) website.",
   "author": "Mojiito Team",
-  "version": "2.0.0-alpha.2",
+  "version": "2.0.0-alpha.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/mojiito/mojiito"
