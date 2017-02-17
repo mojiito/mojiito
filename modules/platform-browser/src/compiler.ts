@@ -50,6 +50,9 @@ export class Compiler {
       injector = ReflectiveInjector.resolveAndCreate(metadata.providers);
     }
 
+    // TODO
+    // Always compile a visitor even if no sub components are there
+    // Issue: #38
     let visitor: Visitor = null;
     if (metadata.components) {
       let compiled = this.compileComponents(ListWrapper.flatten(metadata.components));
