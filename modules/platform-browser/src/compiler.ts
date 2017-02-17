@@ -98,8 +98,10 @@ export class Compiler {
 
       protected parseInternal(): void {
         const visitor = compiler.get(this.clazz).visitor;
-        const traverser = new DomTraverser();
-        traverser.traverse(this.nativeElement, visitor, this);
+        if (visitor) {
+          const traverser = new DomTraverser();
+          traverser.traverse(this.nativeElement, visitor, this);
+        }
       }
 
       protected getInternal(token: any, notFoundValue?: any): any {
