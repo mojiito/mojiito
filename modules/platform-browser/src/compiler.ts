@@ -45,7 +45,7 @@ export class Compiler {
     const metadata = this._resolver.resolve(component);
     const matcher = new SelectorMatcher();
     matcher.addSelectables(CssSelector.parse(metadata.selector));
-    let injector = null;
+    let injector: Injector = null;
     if (metadata.providers) {
       injector = ReflectiveInjector.resolveAndCreate(metadata.providers);
     }
