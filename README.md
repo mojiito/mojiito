@@ -15,3 +15,9 @@ Mojiito is not a JavaScript framework for Web Applications. Use Angular, Ember, 
 ## Status
 We currently working very hard on developing the new Version 1.0 completely rewritten in TypeScript.    
 If you want to use the older Version 0.5.5 (ES5) it is available in the releases section.
+
+## Install
+Run `npm install --save mojiito-core mojiito-platform-browser` in your command line.
+
+## Getting Started & Documentation
+Visit the [Getting Started](docs/getting-started.md) guide and [Documentation](docs/README.md)
