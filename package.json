@@ -12,7 +12,6 @@
   "engines": {
     "node": ">= 5.4.1"
   },
-  "main": "index.ts",
   "scripts": {
     "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'",
     "build": "./scripts/build.sh",
