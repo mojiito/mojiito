@@ -13,8 +13,7 @@ It takes many usefull core concepts provided by Angular, like Dependency Injecti
 Mojiito is not a JavaScript framework for Web Applications. Use Angular, Ember, React, ... instead. Mojiito shines when used on your website where your DOM is already in place.
 
 ## Status
-We currently working very hard on developing the new Version 1.0 completely rewritten in TypeScript.    
-If you want to use the older Version 0.5.5 (ES5) it is available in the releases section.
+We currently working very hard on developing the new Version 2.0 completely rewritten in TypeScript. Mojiito is right now in Alpha State (2.0.0-alpha.3).
 
 ## Install
 Run `npm install --save mojiito-core mojiito-platform-browser` in your command line.
