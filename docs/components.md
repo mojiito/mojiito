@@ -11,4 +11,6 @@ export class AppComponent {
 }
 ```
 
-As you can see we have declared a normal javascript class called `AppComponent`. To transform this class into a component we need to wrap with a `Component` decorator function. This `@Component` function takes a metadata object as a parameter which enhances the class with additional information Mojiito needs create instances.
+As you can see we have declared a normal javascript class called `AppComponent`. To transform this class into a component we need to it wrap with a `Component` decorator function. This `@Component` function takes a metadata object as a parameter which enhances the class with additional information Mojiito needs create instances.
+
+The most basic metadata object has a `selector` property. Mojiito uses it to finde matching elements in the DOM and then creates a component instance on it. Every component needs a least a `selector`, the other metadata properties are optional.
