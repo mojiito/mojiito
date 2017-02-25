@@ -13,12 +13,15 @@
     "node": ">= 5.4.1"
   },
   "scripts": {
-    "lint": "node_modules/tslint/bin/tslint -c ./tslint.json 'modules/**/*.ts'",
+    "lint": "node_modules/.bin/tslint -c ./tslint.json 'modules/**/*.ts'",
     "build": "./scripts/build.sh",
-    "publish": "npm run build && ./scripts/publish.sh"
+    "publish": "npm run build && ./scripts/publish.sh",
+    "build-playground": "./scripts/build-playground.sh",
+    "serve-playground": "npm run build-playground && cd dist/playground && ../../node_modules/.bin/http-server"
   },
   "devDependencies": {
     "@angular/tsc-wrapped": "^0.5.2",
+    "http-server": "^0.9.0",
     "rollup": "^0.41.4",
     "tslint": "^4.4.2",
     "typescript": "2.0.2",
