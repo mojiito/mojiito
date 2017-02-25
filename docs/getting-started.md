@@ -25,9 +25,12 @@ import {AppComponent} from 'app.component.ts';
 platformBrowser().bootstrapComponent(AppComponent);
 ```
 
-For a better structure we recommend splitting components and the cody for bootstrapping into different files. For now we have two:
+For a better structure we recommend splitting components and the cody for bootstrapping into different files. Starting with those two:
 
 | Filename  | Description |
 | :--- | :--- |
 | `main.ts`  | Contains the method for bootstrapping the Mojiito application. Needs to import the app component.  |
 | `app.component.ts`  | Top level component. Used for bootstrapping the application. All other components are declared in this or a sub component  |
+
+## Next Chapter
+[→ Components](components.md)
