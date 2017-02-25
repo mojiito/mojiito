@@ -17,7 +17,7 @@
     "build": "./scripts/build.sh",
     "publish": "npm run build && ./scripts/publish.sh",
     "build-playground": "./scripts/build-playground.sh",
-    "serve-playground": "npm run build-playground && cd dist/playground && ../../node_modules/.bin/http-server"
+    "serve-playground": "npm run build-playground -- --serve"
   },
   "devDependencies": {
     "@angular/tsc-wrapped": "^0.5.2",
