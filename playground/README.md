@@ -6,7 +6,7 @@
 
 ## Troubleshooting
 
-### Error `listen EADDRINUSE 0.0.0.0:4200`
+#### Error `listen EADDRINUSE 0.0.0.0:4200`
 Sometimes if you start the server the following Error occurs: `Error: listen EADDRINUSE 0.0.0.0:4200`.
 This happens if there is already a server running on Port `4200` or you didn't quit the process correctly (e.g. Ctrl+Z instead of Ctrl+C).    
 You can check for running processes on this port by executing `lsof -i tcp:4200 ` in your command line tool.    
