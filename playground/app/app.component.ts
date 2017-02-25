@@ -1,7 +1,10 @@
 import { Component } from 'mojiito-core';
 
+import { DialogComponent } from './dialog.component';
+
 @Component({
-  selector: 'body'
+  selector: 'body',
+  components: [ DialogComponent ]
 })
 export class AppComponent {
   constructor() {
