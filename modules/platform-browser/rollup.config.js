@@ -4,7 +4,7 @@ export default {
   format: 'umd',
   moduleName: 'mj.platformBrowser',
   globals: {
-    '@angular/core': 'mj.core'
+    'mojiito-core': 'mj.core'
   },
   context: 'this'
 }
