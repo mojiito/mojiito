@@ -27,7 +27,8 @@ export class DomVisitor implements Visitor {
         context.nestedViews.filter(v => v.nativeElement === element).length) {
         return context;
       }
-      const ref = this._createComponent(element, context, matching[0]);
+      const compiled = matching[0];
+      const ref = this._createComponent(element, context, compiled);
       return ref.view;
     }
   }

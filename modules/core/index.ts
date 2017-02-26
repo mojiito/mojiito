@@ -1,5 +1,5 @@
 import { ComponentResolver } from './src/component/resolver';
-import { reflector } from './src/reflection/reflection';
+import { reflector, Reflector } from './src/reflection/reflection';
 import { ReflectorReader } from './src/reflection/reflector_reader';
 import {
   Provider, ClassProvider, ExistingProvider,
@@ -8,7 +8,7 @@ import {
 
 export { createPlatformFactory, getPlatform, PlatformRef } from './src/application/platform';
 export { ApplicationRef } from './src/application/application';
-export { Component } from './src/component/metadata';
+export { Component, HostListener, ChildListener } from './src/component/metadata';
 export { ComponentResolver };
 export { ComponentFactory } from './src/component/factory';
 export { ComponentFactoryResolver } from './src/component/factory_resolver';
@@ -29,7 +29,7 @@ export {
   ReflectiveDependency, ResolvedReflectiveFactory, ResolvedReflectiveProvider,
   ResolvedReflectiveProvider_, resolveReflectiveProviders, mergeResolvedReflectiveProviders
 } from './src/di/reflective_provider';
-export { reflector, Reflector } from './src/reflection/reflection';
+export { reflector, ReflectorReader, Reflector }
 export * from './src/type';
 export * from './src/render';
 

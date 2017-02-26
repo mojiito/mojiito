@@ -25,6 +25,18 @@ export abstract class DomRootRenderer implements RootRenderer {
     }
     return el;
   }
+
+  getGlobalEventTarget(target: string): any {
+    if (target === 'window') {
+      return window;
+    }
+    if (target === 'document') {
+      return this.document;
+    }
+    if (target === 'body') {
+      return this.document.body;
+    }
+  }
 }
 
 export class DomRenderer implements Renderer {
@@ -60,9 +72,17 @@ export class DomRenderer implements Renderer {
     return node;
   }
 
-  listen(element: Element, eventName: string, handler: Function): Function {
-    element.addEventListener(eventName, handler as any, false);
-    return () => element.removeEventListener(eventName, handler as any, false);
+  listen(element: Element, name: string, handler: Function): Function {
+    element.addEventListener(name, handler as any, false);
+    return () => element.removeEventListener(name, handler as any, false);
+  }
+
+  listenGlobal(target: string, name: string, handler: Function): Function {
+    const element = this._rootRenderer.getGlobalEventTarget(target);
+    if (!element) {
+      throw new Error(`Unsupported event target ${target} for event ${name}`);
+    }
+    return this.listen(element, name, handler);
   }
 
   setElementProperty(element: Element | DocumentFragment, propertyName: string,

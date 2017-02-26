@@ -2,9 +2,9 @@ import {
   ComponentFactory, ClassType, Component, ComponentResolver, Injectable,
   AppView, Renderer, RootRenderer, ComponentRef, ComponentFactoryResolver,
   resolveReflectiveProviders, ElementRef, Injector, ApplicationRef, Provider,
-  ReflectiveInjector
+  ReflectiveInjector, ReflectorReader, HostListener, ChildListener
 } from 'mojiito-core';
-
+import { ComponentCompileResult } from './compile_result';
 import { ListWrapper } from './facade/collection';
 import { stringify } from './facade/lang';
 import { CssSelector, SelectorMatcher } from './selector';
@@ -23,7 +23,7 @@ export class ComponentCompiledResult<C> {
 export class Compiler {
   private _results = new Map<ClassType<any>, ComponentCompiledResult<any>>();
 
-  constructor(private _resolver: ComponentResolver) { }
+  constructor(private _resolver: ComponentResolver, private _reflector: ReflectorReader) { }
 
   get componentFactoryResolver() {
     const factories: ComponentFactory<any>[] = [];
@@ -49,6 +49,38 @@ export class Compiler {
     if (metadata.providers) {
       injector = ReflectiveInjector.resolveAndCreate(metadata.providers);
     }
+    const viewClass = this._compileView(component, injector);
+
+    let props = this._reflector.propMetadata(component);
+    let hostListeners: {[key: string]: string};
+    const childListeners: any[] = [];
+
+    for (var handler in props) {
+      if (props.hasOwnProperty(handler)) {
+        ListWrapper.forEach(props[handler], obj => {
+          if (obj instanceof HostListener) {
+            if (!hostListeners) {
+              hostListeners = {};
+            }
+            if (hostListeners[obj.eventName]) {
+              throw new Error(`Multible host listeners with the event name ` +
+                `'${obj.eventName}' are declared in the component '${stringify(component)}'`);
+            }
+            hostListeners[obj.eventName] = handler;
+          }else if (obj instanceof ChildListener) {
+          }
+        });
+      }
+    }
+
+    const l = new ComponentCompileResult<C>({
+      componentFactory: new ComponentFactory(viewClass, component),
+      hostListeners: hostListeners,
+      providers: metadata.providers,
+      selector: metadata.selector,
+      type: component
+    });
+    console.log(l);
 
     // TODO
     // Always compile a visitor even if no sub components are there
@@ -63,7 +95,6 @@ export class Compiler {
         }
       });
     }
-    const viewClass = this._compileView(component, injector);
     const result =
       new ComponentCompiledResult(component, viewClass, matcher, visitor);
     this._results.set(component, result);

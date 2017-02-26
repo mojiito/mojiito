@@ -22,6 +22,7 @@ export abstract class Renderer {
    * @memberOf Renderer
    */
   abstract listen(element: any, name: string, callback: Function): Function;
+  abstract listenGlobal(target: string, name: string, callback: Function): Function;
   abstract setElementProperty(element: any, propertyName: string, propertyValue: any): void;
   abstract setElementAttribute(element: any, attributeName: string, attributeValue: string): void;
   abstract setElementClass(element: any, className: string, isAdd: boolean): void;
@@ -33,4 +34,5 @@ export abstract class Renderer {
 export abstract class RootRenderer {
   abstract selectRootElement(selector: string): any;
   abstract renderComponent(view: AppView<any>): Renderer;
+  abstract getGlobalEventTarget(target: string): any;
 }

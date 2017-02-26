@@ -1,6 +1,6 @@
 // tslint:disable:variable-name
 
-import { makeDecorator, TypeDecorator } from '../utils/decorator';
+import { makeDecorator, TypeDecorator, makePropDecorator } from '../utils/decorator';
 import { stringify } from '../facade/lang';
 import { ClassType } from '../type';
 import { Provider } from '../di/provider';
@@ -55,3 +55,51 @@ export const Component: ComponentDecorator = <ComponentDecorator>makeDecorator('
   providers: undefined,
   components: undefined
 });
+
+
+/** Type of the HostListener decorator / constructor function. */
+export interface HostListenerDecorator {
+  /** Declares a host listener. */
+  (eventName: string, args?: string[]): any;
+  new (eventName: string, args?: string[]): any;
+}
+
+/** Type of the HostListener metadata. */
+export interface HostListener {
+  eventName?: string;
+  args?: string[];
+}
+
+/**
+ * HostListener decorator and metadata.
+ *
+ * @Annotation
+ */
+export const HostListener: HostListenerDecorator =
+    makePropDecorator('HostListener', [['eventName', undefined], ['args', []]]);
+
+/** Type of the ChildListener decorator / constructor function. */
+export interface ChildListenerDecorator {
+  /** Declares a Child listener. */
+  (selector: string, eventName: string, args?: string[]): any;
+  new (selector: string, eventName: string, args?: string[]): any;
+}
+
+/** Type of the ChildListener metadata. */
+export interface ChildListener {
+  selector?: string;
+  eventName?: string;
+  args?: string[];
+}
+
+/**
+ * ChildListener decorator and metadata.
+ *
+ * @Annotation
+ */
+export const ChildListener: ChildListenerDecorator =
+    makePropDecorator('ChildListener', [
+      ['selector', undefined],
+      ['eventName', undefined],
+      ['args', []]
+    ]);
