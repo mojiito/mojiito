@@ -9,6 +9,8 @@ import { DOCUMENT } from './tokens';
 import { DomRootRenderer } from './dom_renderer';
 import { Compiler } from './compiler';
 import { DomTraverser } from './dom_traverser';
+import { ExpressionParser } from './expression/expression';
+import { BindingParser } from './binding_parser';
 
 @Injectable()
 export class BrowserPlatformRef extends PlatformRef {
@@ -51,8 +53,11 @@ export class BrowserPlatformRef extends PlatformRef {
 export const PLATFORM_PROVIDERS = [
   { provide: PlatformRef, useClass: BrowserPlatformRef },
   { provide: RootRenderer, useClass: DomRootRenderer },
+  { provide: RootRenderer, useClass: DomRootRenderer },
   { provide: DOCUMENT, useValue: document },
   Compiler,
+  ExpressionParser,
+  BindingParser
 ];
 
 export const platformBrowser = createPlatformFactory([PLATFORM_PROVIDERS, CORE_PROVIDERS]);

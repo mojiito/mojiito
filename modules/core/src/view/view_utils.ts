@@ -1,7 +1,7 @@
-import { AppView } from './view';
+import { View } from './view';
 import { Renderer } from '../render';
 
-export function subscribeToElement(view: AppView<any>, element: any,
+export function subscribeToElement(view: View<any>, element: any,
   eventNamesAndTargets: string[], listener: (eventName: string, event: any) => any) {
   const disposables: Function[] = [];
   for (let i = 0; i < eventNamesAndTargets.length; i += 2) {

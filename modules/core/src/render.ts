@@ -1,38 +1,29 @@
-import { AppView } from './component/view';
-
 export abstract class Renderer {
-  abstract parse(): void;
-  abstract selectRootElement(selector: string): any;
-  abstract selectElements(selector: string): any[];
-  abstract createElement(parentElement: any, name: string): any;
-  /**
-   * Creates a new TextNode on the parentElement
-   * @param {*} parentElement
-   * @param {string} value
-   * @memberOf Renderer
-   */
-  abstract createText(parentElement: any, value: string): any;
-  /**
-   * Listens for an event on the element and calls callback
-   * function. Returns function for removing this listener.
-   * @param {*} element
-   * @param {string} name
-   * @param {Function} callback
-   * @returns {Function}
-   * @memberOf Renderer
-   */
-  abstract listen(element: any, name: string, callback: Function): Function;
-  abstract listenGlobal(target: string, name: string, callback: Function): Function;
-  abstract setElementProperty(element: any, propertyName: string, propertyValue: any): void;
-  abstract setElementAttribute(element: any, attributeName: string, attributeValue: string): void;
-  abstract setElementClass(element: any, className: string, isAdd: boolean): void;
-  abstract setElementStyle(element: any, styleName: string, styleValue: string): void;
-  abstract invokeElementMethod(element: any, methodName: string, args?: any[]): void;
-  abstract setText(renderNode: any, text: string): void;
+  abstract destroy(): void;
+  abstract createElement(name: string, namespace?: string): any;
+  abstract createComment(value: string): any;
+  abstract createText(value: string): any;
+  destroyNode: (node: any) => void | null;
+  abstract appendChild(parent: any, newChild: any): void;
+  abstract insertBefore(parent: any, newChild: any, refChild: any): void;
+  abstract removeChild(parent: any, oldChild: any): void;
+  abstract selectRootElement(selectorOrNode: string|any): any;
+  abstract parentNode(node: any): any;
+  abstract nextSibling(node: any): any;
+  abstract setAttribute(el: any, name: string, value: string, namespace?: string): void;
+  abstract removeAttribute(el: any, name: string, namespace?: string): void;
+  abstract addClass(el: any, name: string): void;
+  abstract removeClass(el: any, name: string): void;
+  abstract setStyle(
+      el: any, style: string, value: any, hasVendorPrefix: boolean, hasImportant: boolean): void;
+  abstract removeStyle(el: any, style: string, hasVendorPrefix: boolean): void;
+  abstract setProperty(el: any, name: string, value: any): void;
+  abstract setValue(node: any, value: string): void;
+  abstract listen(
+      target: 'window'|'document'|'body'|any, eventName: string,
+      callback: (event: any) => boolean): () => void;
 }
 
-export abstract class RootRenderer {
-  abstract selectRootElement(selector: string): any;
-  abstract renderComponent(view: AppView<any>): Renderer;
-  abstract getGlobalEventTarget(target: string): any;
+export abstract class RendererFactory {
+  abstract createRenderer(hostElement?: any): Renderer;
 }

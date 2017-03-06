@@ -1,124 +1,122 @@
-import { Renderer, RootRenderer,  Inject, Injectable, AppView } from 'mojiito-core';
+import { Renderer, RendererFactory, Injectable } from 'mojiito-core';
 import { isPresent, stringify } from './facade/lang';
 import { DOCUMENT } from './tokens';
 import { DomTraverser } from './dom_traverser';
 
+export const NAMESPACE_URIS: { [ns: string]: string } = {
+  'xlink': 'http://www.w3.org/1999/xlink',
+  'svg': 'http://www.w3.org/2000/svg',
+  'xhtml': 'http://www.w3.org/1999/xhtml',
+  'xml': 'http://www.w3.org/XML/1998/namespace'
+};
+
+function getGlobalEventTarget(target: string): any {
+  if (target === 'window') {
+    return window;
+  }
+  if (target === 'document') {
+    return this.document;
+  }
+  if (target === 'body') {
+    return this.document.body;
+  }
+  return undefined;
+}
+
 @Injectable()
-export abstract class DomRootRenderer implements RootRenderer {
-  protected registeredComponents = new Map<AppView<any>, DomRenderer>();
+export class DomRendererFactory implements RendererFactory {
+  // private rendererByCompId = new Map<string, RendererV2>();
+  private defaultRenderer: Renderer;
 
-  constructor(@Inject(DOCUMENT) public document: any) {}
+  constructor() {
+    this.defaultRenderer = new DomRenderer();
+  };
 
-  renderComponent(view: AppView<any>): Renderer {
-    let renderer = this.registeredComponents.get(view);
-    if (!renderer) {
-      renderer = new DomRenderer(this, view);
-      this.registeredComponents.set(view, renderer);
-    }
-    return renderer;
-  }
-
-  selectRootElement(selector: string): Element {
-    const el = this.document.querySelector(selector);
-    if (!el) {
-      throw new Error(`The selector "${selector}" did not match any elements`);
-    }
-    return el;
-  }
-
-  getGlobalEventTarget(target: string): any {
-    if (target === 'window') {
-      return window;
-    }
-    if (target === 'document') {
-      return this.document;
-    }
-    if (target === 'body') {
-      return this.document.body;
-    }
+  createRenderer(element?: any): Renderer {
+    return this.defaultRenderer;
   }
 }
 
 export class DomRenderer implements Renderer {
 
-  constructor(private _rootRenderer: DomRootRenderer, private _view: AppView<any>) { }
-
-  parse() {
-    this._view.parse();
-  }
-
-  selectRootElement(selector: string): Element {
-    return this._rootRenderer.selectRootElement(selector);
-  }
-
-  selectElements(selector: string): Element[] {
-    const elements = this._view.nativeElement.querySelectorAll(selector);
-    return Array.prototype.slice.call(elements);
-  }
-
-  createElement(parent: Element | DocumentFragment, name: string): Element {
-    let el = document.createElement(name);
-    if (parent) {
-      parent.appendChild(el);
+  destroy(): void { }
+  createElement(name: string, namespace?: string): any {
+    if (namespace) {
+      return document.createElementNS(NAMESPACE_URIS[namespace], name);
     }
+    return document.createElement(name);
+  }
+  createComment(value: string): any { return document.createComment(value); }
+  createText(value: string): any { return document.createTextNode(value); }
+  destroyNode: null;
+  appendChild(parent: any, newChild: any): void { parent.appendChild(newChild); }
+  insertBefore(parent: any, newChild: any, refChild: any): void {
+    if (parent) {
+      parent.insertBefore(newChild, refChild);
+    }
+  }
+  removeChild(parent: any, oldChild: any): void {
+    if (parent) {
+      parent.removeChild(oldChild);
+    }
+  }
+  selectRootElement(selectorOrNode: string | any): any {
+    const el: any = selectorOrNode;
+    if (typeof selectorOrNode === 'string') {
+      document.querySelector(selectorOrNode);
+    }
+    if (!el) {
+      throw new Error(`The selector "${selectorOrNode}" did not match any elements`);
+    }
+    el.textContent = '';
     return el;
   }
-
-  createText(parentElement: Element | DocumentFragment, value: string): any {
-    const node = document.createTextNode(value);
-    if (parentElement) {
-      parentElement.appendChild(node);
-    }
-    return node;
-  }
-
-  listen(element: Element, name: string, handler: Function): Function {
-    element.addEventListener(name, handler as any, false);
-    return () => element.removeEventListener(name, handler as any, false);
-  }
-
-  listenGlobal(target: string, name: string, handler: Function): Function {
-    const element = this._rootRenderer.getGlobalEventTarget(target);
-    if (!element) {
-      throw new Error(`Unsupported event target ${target} for event ${name}`);
-    }
-    return this.listen(element, name, handler);
-  }
-
-  setElementProperty(element: Element | DocumentFragment, propertyName: string,
-    propertyValue: any): void {
-    (element as any)[propertyName] = propertyValue;
-  }
-
-  setElementAttribute(element: Element, attributeName: string, attributeValue: string): void {
-    if (isPresent(attributeValue)) {
-      element.setAttribute(attributeName, attributeValue);
+  parentNode(node: any): any { return node.parentNode; }
+  nextSibling(node: any): any { return node.nextSibling; }
+  setAttribute(el: any, name: string, value: string, namespace?: string): void {
+    if (namespace) {
+      el.setAttributeNS(NAMESPACE_URIS[namespace], namespace + ':' + name, value);
     } else {
-      element.removeAttribute(attributeName);
+      el.setAttribute(name, value);
     }
   }
-
-  setElementClass(element: Element, className: string, isAdd: boolean): void {
-    if (isAdd) {
-      element.classList.add(className);
+  removeAttribute(el: any, name: string, namespace?: string): void {
+    if (namespace) {
+      el.removeAttributeNS(NAMESPACE_URIS[namespace], name);
     } else {
-      element.classList.remove(className);
+      el.removeAttribute(name);
     }
   }
-
-  setElementStyle(element: HTMLElement, styleName: string, styleValue: string): void {
-    if (isPresent(styleValue)) {
-      (element.style as any)[styleName] = stringify(styleValue);
+  addClass(el: any, name: string): void { el.classList.add(name); }
+  removeClass(el: any, name: string): void { el.classList.remove(name); }
+  setStyle(el: any, style: string, value: any, hasVendorPrefix: boolean, hasImportant: boolean):
+    void {
+    if (hasVendorPrefix || hasImportant) {
+      el.style.setProperty(style, value, hasImportant ? 'important' : '');
     } else {
-      (element.style as any)[styleName] = '';
+      el.style[style] = value;
     }
   }
 
-  invokeElementMethod(element: Element, methodName: string, args: any[]): void {
-    (element as any)[methodName].apply(element, args);
+  removeStyle(el: any, style: string, hasVendorPrefix: boolean): void {
+    if (hasVendorPrefix) {
+      el.style.removeProperty(style);
+    } else {
+      // IE requires '' instead of null
+      el.style[style] = '';
+    }
   }
-
-  setText(renderNode: Text, text: string): void {
-    renderNode.nodeValue = text;
+  setProperty(el: any, name: string, value: any): void { el[name] = value; }
+  setValue(node: any, value: string): void { node.nodeValue = value; }
+  listen(target: 'window' | 'document' | 'body' | any, event: string,
+    callback: (event: any) => boolean): () => void {
+    if (typeof target === 'string') {
+      target = getGlobalEventTarget(target);
+      if (!target) {
+        throw new Error(`Unsupported event target ${target} for event ${name}`);
+      }
+    }
+    target.addEventListener(name, callback as any, false);
+    return () => target.removeEventListener(name, callback as any, false);
   }
 }

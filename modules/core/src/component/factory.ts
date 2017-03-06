@@ -4,11 +4,11 @@ import { stringify } from '../facade/lang';
 import { ComponentRef } from './reference';
 import { Injector } from '../di/injector';
 import { resolveReflectiveProviders } from '../di/reflective_provider';
-import { ElementRef } from '../element_ref';
-import { AppView } from './view';
+import { ElementRef } from '../view/element_ref';
+import { View } from '../view/view';
 
 export class ComponentFactory<C> {
-  constructor(private _viewClass: ClassType<AppView<C>>, private _componentType: ClassType<C>) { }
+  constructor(private _viewClass: ClassType<View>, private _componentType: ClassType<C>) { }
 
   get componentType(): ClassType<C> { return this._componentType; }
 
@@ -21,7 +21,7 @@ export class ComponentFactory<C> {
    *
    * @memberOf ComponentFactory
    */
-  create(rootSelectorOrNode: string|any, injector: Injector): ComponentRef<C> {
+  create(injector: Injector, rootSelectorOrNode: string|any): ComponentRef<C> {
     const view = new this._viewClass(null);
     return view.create(rootSelectorOrNode, injector);
   }

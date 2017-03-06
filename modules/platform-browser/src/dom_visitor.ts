@@ -3,6 +3,7 @@ import { ComponentCompiledResult } from './compiler';
 import { Injector, AppView, ComponentRef, ApplicationRef, ClassType } from 'mojiito-core';
 import { WrappedError } from './facade/error';
 import { stringify } from './facade/lang';
+import { ListWrapper } from './facade/collection';
 
 export interface Visitor {
   visitElement(element: Element, context: AppView<any>): any;
@@ -14,27 +15,31 @@ export interface Visitor {
 
 export class DomVisitor implements Visitor {
 
-  constructor(private _selectables: ComponentCompiledResult<any>[]) { }
+  constructor(components: ) { }
 
   visitElement(element: Element, context: AppView<any>): any {
-    const elSelector = CssSelector.fromElement(element);
-    const matching = this._selectables.filter(s => s.matcher.match(elSelector));
-    if (matching.length) {
-      if (matching.length > 1) {
-        throw new MultipleComponentsOnElementError(matching.map(c => c.componentType));
-      }
-      if (context.nestedViews && context.nestedViews.length &&
-        context.nestedViews.filter(v => v.nativeElement === element).length) {
-        return context;
-      }
-      const compiled = matching[0];
-      const ref = this._createComponent(element, context, compiled);
-      return ref.view;
-    }
+    // const elSelector = CssSelector.fromElement(element);
+    // const matching = this._selectables.filter(s => s.matcher.match(elSelector));
+    // if (matching.length) {
+    //   if (matching.length > 1) {
+    //     throw new MultipleComponentsOnElementError(matching.map(c => c.componentType));
+    //   }
+    //   if (context.nestedViews && context.nestedViews.length &&
+    //     context.nestedViews.filter(v => v.nativeElement === element).length) {
+    //     return context;
+    //   }
+    //   const compiled = matching[0];
+    //   const ref = this._createComponent(element, context, compiled);
+    //   return ref.view;
+    // }
+
+    ListWrapper.forEach(element.attributes, attr => {
+
+    });
   }
 
-  visitAttribute(element: Element, attr: Attr) { }
-  visitText(text: Text) { }
+  visitAttribute(element: Element, attr: Attr, context: AppView<any>) { }
+  visitText(text: Text, context: AppView<any>) { }
   visitComment(comment: Comment, context: AppView<any>) { }
 
   getVisitorForContext(context: AppView<any>): Visitor {

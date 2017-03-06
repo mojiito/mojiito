@@ -43,6 +43,16 @@ export interface Component {
    * DOM and create them if found.
    */
   components?: any[] | any[][];
+
+  /**
+   * Specify the events, actions, properties and attributes related to the host element.
+   */
+  host?: {[key: string]: string};
+
+  /**
+   * Specify the events, actions, properties and attributes related to child elements.
+   */
+  childs?: {[key: string]: string};
 }
 
 /**
@@ -53,7 +63,9 @@ export interface Component {
 export const Component: ComponentDecorator = <ComponentDecorator>makeDecorator('Component', {
   selector: undefined,
   providers: undefined,
-  components: undefined
+  components: undefined,
+  host: undefined,
+  childs: undefined,
 });
 
 

@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener } from 'mojiito-core';
 
 @Component({
-  selector: 'button'
+  selector: '[my-button]'
 })
 export class ButtonComponent {
 
