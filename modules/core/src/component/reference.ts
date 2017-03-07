@@ -43,7 +43,7 @@ export abstract class ComponentRef<C> {
   abstract onDestroy(callback: Function): void;
 }
 
-// tslint:disable-next-line
+// tslint:disable-next-line:class-name
 class ComponentRef_ extends ComponentRef<any> {
   constructor(private _view: View, private _viewRef: ViewRef, private _component: any) {
     super();
