@@ -1,48 +1,47 @@
-import { Renderer } from '../render';
+import { Renderer, RendererFactory } from '../render';
 import { ComponentRef } from '../component/reference';
 import { Injector } from '../di/injector';
 import { ClassType } from '../type';
 import { ElementRef } from '../view/element_ref';
 import { ViewContainerRef } from './view_container_ref';
+import { ViewData, ViewState, RootData } from './types';
 
-export abstract class View {
-  constructor(public parent: View, public context: any, public component: any, public root: any,
-    public renderer: Renderer, public node: any, public disposables: Function[]) { }
-
-  create(rootSelectorOrNode: string | any, injector: Injector) {
-    this.createInternal(rootSelectorOrNode);
-  }
-
-  parse() {
-    this.parseInternal();
-  }
-
-  get(token: any, notFoundValue?: any) {
-    this.getInternal(token, notFoundValue);
-  }
-
-  destroy() {
-    this.destroyInternal();
-  }
-
-  protected abstract createInternal(rootSelectorOrNode: string | any): ComponentRef<any>;
-  protected abstract parseInternal(): void;
-  protected abstract getInternal(token: any, notFoundValue?: any): any;
-  protected abstract destroyInternal(): any;
-}
-
-function createView(root: any, renderer: Renderer, parent: View,
-  type: ClassType<View>, node: any) {
-  const view = new type(parent, null, null, root, renderer, node, undefined);
+export function createRootView(injector: Injector, rootSelectorOrNode: string | any,
+  context?: any): ViewData {
+  const rendererFactory: RendererFactory = injector.get(RendererFactory);
+  const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
+  const view = createView(root, root.renderer, null, rootSelectorOrNode);
+  initView(view, context, context);
   return view;
 }
 
-function initView(view: View, component: any, context: any) {
+export function createView(root: RootData, renderer: Renderer,
+  parent: ViewData, rootSelectorOrNode: any): ViewData {
+  let node: any = rootSelectorOrNode;
+  if (typeof rootSelectorOrNode === 'string') {
+    node = renderer.selectRootElement(rootSelectorOrNode);
+  }
+  const view: ViewData = {
+    node,
+    root,
+    renderer,
+    parent,
+    viewContainerParent: undefined,
+    context: undefined,
+    component: undefined,
+    // tslint:disable:no-bitwise
+    state: ViewState.FirstCheck | ViewState.ChecksEnabled,
+    disposables: undefined
+  };
+  return view;
+}
+
+export function initView(view: ViewData, component: any, context: any) {
   view.component = component;
   view.context = context;
 }
 
-export function destroyView(view: View) {
+export function destroyView(view: ViewData) {
   // if (view.state & ViewState.Destroyed) {
   //   return;
   // }
@@ -54,5 +53,16 @@ export function destroyView(view: View) {
       view.disposables[i]();
     }
   }
-  // view.state |= ViewState.Destroyed;
+  view.state |= ViewState.Destroyed;
+}
+
+function createRootData(
+  injector: Injector, rendererFactory: RendererFactory, rootSelectorOrNode: any): RootData {
+  const renderer = rendererFactory.createRenderer(null);
+  return {
+    injector,
+    selectorOrNode: rootSelectorOrNode,
+    rendererFactory,
+    renderer
+  };
 }

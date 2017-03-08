@@ -1,9 +1,9 @@
 import { Injector } from '../di/injector';
-import { View } from './view';
+import { ViewData } from './types';
 
 // tslint:disable-next-line:class-name
 export class ViewInjector implements Injector {
-  constructor(private view: View, private elDef: any) {}
+  constructor(private view: ViewData) {}
 
   get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
     // const allowPrivateServices = (this.elDef.flags & NodeFlags.ComponentView) !== 0;
@@ -13,6 +13,6 @@ export class ViewInjector implements Injector {
   }
 }
 
-export function createViewInjector(view: View, elDef: any): Injector {
-  return new ViewInjector(view, elDef);
+export function createViewInjector(view: ViewData): Injector {
+  return new ViewInjector(view);
 }

@@ -1,4 +1,5 @@
-import { View, destroyView } from './view';
+import { destroyView } from './view';
+import { ViewData } from './types';
 import { ViewContainerRef } from './view_container_ref';
 import { ApplicationRef } from '../application/application';
 import { unimplemented } from '../facade/error';
@@ -24,11 +25,11 @@ export interface InternalViewRef extends ViewRef {
 
 // tslint:disable-next-line:class-name
 export class ViewRef_ implements InternalViewRef {
-  _view: View;
+  _view: ViewData;
   private _viewContainerRef: ViewContainerRef;
   private _appRef: ApplicationRef;
 
-  constructor(_view: View) {
+  constructor(_view: ViewData) {
     this._view = _view;
     this._viewContainerRef = null;
     this._appRef = null;

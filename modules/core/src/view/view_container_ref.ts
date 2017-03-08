@@ -1,6 +1,7 @@
 import { ViewRef, ViewRef_ } from './view_ref';
-import { View, destroyView } from './view';
+import { destroyView } from './view';
 import { ElementRef } from './element_ref';
+import { ViewData } from './types';
 import { Injector } from '../di/injector';
 import { ComponentFactory } from '../component/factory';
 import { ComponentRef } from '../component/reference';
@@ -90,9 +91,9 @@ export abstract class ViewContainerRef {
 class ViewContainerRef_ implements ViewContainerRef {
 
   renderElement: any;
-  embeddedViews: View[];
+  embeddedViews: ViewData[];
 
-  constructor(private _view: View) { }
+  constructor(private _view: ViewData) { }
 
   get anchorElement(): ElementRef { return new ElementRef(this.renderElement); }
   get injector(): Injector { return createViewInjector(this._view, null); }

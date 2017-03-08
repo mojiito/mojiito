@@ -5,25 +5,27 @@ import { ComponentRef } from './reference';
 import { Injector } from '../di/injector';
 import { resolveReflectiveProviders } from '../di/reflective_provider';
 import { ElementRef } from '../view/element_ref';
-import { View } from '../view/view';
+import { createRootView } from '../view/view';
 
-export class ComponentFactory<C> {
-  constructor(private _viewClass: ClassType<View>, private _componentType: ClassType<C>) { }
+const EMPTY_CONTEXT = new Object();
 
-  get componentType(): ClassType<C> { return this._componentType; }
-
+export abstract class ComponentFactory<C> {
+  abstract get selector(): string;
+  abstract get componentType(): ClassType<any>;
   /**
    * Creates a new component.
-   *
-   * @param {Injector} injector
-   * @param {Element} nativeElement
-   * @returns {ComponentRef<C>}
-   *
-   * @memberOf ComponentFactory
    */
-  create(injector: Injector, rootSelectorOrNode: string|any): ComponentRef<C> {
-    const view = new this._viewClass(null);
-    return view.create(rootSelectorOrNode, injector);
+  abstract create(injector: Injector, rootSelectorOrNode?: string|any): ComponentRef<C>;
+}
+
+// tslint:disable-next-line:class-name
+class ComponentFactory_ extends ComponentFactory<any> {
+  constructor(public selector: string, public componentType: ClassType<any>) {
+    super();
+  }
+  create(injector: Injector, rootSelectorOrNode?: string|any): ComponentRef<any> {
+    const view = createRootView(injector, rootSelectorOrNode, EMPTY_CONTEXT);
+    return null;
   }
 }
 
