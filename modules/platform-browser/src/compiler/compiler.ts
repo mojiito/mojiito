@@ -1,74 +1,72 @@
 import {
-  ComponentFactory, ClassType, Component, ComponentResolver, Injectable,
-  AppView, Renderer, RootRenderer, ComponentRef, ComponentFactoryResolver,
-  resolveReflectiveProviders, ElementRef, Injector, ApplicationRef, Provider,
-  ReflectiveInjector, ReflectorReader, HostListener, ChildListener
+  ClassType, Component, ComponentResolver, Injectable, Renderer, ComponentRef,
+  ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
+  ElementRef, Injector, ApplicationRef, Provider, ReflectiveInjector, ReflectorReader,
+  HostListener, ChildListener
 } from 'mojiito-core';
 import { ComponentCompileResult, EventBindingCompileResult } from './compile_result';
-import { ListWrapper } from './facade/collection';
-import { stringify } from './facade/lang';
-import { CssSelector, SelectorMatcher } from './selector';
-import { Visitor, DomVisitor } from './dom_visitor';
-import { DomRenderer } from './dom_renderer';
-import { DomTraverser } from './dom_traverser';
-import { BindingParser, EventBindingParseResult } from './binding_parser';
+import { ListWrapper } from '../facade/collection';
+// import { stringify } from './facade/lang';
+import { Visitor, DomVisitor } from '../dom_visitor';
+import { DomRenderer } from '../dom_renderer';
+import { DomTraverser } from '../dom_traverser';
+import { BindingParser, EventBindingParseResult } from '../binding_parser';
 
 const UNDEFINED = new Object();
 
 @Injectable()
 export class Compiler {
 
+  private _compileResults = new Map<ClassType<any>, CompileComponentSummary>();
+
   constructor(private _resolver: ComponentResolver, private _bindParser: BindingParser) { }
 
-  // get componentFactoryResolver() {
-  //   const factories: ComponentFactory<any>[] = [];
-  //   this._results.forEach((r, c) => {
-  //     factories.push(new ComponentFactory(r.viewClass, c));
-  //   });
-  //   return new ComponentFactoryResolver(factories);
-  // }
+  createComponentFactoryResolver() {
+    const factories: ComponentFactory<any>[] = [];
+    this._compileResults.forEach(summary => {
+      factories.push(summary.componentFactory);
+    });
+    return new ComponentFactoryResolver(factories);
+  }
 
-  compileComponents(components: ClassType<any>[]): ComponentCompiledResult<any>[] {
+  compileComponents(components: ClassType<any>[]): CompileComponentSummary[] {
     return components.map(c => this.compileComponent(c));
   }
 
-  compileComponent<C>(component: ClassType<C>): any {
-    const metadata = this._resolver.resolve(component);
-
-    const matcher = new SelectorMatcher();
-    const selector = CssSelector.parse(metadata.selector);
-    matcher.addSelectables(selector);
-
-    let injector: Injector = null;
-    if (metadata.providers) {
-      injector = ReflectiveInjector.resolveAndCreate(metadata.providers);
+  compileComponent<C>(component: ClassType<C>): CompileComponentSummary {
+    let compileSummary = this._compileResults.get(component);
+    if (compileSummary) {
+      return compileSummary;
     }
-    // const viewClass = this._compileView(component, injector);
-
-    const compileSummary: CompileComponentSummary<C> = {
-      type: component,
-      selector: metadata.selector,
-      hostListeners: metadata.host,
-      childListeners: metadata.childs,
-      viewType: null,
-      componentFactory: null,
-      rendererType: DomRenderer,
-    };
+    const metadata = this._resolver.resolve(component);
 
     // TODO
     // Always compile a visitor even if no sub components are there
     // Issue: #38
     let visitor: Visitor = null;
+    let compiledComponents: CompileComponentSummary[];
     if (metadata.components) {
-      let compiled = this.compileComponents(ListWrapper.flatten(metadata.components));
-      visitor = new DomVisitor(compiled);
-      compiled.forEach(c => {
-        if (!c.visitor) {
-          c.visitor = visitor;
-        }
-      });
+      compiledComponents = this.compileComponents(ListWrapper.flatten(metadata.components));
+      visitor = new DomVisitor(compiledComponents);
+      // compiled.forEach(c => {
+      //   if (!c.visitor) {
+      //     c.visitor = visitor;
+      //   }
+      // });
     }
-    return null;
+
+    compileSummary = {
+      type: component,
+      selector: metadata.selector,
+      hostListeners: metadata.host,
+      childListeners: metadata.childs,
+      componentFactory: createComponentFactory(metadata.selector, component),
+      rendererType: DomRenderer,
+      providers: metadata.providers,
+      components: compiledComponents
+    };
+    this._compileResults.set(component, compileSummary);
+    return compileSummary;
   }
 
   // private _compileView<C>(component: ClassType<C>, injector: Injector): ClassType<AppView<C>> {
@@ -137,12 +135,13 @@ export class Compiler {
 }
 
 
-export interface CompileComponentSummary<C> {
-  type: ClassType<C>;
+export interface CompileComponentSummary {
+  type: ClassType<any>;
   selector: string;
   hostListeners: {[key: string]: string};
   childListeners: {[key: string]: string};
-  viewType: ClassType<AppView<C>>;
   rendererType: ClassType<Renderer>;
-  componentFactory: ComponentFactory<C>;
+  componentFactory: ComponentFactory<any>;
+  providers: Provider[];
+  components: CompileComponentSummary[];
 }

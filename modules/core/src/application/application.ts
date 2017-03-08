@@ -34,7 +34,6 @@ export class ApplicationRef {
   constructor(public injector: Injector,
     private _componentFactoryResolver: ComponentFactoryResolver) { }
 
-
   bootstrap<C>(componentOrFactory: ClassType<C> | ComponentFactory<C>): ComponentRef<C> {
     let componentFactory: ComponentFactory<C>;
     if (componentOrFactory instanceof ComponentFactory) {
@@ -44,8 +43,8 @@ export class ApplicationRef {
     }
     this._rootComponentTypes.push(componentFactory.componentType);
     const compRef = componentFactory.create(this.injector, componentFactory.selector);
-    compRef.onDestroy(() => { this._unloadComponent(compRef); });
-    this._loadComponent(compRef);
+    // compRef.onDestroy(() => { this._unloadComponent(compRef); });
+    // this._loadComponent(compRef);
     // ref.parse();
     return compRef;
   }

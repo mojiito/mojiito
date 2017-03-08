@@ -1,6 +1,6 @@
 import { Provider, ComponentFactory, ClassType } from 'mojiito-core';
-import { Expression } from './expression/expression';
-import { SelectorMatcher } from './selector';
+import { Expression } from '../expression/expression';
+import { SelectorMatcher } from '../selector';
 
 export class ComponentCompileResult<C> {
   selector: string;

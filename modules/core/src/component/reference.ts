@@ -1,8 +1,8 @@
 import { ClassType } from '../type';
 import { unimplemented } from '../facade/error';
 import { Injector } from '../di/injector';
+import { ViewData } from '../view/types';
 import { ElementRef } from '../view/element_ref';
-import { View } from '../view/view';
 import { ViewRef } from '../view/view_ref';
 import { createViewInjector } from '../view/view_injector';
 
@@ -45,12 +45,12 @@ export abstract class ComponentRef<C> {
 
 // tslint:disable-next-line:class-name
 class ComponentRef_ extends ComponentRef<any> {
-  constructor(private _view: View, private _viewRef: ViewRef, private _component: any) {
+  constructor(private _view: ViewData, private _viewRef: ViewRef, private _component: any) {
     super();
   }
 
   get location(): ElementRef { return new ElementRef(null); }
-  get injector(): Injector { return createViewInjector(this._view, null); }
+  get injector(): Injector { return createViewInjector(this._view); }
   get instance(): any { return this._component; };
   get hostView(): ViewRef { return this._viewRef; };
   // get changeDetectorRef(): ChangeDetectorRef { return this._viewRef; };

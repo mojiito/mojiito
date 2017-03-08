@@ -61,9 +61,9 @@ export class DomRenderer implements Renderer {
     }
   }
   selectRootElement(selectorOrNode: string | any): any {
-    const el: any = selectorOrNode;
+    let el: any = selectorOrNode;
     if (typeof selectorOrNode === 'string') {
-      document.querySelector(selectorOrNode);
+      el = document.querySelector(selectorOrNode);
     }
     if (!el) {
       throw new Error(`The selector "${selectorOrNode}" did not match any elements`);

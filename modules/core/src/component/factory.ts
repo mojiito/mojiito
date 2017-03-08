@@ -25,6 +25,7 @@ class ComponentFactory_ extends ComponentFactory<any> {
   }
   create(injector: Injector, rootSelectorOrNode?: string|any): ComponentRef<any> {
     const view = createRootView(injector, rootSelectorOrNode, EMPTY_CONTEXT);
+    console.log(view);
     return null;
   }
 }
@@ -33,4 +34,9 @@ export class NoFactoryForComponentError extends BaseError {
   constructor(type: ClassType<any>) {
     super(`Could not create component "${stringify(type)}". No factory found.`);
   }
+}
+
+export function createComponentFactory(selector: string,
+  componentType: ClassType<any>): ComponentFactory<any> {
+  return new ComponentFactory_(selector, componentType);
 }

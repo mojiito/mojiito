@@ -147,9 +147,9 @@ class ViewContainerRef_ implements ViewContainerRef {
   }
 }
 
-// export function createViewContainerRef(view: ViewData, elDef: NodeDef): ViewContainerRef {
-//   return new ViewContainerRef_(view, elDef);
-// }
+export function createViewContainerRef(view: ViewData): ViewContainerRef {
+  return new ViewContainerRef_(view);
+}
 
 
 function detachEmbeddedView(container: ViewContainerRef_, viewIndex: number): ViewData {
