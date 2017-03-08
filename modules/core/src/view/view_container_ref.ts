@@ -96,7 +96,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   constructor(private _view: ViewData) { }
 
   get anchorElement(): ElementRef { return new ElementRef(this.renderElement); }
-  get injector(): Injector { return createViewInjector(this._view, null); }
+  get injector(): Injector { return createViewInjector(this._view); }
   get parentInjector(): Injector {
     return null;
   }
@@ -152,7 +152,7 @@ class ViewContainerRef_ implements ViewContainerRef {
 // }
 
 
-function detachEmbeddedView(container: ViewContainerRef_, viewIndex: number): View {
+function detachEmbeddedView(container: ViewContainerRef_, viewIndex: number): ViewData {
   const embeddedViews = container.embeddedViews;
   if (viewIndex == null || viewIndex >= embeddedViews.length) {
     viewIndex = embeddedViews.length - 1;

@@ -10,17 +10,17 @@ export function createRootView(injector: Injector, rootSelectorOrNode: string | 
   context?: any): ViewData {
   const rendererFactory: RendererFactory = injector.get(RendererFactory);
   const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
-  const view = createView(root, root.renderer, null, rootSelectorOrNode);
+  let node = rootSelectorOrNode;
+  if (typeof rootSelectorOrNode === 'string') {
+    node = root.renderer.selectRootElement(rootSelectorOrNode);
+  }
+  const view = createView(root, root.renderer, null, node);
   initView(view, context, context);
   return view;
 }
 
 export function createView(root: RootData, renderer: Renderer,
-  parent: ViewData, rootSelectorOrNode: any): ViewData {
-  let node: any = rootSelectorOrNode;
-  if (typeof rootSelectorOrNode === 'string') {
-    node = renderer.selectRootElement(rootSelectorOrNode);
-  }
+  parent: ViewData, node: any): ViewData {
   const view: ViewData = {
     node,
     root,
@@ -42,9 +42,9 @@ export function initView(view: ViewData, component: any, context: any) {
 }
 
 export function destroyView(view: ViewData) {
-  // if (view.state & ViewState.Destroyed) {
-  //   return;
-  // }
+  if (view.state & ViewState.Destroyed) {
+    return;
+  }
   // execEmbeddedViewsAction(view, ViewAction.Destroy);
   // execComponentViewsAction(view, ViewAction.Destroy);
   // callLifecycleHooksChildrenFirst(view, NodeFlags.OnDestroy);
