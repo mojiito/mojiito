@@ -67,7 +67,3 @@ function createRootData(
     renderer
   };
 }
-
-export function createClass(view: ViewData) {
-  // let provider = resolveReflectiveProviders([component])[0];
-}

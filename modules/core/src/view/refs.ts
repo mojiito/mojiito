@@ -10,15 +10,19 @@ import { ViewRef, InternalViewRef } from './view_ref';
 import { ViewContainerRef } from './view_container_ref';
 import { ElementRef } from './element_ref';
 import { ViewData, ViewDefinitionFactory, ViewDefinition } from './types';
-import { resolveViewDefinition } from './utils';
+import { resolveViewDefinition, resolveInjector, asProvider } from './utils';
 
 const EMPTY_CONTEXT = new Object();
-
 /**
  * Internal View Injector
  */
 class Injector_ implements Injector {
-  constructor(private _view: ViewData) { }
+  constructor(private _view: ViewData) {
+    const viewDef = _view.def;
+    if (viewDef.providers) {
+      viewDef.providers.map(p => )
+    }
+  }
 
   get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
     const startView = this._view;
@@ -38,12 +42,7 @@ class Injector_ implements Injector {
         case Renderer:
           return view.renderer;
         default:
-          if (view.def.providers) {
-            let result = view.def.injector.get(token, void 0);
-            if (result) {
-              return result;
-            }
-          }
+
       }
       view = view.parent;
     }
@@ -51,7 +50,7 @@ class Injector_ implements Injector {
   }
 }
 
-function createInjector(view: ViewData): Injector {
+export function createInjector(view: ViewData): Injector {
   return new Injector_(view);
 }
 
@@ -64,7 +63,7 @@ class ComponentRef_ extends ComponentRef<any> {
   }
 
   get location(): ElementRef { return new ElementRef(null); }
-  get injector(): Injector { return createInjector(this._view); }
+  get injector(): Injector { return resolveInjector(this._view); }
   get instance(): any { return this._component; };
   get hostView(): ViewRef { return this._viewRef; };
   // get changeDetectorRef(): ChangeDetectorRef { return this._viewRef; };
@@ -88,7 +87,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   }
 
   get anchorElement(): ElementRef { return new ElementRef(this.renderElement); }
-  get injector(): Injector { return createInjector(this._view); }
+  get injector(): Injector { return resolveInjector(this._view); }
   get parentInjector(): Injector {
     return null;
   }
