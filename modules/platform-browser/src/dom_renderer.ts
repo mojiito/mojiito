@@ -68,7 +68,6 @@ export class DomRenderer implements Renderer {
     if (!el) {
       throw new Error(`The selector "${selectorOrNode}" did not match any elements`);
     }
-    el.textContent = '';
     return el;
   }
   parentNode(node: any): any { return node.parentNode; }
