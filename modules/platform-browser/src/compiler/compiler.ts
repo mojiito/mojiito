@@ -2,7 +2,7 @@ import {
   ClassType, Component, ComponentResolver, Injectable, Renderer, ComponentRef,
   ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
   ElementRef, Injector, ApplicationRef, Provider, ReflectiveInjector, ReflectorReader,
-  HostListener, ChildListener
+  HostListener, ChildListener, ViewDefinition, ViewDefinitionFactory
 } from 'mojiito-core';
 import { ComponentCompileResult, EventBindingCompileResult } from './compile_result';
 import { ListWrapper } from '../facade/collection';
@@ -55,16 +55,29 @@ export class Compiler {
       // });
     }
 
+    const viewDefinitionFactory: ViewDefinitionFactory =
+      () => {
+        let inj: Injector;
+        if (metadata.providers) {
+          inj = ReflectiveInjector.resolveAndCreate(metadata.providers);
+        }
+        return {
+          providers: metadata.providers,
+          injector: inj
+        };
+      };
+
     compileSummary = {
       type: component,
       selector: metadata.selector,
       hostListeners: metadata.host,
       childListeners: metadata.childs,
-      componentFactory: createComponentFactory(metadata.selector, component),
+      componentFactory: createComponentFactory(metadata.selector, component, viewDefinitionFactory),
       rendererType: DomRenderer,
-      providers: metadata.providers,
+      viewDefinitionFactory: viewDefinitionFactory,
       components: compiledComponents
     };
+
     this._compileResults.set(component, compileSummary);
     return compileSummary;
   }
@@ -138,10 +151,10 @@ export class Compiler {
 export interface CompileComponentSummary {
   type: ClassType<any>;
   selector: string;
-  hostListeners: {[key: string]: string};
-  childListeners: {[key: string]: string};
+  hostListeners: { [key: string]: string };
+  childListeners: { [key: string]: string };
   rendererType: ClassType<Renderer>;
   componentFactory: ComponentFactory<any>;
-  providers: Provider[];
+  viewDefinitionFactory: ViewDefinitionFactory;
   components: CompileComponentSummary[];
 }

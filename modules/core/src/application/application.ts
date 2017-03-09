@@ -46,6 +46,7 @@ export class ApplicationRef {
     // compRef.onDestroy(() => { this._unloadComponent(compRef); });
     // this._loadComponent(compRef);
     // ref.parse();
+    console.log(compRef);
     return compRef;
   }
 

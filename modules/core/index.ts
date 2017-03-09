@@ -19,8 +19,7 @@ export { ComponentRef } from './src/component/reference';
 
 // View
 export { createComponentFactory } from './src/view/refs';
-export { ViewData } from './src/view/types';
-export {  } from './src/view/view';
+export { ViewData, ViewDefinitionFactory, ViewDefinition } from './src/view/types';
 export { ViewRef } from './src/view/view_ref';
 export { ViewContainerRef } from './src/view/view_container_ref';
 export { ElementRef } from './src/view/element_ref';

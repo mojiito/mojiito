@@ -4,24 +4,25 @@ import { Injector } from '../di/injector';
 import { ClassType } from '../type';
 import { ElementRef } from '../view/element_ref';
 import { ViewContainerRef } from './view_container_ref';
-import { ViewData, ViewState, RootData } from './types';
+import { ViewData, ViewState, RootData, ViewDefinition } from './types';
 
-export function createRootView(injector: Injector, rootSelectorOrNode: string | any,
-  context?: any): ViewData {
+export function createRootView(def: ViewDefinition, injector: Injector,
+  rootSelectorOrNode: string | any, context?: any): ViewData {
   const rendererFactory: RendererFactory = injector.get(RendererFactory);
   const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
   let node = rootSelectorOrNode;
   if (typeof rootSelectorOrNode === 'string') {
     node = root.renderer.selectRootElement(rootSelectorOrNode);
   }
-  const view = createView(root, root.renderer, null, node);
+  const view = createView(root, root.renderer, null, node, def);
   initView(view, context, context);
   return view;
 }
 
 export function createView(root: RootData, renderer: Renderer,
-  parent: ViewData, renderElement: any): ViewData {
+  parent: ViewData, renderElement: any, def: ViewDefinition): ViewData {
   const view: ViewData = {
+    def,
     renderElement,
     root,
     renderer,

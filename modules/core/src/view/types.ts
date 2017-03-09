@@ -1,11 +1,19 @@
 import { Renderer, RendererFactory } from '../render';
 import { Injector } from '../di/injector';
+import { Provider } from '../di/provider';
+
+export interface ViewDefinition {
+  providers: Provider[];
+  injector: Injector;
+}
+
+export type ViewDefinitionFactory = () => ViewDefinition;
 
 /**
  * View instance data.
- * Attention: Adding fields to this is performance sensitive!
  */
 export interface ViewData {
+  def: ViewDefinition;
   renderElement: any;
   root: RootData;
   renderer: Renderer;

@@ -9,7 +9,8 @@ import { createRootView, destroyView } from './view';
 import { ViewRef, InternalViewRef } from './view_ref';
 import { ViewContainerRef } from './view_container_ref';
 import { ElementRef } from './element_ref';
-import { ViewData } from './types';
+import { ViewData, ViewDefinitionFactory, ViewDefinition } from './types';
+import { resolveViewDefinition } from './utils';
 
 const EMPTY_CONTEXT = new Object();
 
@@ -17,22 +18,36 @@ const EMPTY_CONTEXT = new Object();
  * Internal View Injector
  */
 class Injector_ implements Injector {
-  constructor(private view: ViewData) {}
+  constructor(private _view: ViewData) { }
 
   get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
-    const view = this.view;
-    switch (token) {
-      case ViewContainerRef:
-        return createViewContainerRef(view);
-      case ElementRef:
-        return new ElementRef(view.renderElement);
-      case Renderer:
-        return view.renderer;
-      case Injector:
-        return this;
-      default:
-        return null;
+    const startView = this._view;
+
+    if (token === Injector) {
+      return this;
     }
+
+    let view = startView;
+
+    while (view) {
+      switch (token) {
+        case ViewContainerRef:
+          return createViewContainerRef(view);
+        case ElementRef:
+          return new ElementRef(view.renderElement);
+        case Renderer:
+          return view.renderer;
+        default:
+          if (view.def.providers) {
+            let result = view.def.injector.get(token, void 0);
+            if (result) {
+              return result;
+            }
+          }
+      }
+      view = view.parent;
+    }
+    return view.root.injector.get(token, notFoundValue);
   }
 }
 
@@ -68,7 +83,9 @@ class ViewContainerRef_ implements ViewContainerRef {
   renderElement: any;
   embeddedViews: ViewData[];
 
-  constructor(private _view: ViewData) { }
+  constructor(private _view: ViewData) {
+    this.renderElement = _view.renderElement;
+  }
 
   get anchorElement(): ElementRef { return new ElementRef(this.renderElement); }
   get injector(): Injector { return createInjector(this._view); }
@@ -94,12 +111,12 @@ class ViewContainerRef_ implements ViewContainerRef {
     any { } // EmbeddedViewRef<C> { }
 
   createComponent<C>(componentFactory: ComponentFactory<C>, index?: number, injector?: Injector,
-        rootSelectorOrNode?: any): ComponentRef<C> {
-      const contextInjector = injector || this.parentInjector;
-      const componentRef = componentFactory.create(contextInjector, rootSelectorOrNode);
+    rootSelectorOrNode?: any): ComponentRef<C> {
+    const contextInjector = injector || this.parentInjector;
+    const componentRef = componentFactory.create(contextInjector, rootSelectorOrNode);
 
-      return componentRef;
-    }
+    return componentRef;
+  }
 
   // insert(viewRef: ViewRef, index?: number): ViewRef { }
 
@@ -207,19 +224,19 @@ class ViewRef_ implements InternalViewRef {
  * Internal ComponentFactory
  */
 class ComponentFactory_ extends ComponentFactory<any> {
-  constructor(public selector: string, public componentType: ClassType<any>) {
+  constructor(public selector: string, public componentType: ClassType<any>,
+    private _viewDefFactory: ViewDefinitionFactory) {
     super();
   }
-  create(injector: Injector, rootSelectorOrNode?: string|any): ComponentRef<any> {
-    const view = createRootView(injector, rootSelectorOrNode, EMPTY_CONTEXT);
-    console.log(view);
-    // return new ComponentRef_(view, new ViewRef_(view), component);
-    return null;
+  create(injector: Injector, rootSelectorOrNode?: string | any): ComponentRef<any> {
+    const viewDef = resolveViewDefinition(this._viewDefFactory);
+    const view = createRootView(viewDef, injector, rootSelectorOrNode, EMPTY_CONTEXT);
+    return new ComponentRef_(view, new ViewRef_(view), null);
   }
 }
 
-export function createComponentFactory(selector: string,
-  componentType: ClassType<any>): ComponentFactory<any> {
-  return new ComponentFactory_(selector, componentType);
+export function createComponentFactory(selector: string, componentType: ClassType<any>,
+  viewDefFactory: ViewDefinitionFactory): ComponentFactory<any> {
+  return new ComponentFactory_(selector, componentType, viewDefFactory);
 }
 
