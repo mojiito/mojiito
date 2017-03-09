@@ -6,7 +6,7 @@ import { Injector } from '../di/injector';
  * Attention: Adding fields to this is performance sensitive!
  */
 export interface ViewData {
-  node: any;
+  renderElement: any;
   root: RootData;
   renderer: Renderer;
   // index of component provider / anchor.

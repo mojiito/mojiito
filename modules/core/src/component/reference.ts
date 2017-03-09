@@ -1,10 +1,7 @@
 import { ClassType } from '../type';
-import { unimplemented } from '../facade/error';
 import { Injector } from '../di/injector';
-import { ViewData } from '../view/types';
 import { ElementRef } from '../view/element_ref';
 import { ViewRef } from '../view/view_ref';
-import { createViewInjector } from '../view/view_injector';
 
 /**
  * Represents an instance of a Component created via a ComponentFactory.
@@ -42,22 +39,3 @@ export abstract class ComponentRef<C> {
   /** Allows to register a callback that will be called when the component is destroyed. */
   abstract onDestroy(callback: Function): void;
 }
-
-// tslint:disable-next-line:class-name
-class ComponentRef_ extends ComponentRef<any> {
-  constructor(private _view: ViewData, private _viewRef: ViewRef, private _component: any) {
-    super();
-  }
-
-  get location(): ElementRef { return new ElementRef(null); }
-  get injector(): Injector { return createViewInjector(this._view); }
-  get instance(): any { return this._component; };
-  get hostView(): ViewRef { return this._viewRef; };
-  // get changeDetectorRef(): ChangeDetectorRef { return this._viewRef; };
-  get componentType(): ClassType<any> { return <any>this._component.constructor; }
-
-  parse(): void { this._viewRef.parse(); }
-  destroy(): void { this._viewRef.destroy(); }
-  onDestroy(callback: Function): void { this._viewRef.onDestroy(callback); }
-}
-

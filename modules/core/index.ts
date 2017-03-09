@@ -13,11 +13,12 @@ export { ApplicationRef } from './src/application/application';
 // Component
 export { Component, HostListener, ChildListener } from './src/component/metadata';
 export { ComponentResolver };
-export { ComponentFactory, createComponentFactory } from './src/component/factory';
+export { ComponentFactory } from './src/component/factory';
 export { ComponentFactoryResolver } from './src/component/factory_resolver';
 export { ComponentRef } from './src/component/reference';
 
 // View
+export { createComponentFactory } from './src/view/refs';
 export { ViewData } from './src/view/types';
 export {  } from './src/view/view';
 export { ViewRef } from './src/view/view_ref';
