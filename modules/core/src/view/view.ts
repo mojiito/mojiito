@@ -1,10 +1,13 @@
 import { Renderer, RendererFactory } from '../render';
 import { ComponentRef } from '../component/reference';
 import { Injector } from '../di/injector';
+import { Provider } from '../di/provider';
+import { resolveReflectiveProviders } from '../di/reflective_provider';
 import { ClassType } from '../type';
 import { ElementRef } from '../view/element_ref';
 import { ViewContainerRef } from './view_container_ref';
 import { ViewData, ViewState, RootData, ViewDefinition } from './types';
+import { tokenKey } from './utils';
 
 export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
@@ -65,5 +68,46 @@ function createRootData(
     selectorOrNode: rootSelectorOrNode,
     rendererFactory,
     renderer
+  };
+}
+
+function viewDef(publicProviders: Provider[], componentProvider: any): ViewDefinition {
+  var viewDef: any = {};
+  // resolve public providers
+  const publicProv: any = Object.create(null);
+  if (publicProviders)  {
+    resolveReflectiveProviders(publicProviders).forEach(p => {
+      const resolvedFactory = p.resolvedFactories[0];
+      publicProv[tokenKey(p.key)] = {
+        factory: resolvedFactory.factory,
+        dependencies: resolvedFactory.dependencies,
+        multi: p.multiProvider
+      };
+    });
+  }
+  viewDef.publicProviders = publicProv;
+
+  // combine to all providers
+  const allProviders = Object.create(publicProv);
+  viewDef.allProviders = allProviders;
+
+  // resolve component provider
+  if (componentProvider) {
+    const resolvedComp = resolveReflectiveProviders([componentProvider])[0];
+    const resolvedCompFactory = resolvedComp.resolvedFactories[0];
+    viewDef.componentProvider = {
+      factory: resolvedCompFactory.factory,
+      dependencies: resolvedCompFactory.dependencies,
+      multi: false,
+    };
+    allProviders[tokenKey(resolvedComp.key)] = viewDef.componentProvider;
+  }
+
+  return viewDef;
+}
+
+export function createViewDefinitionFactory(publicProviders: Provider[], componentProvider: any) {
+  return () => {
+    return viewDef(publicProviders, componentProvider);
   };
 }

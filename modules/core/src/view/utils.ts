@@ -1,11 +1,13 @@
 import { stringify } from '../facade/lang';
 import { resolveReflectiveProviders, ReflectiveDependency } from '../di/reflective_provider';
 import { ReflectiveKey } from '../di/reflective_key';
-import {  } from '../di/reflective_injector';
 import { Provider } from '../di/provider';
 import { Injector } from '../di/injector';
-import { ViewDefinition, ViewDefinitionFactory, ViewData } from './types';
-import { createInjector } from './refs';
+import { ViewDefinition, ViewDefinitionFactory, ViewData, ProviderData } from './types';
+import { createInjector, createViewContainerRef } from './refs';
+import { Renderer } from '../render';
+import { ViewContainerRef } from './view_container_ref';
+import { ElementRef } from './element_ref';
 
 const VIEW_DEFINITION_CACHE = new WeakMap<any, ViewDefinition>();
 export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefinition {
@@ -27,35 +29,77 @@ export function resolveInjector(view: ViewData): Injector {
   return value;
 }
 
-export function asProvider(provider: Provider, view: ViewData, notFoundValue: any) {
-  return resolveProvider([provider], view, notFoundValue)[0];
+// tslint:disable:variable-name
+const _tokenKeyCache = new Map<any, string>();
+const RendererTokenKey = tokenKey(Renderer);
+const ElementRefTokenKey = tokenKey(ElementRef);
+const ViewContainerRefTokenKey = tokenKey(ViewContainerRef);
+// const ChangeDetectorRefTokenKey = tokenKey(ChangeDetectorRef);
+const InjectorRefTokenKey = tokenKey(Injector);
+// tslint:enable:variable-name
+
+export function tokenKey(token: any): string {
+  let key = _tokenKeyCache.get(token);
+  if (!key) {
+    key = stringifyToken(token); // + '_' + _tokenKeyCache.size;
+    _tokenKeyCache.set(token, key);
+  }
+  return key;
 }
 
-export function resolveProvider(provider: Provider[], view: ViewData, notFoundValue: any) {
-  let resolved = resolveReflectiveProviders(provider);
-  return resolved.map(r => {
-    if (!r.resolvedFactories || !r.resolvedFactories.length) {
-      throw new Error(`Could not create "${stringify(r)}". No factory found.`);
-    }
-    const resolvedFactory = r.resolvedFactories[0];
-    const viewInjector = resolveInjector(view);
-    const deps = resolveDeps(resolvedFactory.dependencies, viewInjector);
-
-    resolvedFactory.dependencies.map(d => viewInjector.get(d.key.token, notFoundValue));
-    return resolvedFactory.factory(...deps);
-  });
-}
-
-function resolveDeps(tokens: any[], injector: Injector) {
-  return tokens.map(t => injector.get(resolveToken(t)));
-}
-
-function resolveToken(token: any): any {
+function stringifyToken(token: any): string {
   if (token instanceof ReflectiveDependency) {
-    return token.key.token;
+    return token.key.displayName;
   }
   if (token instanceof ReflectiveKey) {
-    return token.token;
+    return token.displayName;
   }
-  return token;
+  return stringify(token);
+}
+
+export function resolveDep(view: ViewData, token: any, allowPrivateServices: boolean,
+    notFoundValue = Injector.THROW_IF_NOT_FOUND): any {
+  const startView = view;
+  const tKey = tokenKey(token);
+
+  while (view) {
+    let def = view.def;
+    if (def) {
+      switch (tKey) {
+        case RendererTokenKey:
+          return view.renderer;
+        case ElementRefTokenKey:
+          return new ElementRef(view.renderElement);
+        case ViewContainerRefTokenKey:
+          return createViewContainerRef(view);
+        // case ChangeDetectorRefTokenKey: {
+        //   let cdView = findCompView(view, elDef, allowPrivateServices);
+        //   return createChangeDetectorRef(cdView);
+        // }
+        case InjectorRefTokenKey:
+          return createInjector(view);
+        default:
+          const providerData =
+            (allowPrivateServices ? def.allProviders : def.publicProviders)[tKey];
+          if (providerData) {
+            if (providerData.instance === void 0) {
+              providerData.instance =
+                _createProviderInstance(view, providerData, false);
+            }
+            return providerData.instance;
+          }
+      }
+    }
+    view = view.parent;
+  }
+  return startView.root.injector.get(token, notFoundValue);
+}
+
+function _createProviderInstance(view: ViewData, providerData: ProviderData,
+    allowPrivateServices: boolean): any {
+  let deps = [];
+  if (providerData.dependencies) {
+    deps = providerData.dependencies.map(d => resolveDep(view, d.key, allowPrivateServices));
+  }
+  return providerData.factory(...deps);
 }

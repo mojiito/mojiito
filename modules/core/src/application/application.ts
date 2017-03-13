@@ -43,10 +43,9 @@ export class ApplicationRef {
     }
     this._rootComponentTypes.push(componentFactory.componentType);
     const compRef = componentFactory.create(this.injector, componentFactory.selector);
-    // compRef.onDestroy(() => { this._unloadComponent(compRef); });
-    // this._loadComponent(compRef);
+    compRef.onDestroy(() => { this._unloadComponent(compRef); });
+    this._loadComponent(compRef);
     // ref.parse();
-    console.log(compRef);
     return compRef;
   }
 

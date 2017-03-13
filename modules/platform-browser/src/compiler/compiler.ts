@@ -2,17 +2,14 @@ import {
   ClassType, Component, ComponentResolver, Injectable, Renderer, ComponentRef,
   ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
   ElementRef, Injector, ApplicationRef, Provider, ReflectiveInjector, ReflectorReader,
-  HostListener, ChildListener, ViewDefinition, ViewDefinitionFactory
+  HostListener, ChildListener, createViewDefinitionFactory
 } from 'mojiito-core';
-import { ComponentCompileResult, EventBindingCompileResult } from './compile_result';
 import { ListWrapper } from '../facade/collection';
-// import { stringify } from './facade/lang';
 import { Visitor, DomVisitor } from '../dom_visitor';
 import { DomRenderer } from '../dom_renderer';
 import { DomTraverser } from '../dom_traverser';
 import { BindingParser, EventBindingParseResult } from '../binding_parser';
-
-const UNDEFINED = new Object();
+import { CompileComponentSummary } from './compile_result';
 
 @Injectable()
 export class Compiler {
@@ -55,106 +52,20 @@ export class Compiler {
       // });
     }
 
-    const viewDefinitionFactory: ViewDefinitionFactory =
-      () => {
-        let inj: Injector;
-        if (metadata.providers) {
-          inj = ReflectiveInjector.resolveAndCreate(metadata.providers);
-        }
-        return {
-          providers: metadata.providers,
-          injector: inj
-        };
-      };
+    const viewDefFactory = createViewDefinitionFactory(metadata.providers, component);
 
     compileSummary = {
       type: component,
       selector: metadata.selector,
       hostListeners: metadata.host,
       childListeners: metadata.childs,
-      componentFactory: createComponentFactory(metadata.selector, component, viewDefinitionFactory),
+      componentFactory: createComponentFactory(metadata.selector, component, viewDefFactory),
       rendererType: DomRenderer,
-      viewDefinitionFactory: viewDefinitionFactory,
+      viewDefinitionFactory: viewDefFactory,
       components: compiledComponents
     };
 
     this._compileResults.set(component, compileSummary);
     return compileSummary;
   }
-
-  // private _compileView<C>(component: ClassType<C>, injector: Injector): ClassType<AppView<C>> {
-  //   const compiler = this;
-  //   return class extends View {
-  //     private _ref: ComponentRef<C>;
-  //     renderer: Renderer;
-  //     clazz = component;
-
-  //     createInternal(rootSelectorOrNode: string | Element): ComponentRef<C> {
-  //       let rootRenderer = this.getInternal(RootRenderer) as RootRenderer;
-  //       let element = rootSelectorOrNode as Element;
-  //       if (typeof rootSelectorOrNode === 'string') {
-  //         element = rootRenderer.selectRootElement(rootSelectorOrNode);
-  //       }
-  //       this.nativeElement = element;
-  //       let renderer = rootRenderer.renderComponent(this);
-  //       this.renderer = renderer;
-
-  //       let provider = resolveReflectiveProviders([component])[0];
-  //       if (!provider.resolvedFactories.length) {
-  //         throw new Error(`Could not create component "${stringify(component)}". ` +
-  //           `No factory found.`);
-  //       }
-  //       const resolved = provider.resolvedFactories[0];
-  //       const deps = resolved.dependencies.map(d => this.getInternal(d.key.token));
-  //       this.context = resolved.factory(...deps);
-  //       const ref = this._ref = new ComponentRef(this, this.nativeElement);
-  //       return ref;
-  //     }
-
-  //     protected parseInternal(): void {
-  //       const visitor = compiler.get(this.clazz).visitor;
-  //       if (visitor) {
-  //         const traverser = new DomTraverser();
-  //         traverser.traverse(this.nativeElement, visitor, this);
-  //       }
-  //     }
-
-  //     protected getInternal(token: any, notFoundValue?: any): any {
-  //       if (token === Injector) {
-  //         return this;
-  //       }
-  //       if (token === ElementRef) {
-  //         return new ElementRef(this.nativeElement);
-  //       }
-  //       if (token === Renderer) {
-  //         return this.renderer;
-  //       }
-  //       let result = UNDEFINED;
-  //       if (injector) {
-  //         result = injector.get(token, UNDEFINED);
-  //       }
-
-  //       if (result === UNDEFINED && this._hostInjector) {
-  //         result = this._hostInjector.get(token, this.parentView ? UNDEFINED : notFoundValue);
-  //       }
-  //       if (result === UNDEFINED && this.parentView) {
-  //         result = this.parentView.get(token, notFoundValue);
-  //       }
-  //       return result;
-  //     }
-  //   };
-  // }
-
-}
-
-
-export interface CompileComponentSummary {
-  type: ClassType<any>;
-  selector: string;
-  hostListeners: { [key: string]: string };
-  childListeners: { [key: string]: string };
-  rendererType: ClassType<Renderer>;
-  componentFactory: ComponentFactory<any>;
-  viewDefinitionFactory: ViewDefinitionFactory;
-  components: CompileComponentSummary[];
 }

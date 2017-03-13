@@ -2,9 +2,23 @@ import { Renderer, RendererFactory } from '../render';
 import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
 
+export interface ProviderData {
+  factory: (...deps: any[]) => any;
+  dependencies: any[];
+  multi: boolean;
+  instance: any;
+}
+
+export interface DepData {
+  key: any;
+  optional: boolean;
+  visibility: any;
+}
+
 export interface ViewDefinition {
-  providers: Provider[];
-  injector: Injector;
+  allProviders: {[tokenKey: string]: ProviderData};
+  componentProvider: ProviderData;
+  publicProviders: {[tokenKey: string]: ProviderData};
 }
 
 export type ViewDefinitionFactory = () => ViewDefinition;

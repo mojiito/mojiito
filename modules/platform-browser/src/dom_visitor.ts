@@ -1,5 +1,4 @@
 import { CssSelector, SelectorMatcher } from './selector';
-import { CompileComponentSummary } from './compiler/compiler';
 import { Injector, ComponentRef, ApplicationRef, ClassType } from 'mojiito-core';
 import { WrappedError } from './facade/error';
 import { stringify } from './facade/lang';
@@ -16,9 +15,9 @@ export interface Visitor {
 export class DomVisitor implements Visitor {
 
   selectorMatcher = new SelectorMatcher();
-  componentsIndex = new Map<CompileComponentSummary, number>();
+  componentsIndex = new Map<any, number>();
 
-  constructor(components: CompileComponentSummary[]) {
+  constructor(components: any[]) {
     components.forEach((component, index) => {
       const selector = CssSelector.parse(component.selector);
       this.selectorMatcher.addSelectables(selector, component);
@@ -28,7 +27,7 @@ export class DomVisitor implements Visitor {
 
   visitElement(element: Element, context: any): any {
     const elementCssSelector = CssSelector.fromElement(element);
-    let matchingComponent: CompileComponentSummary = null;
+    let matchingComponent: any = null;
     this.selectorMatcher.match(elementCssSelector, (selector, component) => {
       if (matchingComponent) {
         throw new MultipleComponentsOnElementError([matchingComponent.type, component.type]);

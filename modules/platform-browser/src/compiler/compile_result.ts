@@ -1,45 +1,12 @@
-import { Provider, ComponentFactory, ClassType } from 'mojiito-core';
-import { Expression } from '../expression/expression';
-import { SelectorMatcher } from '../selector';
+import { ClassType, Renderer, ComponentFactory } from 'mojiito-core';
 
-export class ComponentCompileResult<C> {
+export interface CompileComponentSummary {
+  type: ClassType<any>;
   selector: string;
-  type: ClassType<C>;
-  componentFactory: ComponentFactory<C>;
-  providers: Provider[];
-  hostListeners: EventBindingCompileResult[];
-  childListeners: Map<SelectorMatcher, EventBindingCompileResult[]>;
-
-  constructor({
-    selector,
-    type,
-    componentFactory,
-    providers,
-    hostListeners,
-    childListeners
-  }: {
-    selector: string,
-    type: ClassType<C>
-    componentFactory: ComponentFactory<C>,
-    providers?: Provider[],
-    hostListeners?: EventBindingCompileResult[],
-    childListeners?: Map<SelectorMatcher, EventBindingCompileResult[]>
-  }) {
-    this.selector = selector;
-    this.type = type;
-    this.componentFactory = componentFactory;
-    this.providers = providers;
-    this.hostListeners = hostListeners;
-    this.childListeners = childListeners;
-  }
-}
-
-export class BindingCompileResult {
-  constructor(public expression: Expression) { }
-}
-
-export class EventBindingCompileResult extends BindingCompileResult {
-  constructor(public eventName: string, expression: Expression) {
-    super(expression);
-  }
+  hostListeners: { [key: string]: string };
+  childListeners: { [key: string]: string };
+  rendererType: ClassType<Renderer>;
+  componentFactory: ComponentFactory<any>;
+  viewDefinitionFactory: () => any;
+  components: CompileComponentSummary[];
 }

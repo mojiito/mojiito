@@ -9,49 +9,33 @@ import { createRootView, destroyView } from './view';
 import { ViewRef, InternalViewRef } from './view_ref';
 import { ViewContainerRef } from './view_container_ref';
 import { ElementRef } from './element_ref';
-import { ViewData, ViewDefinitionFactory, ViewDefinition } from './types';
-import { resolveViewDefinition, resolveInjector, asProvider } from './utils';
+import { ViewData, ViewDefinitionFactory, ViewDefinition, ViewState } from './types';
+import { resolveViewDefinition, resolveInjector, resolveDep } from './utils';
 
 const EMPTY_CONTEXT = new Object();
-/**
- * Internal View Injector
- */
-class Injector_ implements Injector {
-  constructor(private _view: ViewData) {
-    const viewDef = _view.def;
-    if (viewDef.providers) {
-      viewDef.providers.map(p => )
-    }
-  }
-
-  get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
-    const startView = this._view;
-
-    if (token === Injector) {
-      return this;
-    }
-
-    let view = startView;
-
-    while (view) {
-      switch (token) {
-        case ViewContainerRef:
-          return createViewContainerRef(view);
-        case ElementRef:
-          return new ElementRef(view.renderElement);
-        case Renderer:
-          return view.renderer;
-        default:
-
-      }
-      view = view.parent;
-    }
-    return view.root.injector.get(token, notFoundValue);
-  }
-}
 
 export function createInjector(view: ViewData): Injector {
   return new Injector_(view);
+}
+
+/**
+ * Internal ComponentFactory
+ */
+class ComponentFactory_ extends ComponentFactory<any> {
+  constructor(public selector: string, public componentType: ClassType<any>,
+    private _viewDefFactory: ViewDefinitionFactory) {
+    super();
+  }
+  create(injector: Injector, rootSelectorOrNode?: string | any): ComponentRef<any> {
+    const viewDef = resolveViewDefinition(this._viewDefFactory);
+    const view = createRootView(viewDef, injector, rootSelectorOrNode, EMPTY_CONTEXT);
+    return new ComponentRef_(view, new ViewRef_(view), resolveDep(view, this.componentType, true));
+  }
+}
+
+export function createComponentFactory(selector: string, componentType: ClassType<any>,
+  viewDefFactory: ViewDefinitionFactory): ComponentFactory<any> {
+  return new ComponentFactory_(selector, componentType, viewDefFactory);
 }
 
 /**
@@ -89,7 +73,13 @@ class ViewContainerRef_ implements ViewContainerRef {
   get anchorElement(): ElementRef { return new ElementRef(this.renderElement); }
   get injector(): Injector { return resolveInjector(this._view); }
   get parentInjector(): Injector {
-    return null;
+    let view = this._view;
+    let def = view.def;
+    while (!def && view) {
+      view = view.parent;
+      def = view.def;
+    }
+    return view ? createInjector(view) : this._view.root.injector;
   }
 
   clear(): void { }
@@ -117,7 +107,14 @@ class ViewContainerRef_ implements ViewContainerRef {
     return componentRef;
   }
 
-  // insert(viewRef: ViewRef, index?: number): ViewRef { }
+  insert(viewRef: ViewRef, index?: number): ViewRef {
+    // tslint:disable-next-line:variable-name
+    const viewRef_ = <ViewRef_>viewRef;
+    const viewData = viewRef_._view;
+    // attachEmbeddedView(this._view, this._data, index, viewData);
+    viewRef_.attachToViewContainerRef(this);
+    return viewRef;
+  }
 
   // move(viewRef: ViewRef, currentIndex: number): ViewRef { }
 
@@ -138,7 +135,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   }
 }
 
-function createViewContainerRef(view: ViewData): ViewContainerRef {
+export function createViewContainerRef(view: ViewData): ViewContainerRef {
   return new ViewContainerRef_(view);
 }
 
@@ -156,6 +153,9 @@ function detachEmbeddedView(container: ViewContainerRef_, viewIndex: number): Vi
   return view;
 }
 
+/**
+ * Internal View Reference
+ */
 class ViewRef_ implements InternalViewRef {
   _view: ViewData;
   private _viewContainerRef: ViewContainerRef;
@@ -170,12 +170,12 @@ class ViewRef_ implements InternalViewRef {
   // get rootNodes(): any[] { return rootRenderNodes(this._view); }
 
   get context() { return this._view.context; }
-
-  // get destroyed(): boolean { return (this._view.state & ViewState.Destroyed) !== 0; }
-  get destroyed(): boolean { return false; }
+  // tslint:disable-next-line:no-bitwise
+  get destroyed(): boolean { return (this._view.state & ViewState.Destroyed) !== 0; }
 
   // markForCheck(): void { markParentViewsForCheck(this._view); }
-  // detach(): void { this._view.state &= ~ViewState.ChecksEnabled; }
+  // tslint:disable-next-line:no-bitwise
+  detach(): void { this._view.state &= ~ViewState.ChecksEnabled; }
   // detectChanges(): void { Services.checkAndUpdateView(this._view); }
   // checkNoChanges(): void { Services.checkNoChangesView(this._view); }
 
@@ -183,7 +183,8 @@ class ViewRef_ implements InternalViewRef {
     // TODO
   }
 
-  // reattach(): void { this._view.state |= ViewState.ChecksEnabled; }
+  // tslint:disable-next-line:no-bitwise
+  reattach(): void { this._view.state |= ViewState.ChecksEnabled; }
   onDestroy(callback: Function) {
     if (!this._view.disposables) {
       this._view.disposables = [];
@@ -220,22 +221,11 @@ class ViewRef_ implements InternalViewRef {
 }
 
 /**
- * Internal ComponentFactory
+ * Internal View Injector
  */
-class ComponentFactory_ extends ComponentFactory<any> {
-  constructor(public selector: string, public componentType: ClassType<any>,
-    private _viewDefFactory: ViewDefinitionFactory) {
-    super();
-  }
-  create(injector: Injector, rootSelectorOrNode?: string | any): ComponentRef<any> {
-    const viewDef = resolveViewDefinition(this._viewDefFactory);
-    const view = createRootView(viewDef, injector, rootSelectorOrNode, EMPTY_CONTEXT);
-    return new ComponentRef_(view, new ViewRef_(view), null);
+class Injector_ implements Injector {
+  constructor(private _view: ViewData) {}
+  get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
+    return resolveDep(this._view, token, notFoundValue);
   }
 }
-
-export function createComponentFactory(selector: string, componentType: ClassType<any>,
-  viewDefFactory: ViewDefinitionFactory): ComponentFactory<any> {
-  return new ComponentFactory_(selector, componentType, viewDefFactory);
-}
-
