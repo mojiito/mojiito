@@ -5,9 +5,10 @@ import { Renderer } from '../render';
 import { Injector } from '../di/injector';
 import { ComponentRef } from '../component/reference';
 import { ComponentFactory } from '../component/factory';
-import { createRootView, destroyView } from './view';
+import { createRootView, destroyView, initView } from './view';
 import { ViewRef, InternalViewRef } from './view_ref';
 import { ViewContainerRef } from './view_container_ref';
+import { attachEmbeddedView, detachEmbeddedView } from './view_attach';
 import { ElementRef } from './element_ref';
 import { ViewData, ViewDefinitionFactory, ViewDefinition, ViewState } from './types';
 import { resolveViewDefinition, resolveInjector, resolveDep } from './utils';
@@ -29,7 +30,8 @@ class ComponentFactory_ extends ComponentFactory<any> {
   create(injector: Injector, rootSelectorOrNode?: string | any): ComponentRef<any> {
     const viewDef = resolveViewDefinition(this._viewDefFactory);
     const view = createRootView(viewDef, injector, rootSelectorOrNode, EMPTY_CONTEXT);
-    return new ComponentRef_(view, new ViewRef_(view), resolveDep(view, this.componentType, true));
+    const instance = resolveDep(view, this.componentType, true);
+    return new ComponentRef_(view, new ViewRef_(view), instance);
   }
 }
 
@@ -63,14 +65,9 @@ class ComponentRef_ extends ComponentRef<any> {
  */
 class ViewContainerRef_ implements ViewContainerRef {
 
-  renderElement: any;
-  embeddedViews: ViewData[];
+  constructor(private _view: ViewData) {}
 
-  constructor(private _view: ViewData) {
-    this.renderElement = _view.renderElement;
-  }
-
-  get anchorElement(): ElementRef { return new ElementRef(this.renderElement); }
+  get anchorElement(): ElementRef { return new ElementRef(this._view.renderElement); }
   get injector(): Injector { return resolveInjector(this._view); }
   get parentInjector(): Injector {
     let view = this._view;
@@ -85,7 +82,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   clear(): void { }
 
   get(index: number): ViewRef {
-    const view = this.embeddedViews[index];
+    const view = this._view.embeddedViews[index];
     if (view) {
       const ref = new ViewRef_(view);
       ref.attachToViewContainerRef(this);
@@ -94,7 +91,7 @@ class ViewContainerRef_ implements ViewContainerRef {
     return null;
   }
 
-  get length(): number { return this.embeddedViews.length; }
+  get length(): number { return this._view.embeddedViews.length; }
 
   createEmbeddedView<C>(templateRef: any, context?: C, index?: number):
     any { } // EmbeddedViewRef<C> { }
@@ -103,7 +100,7 @@ class ViewContainerRef_ implements ViewContainerRef {
     rootSelectorOrNode?: any): ComponentRef<C> {
     const contextInjector = injector || this.parentInjector;
     const componentRef = componentFactory.create(contextInjector, rootSelectorOrNode);
-
+    this.insert(componentRef.hostView, index);
     return componentRef;
   }
 
@@ -111,7 +108,7 @@ class ViewContainerRef_ implements ViewContainerRef {
     // tslint:disable-next-line:variable-name
     const viewRef_ = <ViewRef_>viewRef;
     const viewData = viewRef_._view;
-    // attachEmbeddedView(this._view, this._data, index, viewData);
+    attachEmbeddedView(this._view, index, viewData);
     viewRef_.attachToViewContainerRef(this);
     return viewRef;
   }
@@ -119,38 +116,24 @@ class ViewContainerRef_ implements ViewContainerRef {
   // move(viewRef: ViewRef, currentIndex: number): ViewRef { }
 
   indexOf(viewRef: ViewRef): number {
-    return this.embeddedViews.indexOf((<ViewRef_>viewRef)._view);
+    return this._view.embeddedViews.indexOf((<ViewRef_>viewRef)._view);
   }
 
   remove(index?: number): void {
-    const view = detachEmbeddedView(this, index);
+    const view = detachEmbeddedView(this._view, index);
     if (view) {
       destroyView(view);
     }
   }
 
   detach(index?: number): ViewRef {
-    const view = detachEmbeddedView(this, index);
+    const view = detachEmbeddedView(this._view, index);
     return view ? new ViewRef_(view) : null;
   }
 }
 
 export function createViewContainerRef(view: ViewData): ViewContainerRef {
   return new ViewContainerRef_(view);
-}
-
-
-function detachEmbeddedView(container: ViewContainerRef_, viewIndex: number): ViewData {
-  const embeddedViews = container.embeddedViews;
-  if (viewIndex == null || viewIndex >= embeddedViews.length) {
-    viewIndex = embeddedViews.length - 1;
-  }
-  if (viewIndex < 0) {
-    return null;
-  }
-  const view = embeddedViews[viewIndex];
-  embeddedViews.splice(viewIndex, 1);
-  return view;
 }
 
 /**
@@ -181,6 +164,7 @@ class ViewRef_ implements InternalViewRef {
 
   parse() {
     // TODO
+    this._view.renderer.parse(this._view.renderElement);
   }
 
   // tslint:disable-next-line:no-bitwise

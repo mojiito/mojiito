@@ -23,6 +23,9 @@ export interface ViewDefinition {
 
 export type ViewDefinitionFactory = () => ViewDefinition;
 
+// tslint:disable-next-line:variable-name
+export class NodeData { private __brand: any; }
+
 /**
  * View instance data.
  */
@@ -34,18 +37,21 @@ export interface ViewData {
   // index of component provider / anchor.
   parent: ViewData;
   viewContainerParent: ViewData;
+  componentView: ViewData;
+  embeddedViews: ViewData[];
   component: any;
   context: any;
   state: ViewState;
   disposables: DisposableFn[];
 }
 
-// tslint:disable:no-bitwise
 export const enum ViewState {
+  // tslint:disable:no-bitwise
   FirstCheck = 1 << 0,
   ChecksEnabled = 1 << 1,
   Errored = 1 << 2,
   Destroyed = 1 << 3
+  // tslint:enable:no-bitwise
 }
 
 export type DisposableFn = () => void;

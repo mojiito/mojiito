@@ -1,4 +1,5 @@
 export abstract class Renderer {
+  abstract parse(node: any): void;
   abstract destroy(): void;
   abstract createElement(name: string, namespace?: string): any;
   abstract createComment(value: string): any;

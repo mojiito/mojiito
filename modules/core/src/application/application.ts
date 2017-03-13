@@ -5,9 +5,6 @@ import { ComponentFactory } from '../component/factory';
 import { ComponentResolver } from '../component/resolver';
 import { ClassType } from '../type';
 import {
-  InvalidComponentTypeError,
-  NoMetadataFoundError,
-  ComponentAlreadyFoundError,
   NotYetBootstrappedError,
   AlreadyBootstrappedError
 } from './application_errors';
@@ -45,7 +42,7 @@ export class ApplicationRef {
     const compRef = componentFactory.create(this.injector, componentFactory.selector);
     compRef.onDestroy(() => { this._unloadComponent(compRef); });
     this._loadComponent(compRef);
-    // ref.parse();
+    compRef.parse();
     return compRef;
   }
 

@@ -1,4 +1,5 @@
 import { ClassType, Renderer, ComponentFactory } from 'mojiito-core';
+import { Visitor } from '../dom_visitor';
 
 export interface CompileComponentSummary {
   type: ClassType<any>;
@@ -9,4 +10,5 @@ export interface CompileComponentSummary {
   componentFactory: ComponentFactory<any>;
   viewDefinitionFactory: () => any;
   components: CompileComponentSummary[];
+  visitor: Visitor;
 }

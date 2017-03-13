@@ -38,7 +38,9 @@ export class DomRendererFactory implements RendererFactory {
 }
 
 export class DomRenderer implements Renderer {
-
+  parse(node: any) {
+    console.log('parse', node);
+  }
   destroy(): void { }
   createElement(name: string, namespace?: string): any {
     if (namespace) {

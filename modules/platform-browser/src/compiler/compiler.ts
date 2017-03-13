@@ -40,16 +40,11 @@ export class Compiler {
     // TODO
     // Always compile a visitor even if no sub components are there
     // Issue: #38
-    let visitor: Visitor = null;
+    let visitor: Visitor;
     let compiledComponents: CompileComponentSummary[];
     if (metadata.components) {
       compiledComponents = this.compileComponents(ListWrapper.flatten(metadata.components));
       visitor = new DomVisitor(compiledComponents);
-      // compiled.forEach(c => {
-      //   if (!c.visitor) {
-      //     c.visitor = visitor;
-      //   }
-      // });
     }
 
     const viewDefFactory = createViewDefinitionFactory(metadata.providers, component);
@@ -62,7 +57,8 @@ export class Compiler {
       componentFactory: createComponentFactory(metadata.selector, component, viewDefFactory),
       rendererType: DomRenderer,
       viewDefinitionFactory: viewDefFactory,
-      components: compiledComponents
+      components: compiledComponents,
+      visitor: visitor
     };
 
     this._compileResults.set(component, compileSummary);
