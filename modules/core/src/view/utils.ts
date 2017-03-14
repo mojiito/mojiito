@@ -97,7 +97,7 @@ export function resolveDep(view: ViewData, token: any, allowPrivateServices: boo
 
 function _createProviderInstance(view: ViewData, providerData: ProviderData,
     allowPrivateServices: boolean): any {
-  let deps = [];
+  let deps: any[] = [];
   if (providerData.dependencies) {
     deps = providerData.dependencies.map(d => resolveDep(view, d.key, allowPrivateServices));
   }
