@@ -3,7 +3,7 @@ import { reflector, Reflector } from './src/reflection/reflection';
 import { ReflectorReader } from './src/reflection/reflector_reader';
 import {
   Provider, ClassProvider, ExistingProvider,
-  FactoryProvider, TypeProvider, ValueProvider
+  FactoryProvider, TypeProvider, ValueProvider,
 } from './src/di/provider';
 
 // Platform & Application
@@ -19,7 +19,7 @@ export { ComponentRef } from './src/component/reference';
 
 // View
 export { createComponentFactory } from './src/view/refs';
-export { ViewData, ViewDefinitionFactory, ViewDefinition } from './src/view/types';
+export * from './src/view/types';
 export { ViewRef } from './src/view/view_ref';
 export { ViewContainerRef } from './src/view/view_container_ref';
 export { ElementRef } from './src/view/element_ref';
@@ -38,7 +38,8 @@ export { ReflectiveInjector, ReflectiveInjector_ } from './src/di/reflective_inj
 export { ReflectiveKey } from './src/di/reflective_key';
 export {
   ReflectiveDependency, ResolvedReflectiveFactory, ResolvedReflectiveProvider,
-  ResolvedReflectiveProvider_, resolveReflectiveProviders, mergeResolvedReflectiveProviders
+  ResolvedReflectiveProvider_, resolveReflectiveProviders, mergeResolvedReflectiveProviders,
+  constructDependencies
 } from './src/di/reflective_provider';
 export { reflector, ReflectorReader, Reflector }
 

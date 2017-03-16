@@ -2,26 +2,55 @@ import { Renderer, RendererFactory } from '../render';
 import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
 
-export interface ProviderData {
-  factory: (...deps: any[]) => any;
-  dependencies: any[];
-  multi: boolean;
-  instance: any;
+export interface NodeDef {
+  flags: NodeFlags;
+  index: number;
+  provider: ProviderDef;
 }
 
-export interface DepData {
-  key: any;
-  optional: boolean;
-  visibility: any;
+export interface ProviderDef {
+  token: any;
+  tokenKey: string;
+  factory: (...deps: any[]) => any;
+  deps: DepDef[];
+}
+
+export interface DepDef {
+  flags: DepFlags;
+  token: any;
+  tokenKey: string;
+}
+
+export const enum DepFlags {
+  None = 0,
+  SkipSelf = 1 << 0,
+  Optional = 1 << 1,
+  Value = 2 << 2,
+}
+
+export interface ProviderData { instance: any; }
+
+export function asProviderData(view: ViewData, index: number): ProviderData {
+  return <any>view.nodes[index];
 }
 
 export interface ViewDefinition {
-  allProviders: {[tokenKey: string]: ProviderData};
-  componentProvider: ProviderData;
-  publicProviders: {[tokenKey: string]: ProviderData};
+  factory: ViewDefinitionFactory;
+  nodes: NodeDef[];
+  /** aggregated NodeFlags for all nodes **/
+  nodeFlags: NodeFlags;
+  componentProvider: NodeDef;
+  publicProviders: {[tokenKey: string]: NodeDef};
+  allProviders: {[tokenKey: string]: NodeDef};
 }
 
 export type ViewDefinitionFactory = () => ViewDefinition;
+
+export interface NodeDef {
+  flags: NodeFlags;
+  index: number;
+  provider: ProviderDef;
+}
 
 // tslint:disable-next-line:variable-name
 export class NodeData { private __brand: any; }
@@ -34,24 +63,24 @@ export interface ViewData {
   renderElement: any;
   root: RootData;
   renderer: Renderer;
-  // index of component provider / anchor.
+  nodes: NodeData[];
   parent: ViewData;
   viewContainerParent: ViewData;
-  componentView: ViewData;
-  embeddedViews: ViewData[];
+  // embeddedViews: ViewData[];
   component: any;
   context: any;
   state: ViewState;
   disposables: DisposableFn[];
+  // allProviders: {[tokenKey: string]: ProviderData};
+  // componentProvider: ProviderData;
+  // publicProviders: {[tokenKey: string]: ProviderData};
 }
 
 export const enum ViewState {
-  // tslint:disable:no-bitwise
   FirstCheck = 1 << 0,
   ChecksEnabled = 1 << 1,
   Errored = 1 << 2,
   Destroyed = 1 << 3
-  // tslint:enable:no-bitwise
 }
 
 export type DisposableFn = () => void;
@@ -61,4 +90,43 @@ export interface RootData {
   selectorOrNode: any;
   renderer: Renderer;
   rendererFactory: RendererFactory;
+}
+
+
+export const enum NodeFlags {
+  None = 0,
+  // TypeElement = 1 << 0,
+  // TypeText = 1 << 1,
+  // CatRenderNode = TypeElement | TypeText,
+  // TypeNgContent = 1 << 2,
+  // TypePipe = 1 << 3,
+  // TypePureArray = 1 << 4,
+  // TypePureObject = 1 << 5,
+  // TypePurePipe = 1 << 6,
+  // CatPureExpression = TypePureArray | TypePureObject | TypePurePipe,
+  TypeProvider = 1 << 7,
+  LazyProvider = 1 << 11,
+  PrivateProvider = 1 << 12,
+  // TypeDirective = 1 << 13,
+  TypeComponent = 1 << 14,
+  CatProvider = TypeProvider | TypeComponent,
+  // OnInit = 1 << 15,
+  // OnDestroy = 1 << 16,
+  // DoCheck = 1 << 17,
+  // OnChanges = 1 << 18,
+  // AfterContentInit = 1 << 19,
+  // AfterContentChecked = 1 << 20,
+  // AfterViewInit = 1 << 21,
+  // AfterViewChecked = 1 << 22,
+  EmbeddedViews = 1 << 23,
+  ComponentView = 1 << 24,
+  // TypeContentQuery = 1 << 25,
+  // TypeViewQuery = 1 << 26,
+  // StaticQuery = 1 << 27,
+  // DynamicQuery = 1 << 28,
+  // CatQuery = TypeContentQuery | TypeViewQuery,
+
+  // mutually exclusive values...
+  // Types = CatRenderNode | TypeNgContent | TypePipe | CatPureExpression | CatProvider | CatQuery
+  Types = CatProvider
 }

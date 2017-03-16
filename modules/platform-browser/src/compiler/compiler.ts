@@ -2,9 +2,12 @@ import {
   ClassType, Component, ComponentResolver, Injectable, Renderer, ComponentRef,
   ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
   ElementRef, Injector, ApplicationRef, Provider, ReflectiveInjector, ReflectorReader,
-  HostListener, ChildListener, createViewDefinitionFactory
+  HostListener, ChildListener, createViewDefinitionFactory, SkipSelf,
+
+  NodeFlags, NodeDef, ViewDefinitionFactory, DepFlags, constructDependencies, ProviderDef, DepDef
 } from 'mojiito-core';
 import { ListWrapper } from '../facade/collection';
+import { stringify } from '../facade/lang';
 import { Visitor, DomVisitor } from '../dom_visitor';
 import { DomRenderer } from '../dom_renderer';
 import { DomTraverser } from '../dom_traverser';
@@ -47,7 +50,36 @@ export class Compiler {
       visitor = new DomVisitor(compiledComponents);
     }
 
-    const viewDefFactory = createViewDefinitionFactory(metadata.providers, component);
+    const viewDefFactory: ViewDefinitionFactory = () => {
+      const nodes: NodeDef[] = [];
+      let nodeFlags = NodeFlags.ComponentView;
+
+      const providers = metadata.providers;
+      let publicProviders: {[key: string]: NodeDef};
+      if (providers) {
+        publicProviders = {};
+        this._createProviderNodes(providers, nodes, NodeFlags.TypeProvider).forEach(node => {
+          publicProviders[node.provider.tokenKey] = node;
+        });
+        nodeFlags += NodeFlags.TypeProvider;
+      }
+
+      this._createProviderNodes([component], nodes, NodeFlags.TypeComponent);
+      const componentProvider = nodes[nodes.length - 1];
+      nodeFlags += NodeFlags.TypeComponent;
+
+      const allProviders = publicProviders;
+      allProviders[componentProvider.provider.tokenKey] = componentProvider;
+
+      return {
+        factory: viewDefFactory,
+        nodeFlags,
+        nodes,
+        componentProvider,
+        publicProviders,
+        allProviders
+      };
+    };
 
     compileSummary = {
       type: component,
@@ -60,8 +92,41 @@ export class Compiler {
       components: compiledComponents,
       visitor: visitor
     };
-
     this._compileResults.set(component, compileSummary);
     return compileSummary;
+  }
+
+  private _createProviderNodes(providers: Provider[], nodes: NodeDef[],
+    nodeType: NodeFlags): NodeDef[] {
+    const nodeDefs = resolveReflectiveProviders(ListWrapper.flatten(providers))
+      .map((provider, index) => {
+        const factory = provider.resolvedFactories[0];
+        const node = <NodeDef>{
+          flags: nodeType,
+          index: nodes.length + index,
+          provider: <ProviderDef>{
+            token: provider.key.token,
+            tokenKey: provider.key.displayName,
+            factory: factory.factory,
+            deps: factory.dependencies.map(dep => {
+              let flags = 0;
+              if (dep.optional) {
+                flags += DepFlags.Optional;
+              }
+              if (dep.visibility instanceof SkipSelf) {
+                flags += DepFlags.SkipSelf;
+              }
+              return <DepDef>{
+                flags,
+                token: dep.key.token,
+                tokenKey: dep.key.displayName
+              };
+            })
+          }
+        };
+        return node;
+      });
+    nodes.push(...nodeDefs);
+    return nodeDefs;
   }
 }

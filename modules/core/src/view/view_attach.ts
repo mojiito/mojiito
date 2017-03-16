@@ -1,26 +1,27 @@
 import { ViewData } from './types';
 
 export function attachEmbeddedView(parentView: ViewData, viewIndex: number, view: ViewData) {
-  let embeddedViews = parentView.embeddedViews;
-  if (viewIndex == null) {
-    viewIndex = embeddedViews.length;
-  }
-  view.viewContainerParent = parentView;
-  addToArray(embeddedViews, viewIndex, view);
+  // let embeddedViews = parentView.embeddedViews;
+  // if (viewIndex == null) {
+  //   viewIndex = embeddedViews.length;
+  // }
+  // view.viewContainerParent = parentView;
+  // addToArray(embeddedViews, viewIndex, view);
 }
 
 export function detachEmbeddedView(parent: ViewData, viewIndex: number): ViewData {
-  const embeddedViews = parent.embeddedViews;
-  if (viewIndex == null || viewIndex >= embeddedViews.length) {
-    viewIndex = embeddedViews.length - 1;
-  }
-  if (viewIndex < 0) {
-    return null;
-  }
-  const view = embeddedViews[viewIndex];
-  view.viewContainerParent = undefined;
-  removeFromArray(embeddedViews, viewIndex);
-  return view;
+  // const embeddedViews = parent.embeddedViews;
+  // if (viewIndex == null || viewIndex >= embeddedViews.length) {
+  //   viewIndex = embeddedViews.length - 1;
+  // }
+  // if (viewIndex < 0) {
+  //   return null;
+  // }
+  // const view = embeddedViews[viewIndex];
+  // view.viewContainerParent = undefined;
+  // removeFromArray(embeddedViews, viewIndex);
+  // return view;
+  return null;
 }
 
 function addToArray(arr: any[], index: number, value: any) {

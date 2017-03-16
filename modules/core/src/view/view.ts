@@ -4,38 +4,42 @@ import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
 import { resolveReflectiveProviders } from '../di/reflective_provider';
 import { ClassType } from '../type';
-import { ElementRef } from '../view/element_ref';
 import { ViewContainerRef } from './view_container_ref';
-import { ViewData, ViewState, RootData, ViewDefinition } from './types';
-import { tokenKey } from './utils';
+import {
+  ViewData, ViewState, RootData, ViewDefinition, NodeFlags, ProviderData,
+  NodeData
+} from './types';
+import { tokenKey, createProviderInstance } from './provider';
 
 export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
   const rendererFactory: RendererFactory = injector.get(RendererFactory);
   const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
-  let node = rootSelectorOrNode;
+  let renderElement = rootSelectorOrNode;
   if (typeof rootSelectorOrNode === 'string') {
-    node = root.renderer.selectRootElement(rootSelectorOrNode);
+    renderElement = root.renderer.selectRootElement(rootSelectorOrNode);
   }
-  const view = createView(root, root.renderer, null, node, def);
-  initView(view, context, context);
+  const view = createView(root, root.renderer, null, renderElement, def);
+  createViewNodes(view);
   return view;
 }
 
 export function createView(root: RootData, renderer: Renderer,
   parent: ViewData, renderElement: any, def: ViewDefinition): ViewData {
+  const nodes: NodeData[] = new Array(def.nodes.length);
   const view: ViewData = {
     def,
     renderElement,
     root,
     renderer,
+    nodes,
     parent,
     viewContainerParent: undefined,
     context: undefined,
     component: undefined,
-    // tslint:disable:no-bitwise
+    // embeddedViews: def.componentProvider ? [] :  void 0,
     state: ViewState.FirstCheck | ViewState.ChecksEnabled,
-    disposables: undefined
+    disposables: undefined,
   };
   return view;
 }
@@ -60,6 +64,31 @@ export function destroyView(view: ViewData) {
   view.state |= ViewState.Destroyed;
 }
 
+function createViewNodes(view: ViewData) {
+
+  const def = view.def;
+  const nodes = view.nodes;
+  let nodeData: any;
+  for (let i = 0; i < def.nodes.length; i++) {
+    const nodeDef = def.nodes[i];
+    switch (nodeDef.flags & NodeFlags.Types) {
+      case NodeFlags.TypeProvider: {
+        const instance = createProviderInstance(view, nodeDef);
+        nodeData = <ProviderData>{ instance };
+        break;
+      }
+      case NodeFlags.TypeComponent: {
+        const instance = createProviderInstance(view, nodeDef);
+        nodeData = <ProviderData>{ instance };
+        initView(view, instance, instance);
+        break;
+      }
+    }
+    nodes[i] = nodeData;
+  }
+
+}
+
 function createRootData(
   injector: Injector, rendererFactory: RendererFactory, rootSelectorOrNode: any): RootData {
   const renderer = rendererFactory.createRenderer(null);
@@ -75,7 +104,7 @@ function viewDef(publicProviders: Provider[], componentProvider: any): ViewDefin
   var viewDef: any = {};
   // resolve public providers
   const publicProv: any = Object.create(null);
-  if (publicProviders)  {
+  if (publicProviders) {
     resolveReflectiveProviders(publicProviders).forEach(p => {
       const resolvedFactory = p.resolvedFactories[0];
       publicProv[tokenKey(p.key)] = {

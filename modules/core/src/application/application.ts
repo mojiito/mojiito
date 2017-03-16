@@ -2,7 +2,6 @@ import { ListWrapper } from '../facade/collection';
 import { ComponentFactoryResolver } from '../component/factory_resolver';
 import { ComponentRef } from '../component/reference';
 import { ComponentFactory } from '../component/factory';
-import { ComponentResolver } from '../component/resolver';
 import { ClassType } from '../type';
 import {
   NotYetBootstrappedError,
@@ -42,7 +41,7 @@ export class ApplicationRef {
     const compRef = componentFactory.create(this.injector, componentFactory.selector);
     compRef.onDestroy(() => { this._unloadComponent(compRef); });
     this._loadComponent(compRef);
-    compRef.parse();
+    // compRef.parse();
     return compRef;
   }
 
