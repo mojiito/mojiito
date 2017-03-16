@@ -15,11 +15,7 @@ export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
   const rendererFactory: RendererFactory = injector.get(RendererFactory);
   const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
-  let renderElement = rootSelectorOrNode;
-  if (typeof rootSelectorOrNode === 'string') {
-    renderElement = root.renderer.selectRootElement(rootSelectorOrNode);
-  }
-  const view = createView(root, root.renderer, null, renderElement, def);
+  const view = createView(root, root.renderer, null, root.element, def);
   createViewNodes(view);
   return view;
 }
@@ -37,7 +33,7 @@ export function createView(root: RootData, renderer: Renderer,
     viewContainerParent: undefined,
     context: undefined,
     component: undefined,
-    // embeddedViews: def.componentProvider ? [] :  void 0,
+    embeddedViews: def.nodeFlags & NodeFlags.TypeComponent ? [] : undefined,
     state: ViewState.FirstCheck | ViewState.ChecksEnabled,
     disposables: undefined,
   };
@@ -92,9 +88,14 @@ function createViewNodes(view: ViewData) {
 function createRootData(
   injector: Injector, rendererFactory: RendererFactory, rootSelectorOrNode: any): RootData {
   const renderer = rendererFactory.createRenderer(null);
+  let element = rootSelectorOrNode;
+  if (typeof rootSelectorOrNode === 'string') {
+    element = renderer.selectRootElement(rootSelectorOrNode);
+  }
   return {
     injector,
     selectorOrNode: rootSelectorOrNode,
+    element,
     rendererFactory,
     renderer
   };

@@ -87,12 +87,12 @@ class ViewContainerRef_ implements ViewContainerRef {
   clear(): void { }
 
   get(index: number): ViewRef {
-    // const view = this._view.embeddedViews[index];
-    // if (view) {
-    //   const ref = new ViewRef_(view);
-    //   ref.attachToViewContainerRef(this);
-    //   return ref;
-    // }
+    const view = this._view.embeddedViews[index];
+    if (view) {
+      const ref = new ViewRef_(view);
+      ref.attachToViewContainerRef(this);
+      return ref;
+    }
     return null;
   }
 
@@ -121,7 +121,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   // move(viewRef: ViewRef, currentIndex: number): ViewRef { }
 
   indexOf(viewRef: ViewRef): number {
-    return 0; // this._view.embeddedViews.indexOf((<ViewRef_>viewRef)._view);
+    return this._view.embeddedViews.indexOf((<ViewRef_>viewRef)._view);
   }
 
   remove(index?: number): void {
@@ -162,7 +162,6 @@ class ViewRef_ implements InternalViewRef {
   get destroyed(): boolean { return (this._view.state & ViewState.Destroyed) !== 0; }
 
   // markForCheck(): void { markParentViewsForCheck(this._view); }
-  // tslint:disable-next-line:no-bitwise
   detach(): void { this._view.state &= ~ViewState.ChecksEnabled; }
   // detectChanges(): void { Services.checkAndUpdateView(this._view); }
   // checkNoChanges(): void { Services.checkNoChangesView(this._view); }
@@ -172,7 +171,6 @@ class ViewRef_ implements InternalViewRef {
     this._view.renderer.parse(this._view.renderElement);
   }
 
-  // tslint:disable-next-line:no-bitwise
   reattach(): void { this._view.state |= ViewState.ChecksEnabled; }
   onDestroy(callback: Function) {
     if (!this._view.disposables) {

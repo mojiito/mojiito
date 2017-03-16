@@ -77,7 +77,8 @@ export class Compiler {
         nodes,
         componentProvider,
         publicProviders,
-        allProviders
+        allProviders,
+        componentRendererType: null // TODO
       };
     };
 

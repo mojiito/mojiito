@@ -14,7 +14,6 @@ export interface Visitor {
   visitAttribute(element: Element, attr: Attr, context: any): any;
   visitText(text: Text, context: any): any;
   visitComment(comment: Comment, context: any): any;
-  // getVisitorForContext(context: any): Visitor;
 }
 
 export class DomVisitor implements Visitor {
@@ -32,7 +31,7 @@ export class DomVisitor implements Visitor {
 
   visitElement(element: Element, context: any): any {
     const elementCssSelector = CssSelector.fromElement(element);
-    let matchingComponent: any;
+    let matchingComponent: CompileComponentSummary;
     this.selectorMatcher.match(elementCssSelector, (selector, component) => {
       if (matchingComponent) {
         throw new MultipleComponentsOnElementError([matchingComponent.type, component.type]);
@@ -45,6 +44,8 @@ export class DomVisitor implements Visitor {
     }
 
     console.log(`Found ${stringify(matchingComponent)} on element:`, element);
+
+    matchingComponent
 
     ListWrapper.forEach(element.attributes, attr => {
 

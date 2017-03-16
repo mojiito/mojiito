@@ -1,3 +1,4 @@
+import { ClassType } from '../type';
 import { Renderer, RendererFactory } from '../render';
 import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
@@ -39,6 +40,7 @@ export interface ViewDefinition {
   nodes: NodeDef[];
   /** aggregated NodeFlags for all nodes **/
   nodeFlags: NodeFlags;
+  componentRendererType: ClassType<Renderer>;
   componentProvider: NodeDef;
   publicProviders: {[tokenKey: string]: NodeDef};
   allProviders: {[tokenKey: string]: NodeDef};
@@ -66,7 +68,7 @@ export interface ViewData {
   nodes: NodeData[];
   parent: ViewData;
   viewContainerParent: ViewData;
-  // embeddedViews: ViewData[];
+  embeddedViews: ViewData[];
   component: any;
   context: any;
   state: ViewState;
@@ -90,6 +92,7 @@ export interface RootData {
   selectorOrNode: any;
   renderer: Renderer;
   rendererFactory: RendererFactory;
+  element: any;
 }
 
 
