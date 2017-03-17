@@ -12,10 +12,10 @@ import { attachEmbeddedView, detachEmbeddedView } from './view_attach';
 import { ElementRef } from './element_ref';
 import {
   ViewData, ViewDefinitionFactory, ViewDefinition, ViewState,
-  asProviderData
+  asProviderData, DepFlags
 } from './types';
 import { resolveViewDefinition, resolveInjector } from './utils';
-import { resolveDep } from './provider';
+import { resolveDep, tokenKey } from './provider';
 
 const EMPTY_CONTEXT = new Object();
 
@@ -207,6 +207,7 @@ class ViewRef_ implements InternalViewRef {
 class Injector_ implements Injector {
   constructor(private _view: ViewData) { }
   get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
-    return resolveDep(this._view, token, notFoundValue);
+    return resolveDep(this._view,
+      {flags: DepFlags.None, token, tokenKey: tokenKey(token)}, notFoundValue);
   }
 }
