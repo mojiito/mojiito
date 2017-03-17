@@ -28,6 +28,7 @@ export class DomVisitor implements Visitor {
       matchingComponent = component;
     });
 
+    // if no matching component return current context
     if (!matchingComponent) {
       return context;
     }
