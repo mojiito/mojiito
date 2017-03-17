@@ -53,6 +53,10 @@ export class BrowserPlatformRef extends PlatformRef {
   }
 }
 
+function factoryResolver(compiler: Compiler) {
+  return compiler.componentFactoryResolver;
+}
+
 export const PLATFORM_PROVIDERS = [
   { provide: PlatformRef, useClass: BrowserPlatformRef },
   { provide: DOCUMENT, useValue: document },

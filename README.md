@@ -16,7 +16,7 @@ Mojiito is not a JavaScript framework for Web Applications. Use Angular, Ember, 
 We currently working very hard on developing the new Version 2.0 completely rewritten in TypeScript. Mojiito is right now in Alpha State (2.0.0-alpha.3).
 
 ## Install
-Run `npm install --save mojiito-core mojiito-platform-browser` in your command line tool.
+Run `npm install mojiito-core mojiito-platform-browser --save` in your command line tool.
 
 ## Getting Started & Documentation
 Visit the [Getting Started](docs/getting-started.md) guide and [Documentation](docs/README.md)

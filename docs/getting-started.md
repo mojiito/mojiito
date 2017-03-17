@@ -2,7 +2,7 @@
 
 ## Install
 The latest release of Mojiito can be installed using npm.   
-Run `npm install --save mojiito-core mojiito-platform-browser` in your command line tool.
+Run `npm install mojiito-core mojiito-platform-browser --save` in your command line tool.
 
 ## Quickstart
 
