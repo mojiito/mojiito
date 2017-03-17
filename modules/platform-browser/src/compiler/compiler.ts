@@ -60,9 +60,8 @@ export class Compiler {
 
       // Create public provider instances and add to nodes
       const providers = metadata.providers;
-      let publicProviders: {[key: string]: NodeDef};
+      let publicProviders: {[key: string]: NodeDef} = {};
       if (providers) {
-        publicProviders = {};
         this._createProviderNodes(providers, nodes, NodeFlags.TypeProvider).forEach(node => {
           publicProviders[node.provider.tokenKey] = node;
         });
@@ -75,7 +74,7 @@ export class Compiler {
       nodeFlags += NodeFlags.TypeComponent;
 
       // Set allProviders to publicProviders plus private providers (componentProvider)
-      const allProviders = publicProviders || {};
+      const allProviders = publicProviders;
       allProviders[componentProvider.provider.tokenKey] = componentProvider;
 
       return <ViewDefinition>{
