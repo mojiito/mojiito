@@ -42,5 +42,5 @@ export abstract class Renderer {
   abstract setValue(node: any, value: string): void;
   abstract listen(
       target: 'window'|'document'|'body'|any, eventName: string,
-      callback: (event: any) => boolean): () => void;
+      callback: (event: any) => boolean | void): () => void;
 }

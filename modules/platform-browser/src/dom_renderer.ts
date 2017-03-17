@@ -114,15 +114,15 @@ export class DefaultDomRenderer implements Renderer {
   setProperty(el: any, name: string, value: any): void { el[name] = value; }
   setValue(node: any, value: string): void { node.nodeValue = value; }
   listen(target: 'window' | 'document' | 'body' | any, event: string,
-    callback: (event: any) => boolean): () => void {
+    callback: (event: any) => boolean | void): () => void {
     if (typeof target === 'string') {
       target = getGlobalEventTarget(target);
       if (!target) {
-        throw new Error(`Unsupported event target ${target} for event ${name}`);
+        throw new Error(`Unsupported event target ${target} for event ${event}`);
       }
     }
-    target.addEventListener(name, callback as any, false);
-    return () => target.removeEventListener(name, callback as any, false);
+    target.addEventListener(event, callback as any, false);
+    return () => target.removeEventListener(event, callback as any, false);
   }
 }
 
