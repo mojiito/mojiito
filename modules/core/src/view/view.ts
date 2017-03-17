@@ -1,4 +1,4 @@
-import { Renderer, RendererFactory } from '../render';
+import { Renderer, RendererFactory, RendererType } from '../render';
 import { ComponentRef } from '../component/reference';
 import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
@@ -15,19 +15,19 @@ export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
   const rendererFactory: RendererFactory = injector.get(RendererFactory);
   const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
-  const view = createView(root, root.renderer, null, root.element, def);
-  createViewNodes(view);
+  const view = createView(root, null, root.element, def);
+  view.renderer.parse(view);
   return view;
 }
 
-export function createView(root: RootData, renderer: Renderer,
+export function createView(root: RootData,
   parent: ViewData, renderElement: any, def: ViewDefinition): ViewData {
   const nodes: NodeData[] = new Array(def.nodes.length);
   const view: ViewData = {
     def,
     renderElement,
     root,
-    renderer,
+    renderer: createRenderer(renderElement, def, parent, root),
     nodes,
     parent,
     viewContainerParent: undefined,
@@ -37,6 +37,7 @@ export function createView(root: RootData, renderer: Renderer,
     state: ViewState.FirstCheck | ViewState.ChecksEnabled,
     disposables: undefined,
   };
+  createViewNodes(view);
   return view;
 }
 
@@ -76,6 +77,7 @@ function createViewNodes(view: ViewData) {
       case NodeFlags.TypeComponent: {
         const instance = createProviderInstance(view, nodeDef);
         nodeData = <ProviderData>{ instance };
+
         initView(view, instance, instance);
         break;
       }
@@ -87,7 +89,7 @@ function createViewNodes(view: ViewData) {
 
 function createRootData(
   injector: Injector, rendererFactory: RendererFactory, rootSelectorOrNode: any): RootData {
-  const renderer = rendererFactory.createRenderer(null);
+  const renderer = rendererFactory.createRenderer(null, null);
   let element = rootSelectorOrNode;
   if (typeof rootSelectorOrNode === 'string') {
     element = renderer.selectRootElement(rootSelectorOrNode);
@@ -140,4 +142,20 @@ export function createViewDefinitionFactory(publicProviders: Provider[], compone
   return () => {
     return viewDef(publicProviders, componentProvider);
   };
+}
+
+function createRenderer(hostElement: any, viewDef: ViewDefinition,
+      parentView: ViewData, root: RootData) {
+    let rendererType: RendererType = viewDef.componentRendererType;
+    let view = parentView;
+    while (view && !rendererType) {
+      rendererType = view.def.componentRendererType;
+      view = view.parent;
+    }
+
+    if (!rendererType) {
+      return root.renderer;
+    } else {
+      return root.rendererFactory.createRenderer(hostElement, rendererType);
+    }
 }

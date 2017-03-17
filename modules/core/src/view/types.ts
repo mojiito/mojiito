@@ -1,5 +1,5 @@
 import { ClassType } from '../type';
-import { Renderer, RendererFactory } from '../render';
+import { Renderer, RendererFactory, RendererType } from '../render';
 import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
 
@@ -40,7 +40,7 @@ export interface ViewDefinition {
   nodes: NodeDef[];
   /** aggregated NodeFlags for all nodes **/
   nodeFlags: NodeFlags;
-  componentRendererType: ClassType<Renderer>;
+  componentRendererType: RendererType;
   componentProvider: NodeDef;
   publicProviders: {[tokenKey: string]: NodeDef};
   allProviders: {[tokenKey: string]: NodeDef};

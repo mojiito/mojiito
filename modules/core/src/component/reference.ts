@@ -30,9 +30,6 @@ export abstract class ComponentRef<C> {
   /** The component type. */
   abstract get componentType(): ClassType<C>;
 
-  /** Allows you to trigger a parse on the DOM managed by this component. */
-  abstract parse(): void;
-
   /** Destroys the component instance and all of the data structures associated with it. */
   abstract destroy(): void;
 

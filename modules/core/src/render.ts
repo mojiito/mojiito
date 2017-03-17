@@ -1,5 +1,25 @@
+export interface Visitor {
+  visitElement(element: Element, context: any): any;
+  visitAttribute(element: Element, attr: Attr, context: any): any;
+  visitText(text: Text, context: any): any;
+  visitComment(comment: Comment, context: any): any;
+}
+
+export interface RendererType {
+  visitor: Visitor;
+  data: {[kind: string]: any};
+}
+
+/**
+ * @experimental
+ */
+export abstract class RendererFactory {
+  abstract createRenderer(hostElement: any, type: RendererType): Renderer;
+}
+
+
 export abstract class Renderer {
-  abstract parse(node: any): void;
+  abstract parse(context: any): void;
   abstract destroy(): void;
   abstract createElement(name: string, namespace?: string): any;
   abstract createComment(value: string): any;
@@ -23,8 +43,4 @@ export abstract class Renderer {
   abstract listen(
       target: 'window'|'document'|'body'|any, eventName: string,
       callback: (event: any) => boolean): () => void;
-}
-
-export abstract class RendererFactory {
-  abstract createRenderer(hostElement?: any): Renderer;
 }

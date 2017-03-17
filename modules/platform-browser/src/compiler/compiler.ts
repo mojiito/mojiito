@@ -1,15 +1,14 @@
 import {
-  ClassType, Component, ComponentResolver, Injectable, Renderer, ComponentRef,
+  ClassType, Component, ComponentResolver, Injectable, Renderer, RendererType, ComponentRef,
   ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
   ElementRef, Injector, ApplicationRef, Provider, ReflectiveInjector, ReflectorReader,
-  HostListener, ChildListener, createViewDefinitionFactory, SkipSelf,
-
-  NodeFlags, NodeDef, ViewDefinitionFactory, DepFlags, constructDependencies, ProviderDef, DepDef
+  HostListener, ChildListener, createViewDefinitionFactory, SkipSelf, NodeFlags, NodeDef,
+  ViewDefinitionFactory, ViewDefinition, DepFlags, constructDependencies, ProviderDef, DepDef,
+  Visitor
 } from 'mojiito-core';
 import { ListWrapper } from '../facade/collection';
 import { stringify } from '../facade/lang';
-import { Visitor, DomVisitor } from '../dom_visitor';
-import { DomRenderer } from '../dom_renderer';
+import { DomVisitor } from '../dom_visitor';
 import { DomTraverser } from '../dom_traverser';
 import { BindingParser, EventBindingParseResult } from '../binding_parser';
 import { CompileComponentSummary } from './compile_result';
@@ -45,15 +44,21 @@ export class Compiler {
     // Issue: #38
     let visitor: Visitor;
     let compiledComponents: CompileComponentSummary[];
+    let componentRendererType: RendererType;
     if (metadata.components) {
       compiledComponents = this.compileComponents(ListWrapper.flatten(metadata.components));
       visitor = new DomVisitor(compiledComponents);
+      componentRendererType = {
+        visitor,
+        data: null
+      };
     }
 
-    const viewDefFactory: ViewDefinitionFactory = () => {
+    const viewDefinitionFactory: ViewDefinitionFactory = () => {
       const nodes: NodeDef[] = [];
       let nodeFlags = NodeFlags.ComponentView;
 
+      // Create public provider instances and add to nodes
       const providers = metadata.providers;
       let publicProviders: {[key: string]: NodeDef};
       if (providers) {
@@ -64,21 +69,23 @@ export class Compiler {
         nodeFlags += NodeFlags.TypeProvider;
       }
 
+      // Create component instance and add to nodes
       this._createProviderNodes([component], nodes, NodeFlags.TypeComponent);
       const componentProvider = nodes[nodes.length - 1];
       nodeFlags += NodeFlags.TypeComponent;
 
-      const allProviders = publicProviders;
+      // Set allProviders to publicProviders plus private providers (componentProvider)
+      const allProviders = publicProviders || {};
       allProviders[componentProvider.provider.tokenKey] = componentProvider;
 
-      return {
-        factory: viewDefFactory,
+      return <ViewDefinition>{
+        factory: viewDefinitionFactory,
         nodeFlags,
         nodes,
         componentProvider,
         publicProviders,
         allProviders,
-        componentRendererType: null // TODO
+        componentRendererType
       };
     };
 
@@ -87,11 +94,9 @@ export class Compiler {
       selector: metadata.selector,
       hostListeners: metadata.host,
       childListeners: metadata.childs,
-      componentFactory: createComponentFactory(metadata.selector, component, viewDefFactory),
-      rendererType: DomRenderer,
-      viewDefinitionFactory: viewDefFactory,
-      components: compiledComponents,
-      visitor: visitor
+      componentFactory: createComponentFactory(metadata.selector, component, viewDefinitionFactory),
+      viewDefinitionFactory,
+      components: compiledComponents
     };
     this._compileResults.set(component, compileSummary);
     return compileSummary;

@@ -1,7 +1,8 @@
-import { Renderer, RendererFactory, Injectable } from 'mojiito-core';
+import { Renderer, RendererFactory, Injectable, RendererType, Visitor } from 'mojiito-core';
 import { isPresent, stringify } from './facade/lang';
 import { DOCUMENT } from './tokens';
 import { DomTraverser } from './dom_traverser';
+import { DomVisitor } from './dom_visitor';
 
 export const NAMESPACE_URIS: { [ns: string]: string } = {
   'xlink': 'http://www.w3.org/1999/xlink',
@@ -25,21 +26,24 @@ function getGlobalEventTarget(target: string): any {
 
 @Injectable()
 export class DomRendererFactory implements RendererFactory {
-  // private rendererByCompId = new Map<string, RendererV2>();
+  private rendererByCompId = new Map<string, Renderer>();
   private defaultRenderer: Renderer;
 
   constructor() {
-    this.defaultRenderer = new DomRenderer();
+    this.defaultRenderer = new DefaultDomRenderer();
   };
 
-  createRenderer(element?: any): Renderer {
-    return this.defaultRenderer;
+  createRenderer(element: any, type: RendererType): Renderer {
+    if (!element || !type) {
+      return this.defaultRenderer;
+    }
+    return new ParseableDomRenderer(type.visitor, element);
   }
 }
 
-export class DomRenderer implements Renderer {
-  parse(node: any) {
-    console.log('parse', node);
+export class DefaultDomRenderer implements Renderer {
+  parse(context: any) {
+    throw new Error(`Parse is not allowed on the DefaultDomRenderer!`);
   }
   destroy(): void { }
   createElement(name: string, namespace?: string): any {
@@ -119,5 +123,17 @@ export class DomRenderer implements Renderer {
     }
     target.addEventListener(name, callback as any, false);
     return () => target.removeEventListener(name, callback as any, false);
+  }
+}
+
+export class ParseableDomRenderer extends DefaultDomRenderer {
+  constructor(private _visitor: Visitor,
+    public hostElement: Node) {
+    super();
+  }
+
+  parse(context: any) {
+    const traverser = new DomTraverser();
+    traverser.traverse(this.hostElement, this._visitor, context);
   }
 }

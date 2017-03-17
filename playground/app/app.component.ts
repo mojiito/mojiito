@@ -1,4 +1,4 @@
-import { Component, ViewContainerRef } from 'mojiito-core';
+import { Component, ViewContainerRef, Renderer } from 'mojiito-core';
 
 import {Dialog, DialogComponent } from './dialog.component';
 import { ButtonComponent } from './button.component';
@@ -10,7 +10,7 @@ import { DrawerComponent } from './drawer.component';
   providers: [Dialog]
 })
 export class AppComponent {
-  constructor(container: ViewContainerRef) {
-    console.log('init', container);
+  constructor(container: ViewContainerRef, renderer: Renderer) {
+    console.log('init', container, renderer);
   }
 }

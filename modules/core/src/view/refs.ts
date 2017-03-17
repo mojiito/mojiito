@@ -60,7 +60,6 @@ class ComponentRef_ extends ComponentRef<any> {
   // get changeDetectorRef(): ChangeDetectorRef { return this._viewRef; };
   get componentType(): ClassType<any> { return <any>this._component.constructor; }
 
-  parse(): void { this._viewRef.parse(); }
   destroy(): void { this._viewRef.destroy(); }
   onDestroy(callback: Function): void { this._viewRef.onDestroy(callback); }
 }
@@ -165,11 +164,6 @@ class ViewRef_ implements InternalViewRef {
   detach(): void { this._view.state &= ~ViewState.ChecksEnabled; }
   // detectChanges(): void { Services.checkAndUpdateView(this._view); }
   // checkNoChanges(): void { Services.checkNoChangesView(this._view); }
-
-  parse() {
-    // TODO
-    this._view.renderer.parse(this._view.renderElement);
-  }
 
   reattach(): void { this._view.state |= ViewState.ChecksEnabled; }
   onDestroy(callback: Function) {

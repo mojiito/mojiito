@@ -1,38 +1,27 @@
 import { CssSelector, SelectorMatcher } from './selector';
-import { Injector, ComponentRef, ApplicationRef, ClassType } from 'mojiito-core';
+import { ClassType, Visitor, createView, ViewData } from 'mojiito-core';
 import { WrappedError } from './facade/error';
 import { stringify } from './facade/lang';
 import { ListWrapper } from './facade/collection';
 import { CompileComponentSummary } from './compiler/compile_result';
 
-export class VisitorFactory {
-
-}
-
-export interface Visitor {
-  visitElement(element: Element, context: any): any;
-  visitAttribute(element: Element, attr: Attr, context: any): any;
-  visitText(text: Text, context: any): any;
-  visitComment(comment: Comment, context: any): any;
-}
-
 export class DomVisitor implements Visitor {
 
-  selectorMatcher = new SelectorMatcher();
-  componentsIndex = new Map<CompileComponentSummary, number>();
+  private _selectorMatcher = new SelectorMatcher();
+  private _componentsIndex = new Map<CompileComponentSummary, number>();
 
   constructor(components: CompileComponentSummary[]) {
     components.forEach((component, index) => {
       const selector = CssSelector.parse(component.selector);
-      this.selectorMatcher.addSelectables(selector, component);
-      this.componentsIndex.set(component, index);
+      this._selectorMatcher.addSelectables(selector, component);
+      this._componentsIndex.set(component, index);
     });
   }
 
-  visitElement(element: Element, context: any): any {
+  visitElement(element: Element, context: ViewData): any {
     const elementCssSelector = CssSelector.fromElement(element);
     let matchingComponent: CompileComponentSummary;
-    this.selectorMatcher.match(elementCssSelector, (selector, component) => {
+    this._selectorMatcher.match(elementCssSelector, (selector, component) => {
       if (matchingComponent) {
         throw new MultipleComponentsOnElementError([matchingComponent.type, component.type]);
       }
@@ -40,16 +29,22 @@ export class DomVisitor implements Visitor {
     });
 
     if (!matchingComponent) {
-      return this;
+      return context;
     }
 
-    console.log(`Found ${stringify(matchingComponent)} on element:`, element);
+    // console.log(`Found ${stringify(matchingComponent.type)} on element:`, element);
 
-    matchingComponent
+    const viewDef = matchingComponent.viewDefinitionFactory();
+    const view = createView(context.root, context, element, viewDef);
+
+    // console.log(`Created ${stringify(matchingComponent.type)} ` +
+    //   `with parent ${stringify(context.component.constructor)}`);
 
     ListWrapper.forEach(element.attributes, attr => {
 
     });
+
+    return view;
   }
 
   visitAttribute(element: Element, attr: Attr, context: any) { }

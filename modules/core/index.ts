@@ -23,7 +23,7 @@ export * from './src/view/types';
 export { ViewRef } from './src/view/view_ref';
 export { ViewContainerRef } from './src/view/view_container_ref';
 export { ElementRef } from './src/view/element_ref';
-export { createViewDefinitionFactory } from './src/view/view';
+export { createViewDefinitionFactory, createView } from './src/view/view';
 
 // Dependency Injection
 export { forwardRef } from './src/di/forward_ref';
