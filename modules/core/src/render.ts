@@ -24,7 +24,7 @@ export abstract class Renderer {
   abstract createElement(name: string, namespace?: string): any;
   abstract createComment(value: string): any;
   abstract createText(value: string): any;
-  destroyNode: (node: any) => void | null;
+  abstract destroyNode(node: any): void;
   abstract appendChild(parent: any, newChild: any): void;
   abstract insertBefore(parent: any, newChild: any, refChild: any): void;
   abstract removeChild(parent: any, oldChild: any): void;

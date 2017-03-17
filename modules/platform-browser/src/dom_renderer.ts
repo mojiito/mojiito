@@ -54,7 +54,7 @@ export class DefaultDomRenderer implements Renderer {
   }
   createComment(value: string): any { return document.createComment(value); }
   createText(value: string): any { return document.createTextNode(value); }
-  destroyNode: null;
+  destroyNode(node: any): void { }
   appendChild(parent: any, newChild: any): void { parent.appendChild(newChild); }
   insertBefore(parent: any, newChild: any, refChild: any): void {
     if (parent) {
@@ -135,5 +135,11 @@ export class ParseableDomRenderer extends DefaultDomRenderer {
   parse(context: any) {
     const traverser = new DomTraverser();
     traverser.traverse(this.hostElement, this._visitor, context);
+  }
+
+  destroyNode(node: any) {
+    if (node instanceof Node) {
+      this.removeChild(node.parentNode, node);
+    }
   }
 }

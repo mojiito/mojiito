@@ -58,6 +58,8 @@ export function destroyView(view: ViewData) {
       view.disposables[i]();
     }
   }
+  destroyViewNodes(view);
+  view.renderer.destroy();
   view.state |= ViewState.Destroyed;
 }
 
@@ -84,7 +86,11 @@ function createViewNodes(view: ViewData) {
     }
     nodes[i] = nodeData;
   }
+}
 
+function destroyViewNodes(view: ViewData) {
+  console.log('destroyViewNodes');
+  view.renderer.destroyNode(view.renderElement);
 }
 
 function createRootData(
