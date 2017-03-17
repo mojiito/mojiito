@@ -1,6 +1,11 @@
-import { Visitor } from './dom_visitor';
+import { Visitor, ViewData } from 'mojiito-core';
+import { DomVisitor } from './dom_visitor';
 
-export class DomTraverser {
+export interface Traverser {
+  traverse(node: any, visitor: Visitor, context: ViewData): void;
+}
+
+export class DomTraverser implements Traverser {
 
   private _nodeCount = 0;
   private _elementCount = 0;
@@ -10,31 +15,34 @@ export class DomTraverser {
 
   constructor() { }
 
-  traverse(node: Node, visitor: Visitor, context: any = null) {
-    let ctx: any = context;
+  traverse(node: Node, visitor: Visitor, context: ViewData = null) {
+    let lclCntxt: ViewData = context;
     this._nodeCount++;
 
     if (node instanceof Element) {
-      ctx = visitor.visitElement(node, ctx) || ctx;
+      lclCntxt = visitor.visitElement(node, lclCntxt) || lclCntxt;
       this._elementCount++;
     } else if (node instanceof Text) {
-      ctx = visitor.visitText(node, ctx) || ctx;
+      lclCntxt = visitor.visitText(node, lclCntxt) || lclCntxt;
       this._textCount++;
     } else if (node instanceof Comment) {
-      ctx = visitor.visitComment(node, ctx) || ctx;
+      lclCntxt = visitor.visitComment(node, lclCntxt) || lclCntxt;
       this._commentCount++;
     }
 
     // Check if context has changed and look up the corresponding
     // NodeVisitor if available
-    if (!!ctx && ctx !== context) {
-      visitor = visitor.getVisitorForContext(ctx);
+    if (!!lclCntxt && lclCntxt !== context) {
+      let rendererType = lclCntxt.def.componentRendererType;
+      if (rendererType) {
+        visitor = rendererType.visitor;
+      }
     } else {
       // Traverse through all the attributes of the node
       // if it is type of Element
       if (node instanceof Element && node.attributes.length) {
         for (let i = 0, max = node.attributes.length; i < max; i++) {
-          ctx = visitor.visitAttribute(node, node.attributes[i], ctx) || ctx;
+          lclCntxt = visitor.visitAttribute(node, node.attributes[i], lclCntxt) || lclCntxt;
           this._attributeCount++;
         }
       }
@@ -43,9 +51,9 @@ export class DomTraverser {
     // Start traversing the child nodes
     let childNode = node.firstChild;
     if (childNode) {
-      this.traverse(childNode, visitor, ctx);
+      this.traverse(childNode, visitor, lclCntxt);
       while (childNode = childNode.nextSibling) {
-        this.traverse(childNode, visitor, ctx);
+        this.traverse(childNode, visitor, lclCntxt);
       }
     }
   }

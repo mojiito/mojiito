@@ -1,14 +1,16 @@
 import {
   createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
-  InjectionToken, ClassType, ComponentFactory, ApplicationRef, RootRenderer,
+  InjectionToken, ClassType, ComponentFactory, ApplicationRef, RendererFactory,
   CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
 } from 'mojiito-core';
 import { unimplemented } from './facade/error';
 import { ListWrapper } from './facade/collection';
 import { DOCUMENT } from './tokens';
-import { DomRootRenderer } from './dom_renderer';
-import { Compiler } from './compiler';
+import { Compiler } from './compiler/compiler';
 import { DomTraverser } from './dom_traverser';
+import { DomRendererFactory } from './dom_renderer';
+import { ExpressionParser } from './expression/expression';
+import { BindingParser } from './binding_parser';
 
 @Injectable()
 export class BrowserPlatformRef extends PlatformRef {
@@ -24,12 +26,15 @@ export class BrowserPlatformRef extends PlatformRef {
   get destroyed(): boolean { return this._destroyed; }
 
   bootstrapComponent<C>(component: ClassType<C>): void {
-    const compiled = this._compiler.compileComponent(component);
-    const resolver = this._compiler.componentFactoryResolver;
+    this._compiler.compileComponents([component]);
     const appInjector = ReflectiveInjector.resolveAndCreate([
-      { provide: ComponentFactoryResolver, useValue: resolver },
+      {
+        provide: ComponentFactoryResolver,
+        useFactory: () => this._compiler.createComponentFactoryResolver()
+      },
       ApplicationRef,
     ], this._injector);
+
     const app = appInjector.get(ApplicationRef) as ApplicationRef;
     app.bootstrap(component);
   }
@@ -54,10 +59,11 @@ function factoryResolver(compiler: Compiler) {
 
 export const PLATFORM_PROVIDERS = [
   { provide: PlatformRef, useClass: BrowserPlatformRef },
-  { provide: RootRenderer, useClass: DomRootRenderer },
   { provide: DOCUMENT, useValue: document },
+  { provide: RendererFactory, useClass: DomRendererFactory},
   Compiler,
-  {provide: ComponentFactoryResolver, useFactory: factoryResolver, deps: [Compiler]},
+  ExpressionParser,
+  BindingParser
 ];
 
 export const platformBrowser = createPlatformFactory([PLATFORM_PROVIDERS, CORE_PROVIDERS]);

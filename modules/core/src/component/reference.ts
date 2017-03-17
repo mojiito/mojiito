@@ -1,8 +1,7 @@
 import { ClassType } from '../type';
-import { unimplemented } from '../facade/error';
-import { ElementRef } from '../element_ref';
-import { AppView } from './view';
 import { Injector } from '../di/injector';
+import { ElementRef } from '../view/element_ref';
+import { ViewRef } from '../view/view_ref';
 
 /**
  * Represents an instance of a Component created via a ComponentFactory.
@@ -13,38 +12,27 @@ import { Injector } from '../di/injector';
  * @class ComponentRef
  * @template C
  */
-export class ComponentRef<C> {
-
-  constructor(private _view: AppView<C>, private _nativeElement: any) {
-  }
+export abstract class ComponentRef<C> {
 
   /** Location of the component instance */
-  get location(): ElementRef { return new ElementRef(this._nativeElement); }
+  abstract get location(): ElementRef;
 
   /** The injector on which the component instance exists. */
-  get injector(): Injector { return this._view.injector; }
+  abstract get injector(): Injector;
 
   /** The instance of the Component. */
-  get instance(): C { return this._view.context; }
+  abstract get instance(): C;
+
+  abstract get hostView(): ViewRef;
+
+  // get changeDetectorRef(): ChangeDetectorRef;
 
   /** The component type. */
-  get componentType(): ClassType<C> { return <any>this.instance.constructor; }
-
-  get view(): AppView<C> { return this._view; }
-
-  /** Allows you to trigger a parse on the DOM managed by this component. */
-  parse() {
-    this._view.parse();
-  }
+  abstract get componentType(): ClassType<C>;
 
   /** Destroys the component instance and all of the data structures associated with it. */
-  destroy(): void {
-    throw unimplemented();
-  }
+  abstract destroy(): void;
 
   /** Allows to register a callback that will be called when the component is destroyed. */
-  onDestroy(/*callback: Function*/): void {
-    throw unimplemented();
-  }
+  abstract onDestroy(callback: Function): void;
 }
-

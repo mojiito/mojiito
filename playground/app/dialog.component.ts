@@ -1,7 +1,19 @@
-import { Component, ElementRef } from 'mojiito-core';
+import { Component, ElementRef, Injectable } from 'mojiito-core';
 
 @Component({
-  selector: 'dialog'
+  selector: '.mdl-dialog__actions'
+})
+export class DialogActionsComponent {
+
+  constructor(private elementRef: ElementRef) {
+    console.log(elementRef.nativeElement);
+  }
+
+}
+
+@Component({
+  selector: 'dialog',
+  components: [DialogActionsComponent]
 })
 export class DialogComponent {
 
@@ -9,4 +21,9 @@ export class DialogComponent {
     console.log(elementRef.nativeElement);
   }
 
+}
+
+
+@Injectable()
+export class Dialog {
 }

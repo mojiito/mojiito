@@ -6,6 +6,40 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+export class StringMapWrapper {
+  static merge<V>(m1: {[key: string]: V}, m2: {[key: string]: V}): {[key: string]: V} {
+    const m: {[key: string]: V} = {};
+
+    for (const k of Object.keys(m1)) {
+      m[k] = m1[k];
+    }
+
+    for (const k of Object.keys(m2)) {
+      m[k] = m2[k];
+    }
+
+    return m;
+  }
+
+  static equals<V>(m1: {[key: string]: V}, m2: {[key: string]: V}): boolean {
+    const k1 = Object.keys(m1);
+    const k2 = Object.keys(m2);
+
+    if (k1.length != k2.length) {
+      return false;
+    }
+
+    for (let i = 0; i < k1.length; i++) {
+      const key = k1[i];
+      if (m1[key] !== m2[key]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
 export class ListWrapper {
   static findLast<T>(arr: T[], condition: (value: T) => boolean): T {
     for (let i = arr.length - 1; i >= 0; i--) {
@@ -49,7 +83,7 @@ export class ListWrapper {
     }, []);
   }
 
-  static forEach(list: ArrayLike<any>, callback: (item: any, index: number) => void): void {
+  static forEach<T>(list: ArrayLike<T>, callback: (item: T, index: number) => void): void {
     for (let i = 0, max = list.length; i < max; i++) {
       callback.call(callback, list[i], i);
     }
