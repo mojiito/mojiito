@@ -1,6 +1,6 @@
-import { Component, ViewContainerRef, Renderer } from 'mojiito-core';
+import { Component, ViewContainerRef, Renderer, Inject } from 'mojiito-core';
 
-import {Dialog, DialogComponent } from './dialog.component';
+import {Dialog, DialogComponent } from './dialog';
 import { ButtonComponent } from './button.component';
 import { DrawerComponent } from './drawer.component';
 
@@ -10,7 +10,16 @@ import { DrawerComponent } from './drawer.component';
   providers: [Dialog]
 })
 export class AppComponent {
-  constructor(container: ViewContainerRef, renderer: Renderer) {
-    console.log('init', container, renderer);
+  private dialogTemplate: string;
+  constructor(private renderer: Renderer, private _dialog: Dialog) {
+    const buttonEl = renderer.selectRootElement('#open');
+
+    renderer.listen(buttonEl, 'click', this.openDialog.bind(this));
+  }
+
+  openDialog(event) {
+    this._dialog.open();
   }
 }
+
+// document.addEventListener

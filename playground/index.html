@@ -19,9 +19,7 @@
     </header>
     <main class="mdl-layout__content">
       <div class="page-content">
-        <button class="mdl-button mdl-button--raised" my-button>
-            Button
-          </button>
+        <button class="mdl-button mdl-button--raised" id="open">Open Dialog</button>
       </div>
     </main>
     <side-drawer>
@@ -31,18 +29,20 @@
     </side-drawer>
   </div>
 
-  <dialog class="mdl-dialog">
-    <h4 class="mdl-dialog__title">Allow data collection?</h4>
-    <div class="mdl-dialog__content">
-      <p>
-        Allowing us to collect data will let us get you the information you want faster.
-      </p>
-    </div>
-    <div class="mdl-dialog__actions">
-      <button type="button" class="mdl-button" my-button>Agree</button>
-      <button type="button" class="mdl-button close" my-button>Disagree</button>
-    </div>
-  </dialog>
+  <template id="dialog-template">
+    <dialog class="mdl-dialog">
+      <h4 class="mdl-dialog__title">Allow data collection?</h4>
+      <div class="mdl-dialog__content">
+        <p>
+          Allowing us to collect data will let us get you the information you want faster.
+        </p>
+      </div>
+      <div class="mdl-dialog__actions">
+        <button type="button" class="mdl-button">Agree</button>
+        <button type="button" class="mdl-button close">Disagree</button>
+      </div>
+    </dialog>
+  </template>
 
 
   <script src="vendor/reflect.js"></script>
