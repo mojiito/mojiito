@@ -25,7 +25,7 @@ import {AppComponent} from 'app.component.ts';
 platformBrowser().bootstrapComponent(AppComponent);
 ```
 
-For a better structure we recommend splitting components and the cody for bootstrapping into different files. Starting with those two:
+For a better structure we recommend splitting components and the code for bootstrapping into different files. Starting with those two:
 
 | Filename  | Description |
 | :--- | :--- |
