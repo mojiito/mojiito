@@ -31,8 +31,8 @@ export class DialogComponent {
 
 @Injectable()
 export class Dialog {
-  private _dialogTemplate: string;
 
+  private _dialogTemplate: string;
   private _openDialog: ComponentRef<DialogComponent>;
 
   constructor( @Inject(DOCUMENT) private _doc: Document, private _inj: Injector,
