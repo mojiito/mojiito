@@ -65,13 +65,13 @@ export class Compiler {
         this._createProviderNodes(providers, nodes, NodeFlags.TypeProvider).forEach(node => {
           publicProviders[node.provider.tokenKey] = node;
         });
-        nodeFlags += NodeFlags.TypeProvider;
+        nodeFlags |= NodeFlags.TypeProvider;
       }
 
       // Create component instance and add to nodes
       this._createProviderNodes([component], nodes, NodeFlags.TypeComponent);
       const componentProvider = nodes[nodes.length - 1];
-      nodeFlags += NodeFlags.TypeComponent;
+      nodeFlags |= NodeFlags.TypeComponent;
 
       // Set allProviders to publicProviders plus private providers (componentProvider)
       const allProviders = publicProviders;
