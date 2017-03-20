@@ -11,13 +11,3 @@ export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefin
   }
   return value;
 }
-
-const VIEW_INJECTOR_CACHE = new WeakMap<any, Injector>();
-export function resolveInjector(view: ViewData): Injector {
-  let value: Injector = VIEW_INJECTOR_CACHE.get(view);
-  if (!value) {
-    value = createInjector(view);
-    VIEW_INJECTOR_CACHE.set(view, value);
-  }
-  return value;
-}

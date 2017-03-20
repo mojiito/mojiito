@@ -14,7 +14,7 @@ import {
   ViewData, ViewDefinitionFactory, ViewDefinition, ViewState,
   asProviderData, DepFlags
 } from './types';
-import { resolveViewDefinition, resolveInjector } from './utils';
+import { resolveViewDefinition } from './utils';
 import { resolveDep, tokenKey } from './provider';
 
 const EMPTY_CONTEXT = new Object();
@@ -54,7 +54,7 @@ class ComponentRef_ extends ComponentRef<any> {
   }
 
   get location(): ElementRef { return new ElementRef(null); }
-  get injector(): Injector { return resolveInjector(this._view); }
+  get injector(): Injector { return new Injector_(this._view); }
   get instance(): any { return this._component; };
   get hostView(): ViewRef { return this._viewRef; };
   // get changeDetectorRef(): ChangeDetectorRef { return this._viewRef; };
@@ -72,7 +72,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   constructor(private _view: ViewData) { }
 
   get anchorElement(): ElementRef { return new ElementRef(this._view.renderElement); }
-  get injector(): Injector { return resolveInjector(this._view); }
+  get injector(): Injector { return new Injector_(this._view); }
   get parentInjector(): Injector {
     let view = this._view;
     let def = view.def;
@@ -80,7 +80,7 @@ class ViewContainerRef_ implements ViewContainerRef {
       view = view.parent;
       def = view.def;
     }
-    return view ? createInjector(view) : this._view.root.injector;
+    return view ? new Injector_(view) : this._view.root.injector;
   }
 
   clear(): void { }
