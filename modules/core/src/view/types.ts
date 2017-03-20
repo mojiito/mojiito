@@ -48,18 +48,14 @@ export interface ViewDefinition {
 
 export type ViewDefinitionFactory = () => ViewDefinition;
 
-export interface NodeDef {
-  flags: NodeFlags;
-  index: number;
-  provider: ProviderDef;
-}
+
+// ==================================
+// DATA
+// ==================================
 
 // tslint:disable-next-line:variable-name
 export class NodeData { private __brand: any; }
 
-/**
- * View instance data.
- */
 export interface ViewData {
   def: ViewDefinition;
   renderElement: any;
