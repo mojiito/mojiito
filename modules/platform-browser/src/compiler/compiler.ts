@@ -39,9 +39,6 @@ export class Compiler {
     }
     const metadata = this._resolver.resolve(component);
 
-    // TODO
-    // Always compile a visitor even if no sub components are there
-    // Issue: #38
     let visitor: Visitor;
     let compiledComponents: CompileComponentSummary[];
     let componentRendererType: RendererType;
