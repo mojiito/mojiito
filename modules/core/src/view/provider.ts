@@ -6,7 +6,7 @@ import { ReflectiveKey } from '../di/reflective_key';
 import { Provider } from '../di/provider';
 import { ElementRef } from './element_ref';
 import { ViewContainerRef } from './view_container_ref';
-import { createViewContainerRef, createInjector } from './refs';
+import { createViewContainerData, createInjector } from './refs';
 import {
   ViewData, ProviderData, NodeDef, NodeFlags, DepDef, DepFlags,
   asProviderData
@@ -69,7 +69,7 @@ export function resolveDep(view: ViewData, depDef: DepDef, allowPrivateServices:
         case ElementRefTokenKey:
           return new ElementRef(view.renderElement);
         case ViewContainerRefTokenKey:
-          return createViewContainerRef(view);
+          return view.viewContainer || view.viewContainerParent;
         // case ChangeDetectorRefTokenKey: {
         //   let cdView = findCompView(view, elDef, allowPrivateServices);
         //   return createChangeDetectorRef(cdView);
@@ -109,4 +109,15 @@ function _createProviderInstance(view: ViewData, def: NodeDef): any {
 
 export function createProviderInstance(view: ViewData, def: NodeDef): any {
   return def.flags & NodeFlags.LazyProvider ? NOT_CREATED : _createProviderInstance(view, def);
+}
+
+
+function callProviderLifecycles(view: ViewData, index: number, lifecycles: NodeFlags) {
+  const provider = asProviderData(view, index).instance;
+  if (provider === NOT_CREATED) {
+    return;
+  }
+  if (lifecycles & NodeFlags.OnDestroy) {
+    provider.ngOnDestroy();
+  }
 }

@@ -12,7 +12,7 @@ import { attachEmbeddedView, detachEmbeddedView } from './view_attach';
 import { ElementRef } from './element_ref';
 import {
   ViewData, ViewDefinitionFactory, ViewDefinition, ViewState,
-  asProviderData, DepFlags
+  asProviderData, DepFlags, ViewContainerData
 } from './types';
 import { resolveViewDefinition } from './utils';
 import { resolveDep, tokenKey } from './provider';
@@ -67,8 +67,10 @@ class ComponentRef_ extends ComponentRef<any> {
 /**
  * Internal ViewContainerRef
  */
-class ViewContainerRef_ implements ViewContainerRef {
+class ViewContainerRef_ implements ViewContainerData {
 
+  /* @internal */
+  _embeddedViews: ViewData[] = [];
   constructor(private _view: ViewData) { }
 
   get anchorElement(): ElementRef { return new ElementRef(this._view.renderElement); }
@@ -86,7 +88,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   clear(): void { }
 
   get(index: number): ViewRef {
-    const view = this._view.embeddedViews[index];
+    const view = this._embeddedViews[index];
     if (view) {
       const ref = new ViewRef_(view);
       ref.attachToViewContainerRef(this);
@@ -120,7 +122,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   // move(viewRef: ViewRef, currentIndex: number): ViewRef { }
 
   indexOf(viewRef: ViewRef): number {
-    return this._view.embeddedViews.indexOf((<ViewRef_>viewRef)._view);
+    return this._embeddedViews.indexOf((<ViewRef_>viewRef)._view);
   }
 
   remove(index?: number): void {
@@ -136,7 +138,7 @@ class ViewContainerRef_ implements ViewContainerRef {
   }
 }
 
-export function createViewContainerRef(view: ViewData): ViewContainerRef {
+export function createViewContainerData(view: ViewData): ViewContainerData {
   return new ViewContainerRef_(view);
 }
 

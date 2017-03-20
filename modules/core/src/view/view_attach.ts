@@ -1,7 +1,7 @@
 import { ViewData } from './types';
 
 export function attachEmbeddedView(parentView: ViewData, viewIndex: number, view: ViewData) {
-  let embeddedViews = parentView.embeddedViews;
+  let embeddedViews = parentView.viewContainer._embeddedViews;
   if (viewIndex == null) {
     viewIndex = embeddedViews.length;
   }
@@ -10,7 +10,7 @@ export function attachEmbeddedView(parentView: ViewData, viewIndex: number, view
 }
 
 export function detachEmbeddedView(parent: ViewData, viewIndex: number): ViewData {
-  const embeddedViews = parent.embeddedViews;
+  const embeddedViews = parent.viewContainer._embeddedViews;
   if (viewIndex == null || viewIndex >= embeddedViews.length) {
     viewIndex = embeddedViews.length - 1;
   }

@@ -2,6 +2,7 @@ import { ClassType } from '../type';
 import { Renderer, RendererFactory, RendererType } from '../render';
 import { Injector } from '../di/injector';
 import { Provider } from '../di/provider';
+import { ViewContainerRef } from './view_container_ref';
 
 export interface NodeDef {
   flags: NodeFlags;
@@ -64,14 +65,11 @@ export interface ViewData {
   nodes: NodeData[];
   parent: ViewData;
   viewContainerParent: ViewData;
-  embeddedViews: ViewData[];
+  viewContainer: ViewContainerData;
   component: any;
   context: any;
   state: ViewState;
   disposables: DisposableFn[];
-  // allProviders: {[tokenKey: string]: ProviderData};
-  // componentProvider: ProviderData;
-  // publicProviders: {[tokenKey: string]: ProviderData};
 }
 
 export const enum ViewState {
@@ -79,6 +77,10 @@ export const enum ViewState {
   ChecksEnabled = 1 << 1,
   Errored = 1 << 2,
   Destroyed = 1 << 3
+}
+
+export interface ViewContainerData extends ViewContainerRef {
+  _embeddedViews: ViewData[];
 }
 
 export type DisposableFn = () => void;
@@ -110,7 +112,7 @@ export const enum NodeFlags {
   TypeComponent = 1 << 14,
   CatProvider = TypeProvider | TypeComponent,
   // OnInit = 1 << 15,
-  // OnDestroy = 1 << 16,
+  OnDestroy = 1 << 16,
   // DoCheck = 1 << 17,
   // OnChanges = 1 << 18,
   // AfterContentInit = 1 << 19,
