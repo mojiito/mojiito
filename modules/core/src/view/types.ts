@@ -48,6 +48,14 @@ export interface ViewDefinition {
 
 export type ViewDefinitionFactory = () => ViewDefinition;
 
+export interface BindingDef {
+  flags: BindingFlags;
+  ns: string;
+  name: string;
+  nonMinifiedName: string;
+  suffix: string;
+}
+
 
 // ==================================
 // DATA
@@ -69,9 +77,9 @@ export interface ViewData {
   context: any;
   state: ViewState;
   disposables: DisposableFn[];
-  // allProviders: {[tokenKey: string]: ProviderData};
-  // componentProvider: ProviderData;
-  // publicProviders: {[tokenKey: string]: ProviderData};
+  bindingIndex: number;
+  bindings: BindingData[];
+  bindingFlags: BindingFlags;
 }
 
 export const enum ViewState {
@@ -128,4 +136,19 @@ export const enum NodeFlags {
   // mutually exclusive values...
   // Types = CatRenderNode | TypeNgContent | TypePipe | CatPureExpression | CatProvider | CatQuery
   Types = CatProvider
+}
+
+export interface BindingData extends BindingDef {}
+
+export const enum BindingFlags {
+  TypeElementAttribute = 1 << 0,
+  TypeElementClass = 1 << 1,
+  TypeElementStyle = 1 << 2,
+  TypeProperty = 1 << 3,
+  // SyntheticProperty = 1 << 4,
+  // SyntheticHostProperty = 1 << 5,
+  // CatSyntheticProperty = SyntheticProperty | SyntheticHostProperty,
+
+  // mutually exclusive values...
+  Types = TypeElementAttribute | TypeElementClass | TypeElementStyle | TypeProperty
 }
