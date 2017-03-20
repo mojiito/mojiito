@@ -89,7 +89,6 @@ function createViewNodes(view: ViewData) {
 }
 
 function destroyViewNodes(view: ViewData) {
-  console.log('destroyViewNodes');
   view.renderer.destroyNode(view.renderElement);
 }
 
