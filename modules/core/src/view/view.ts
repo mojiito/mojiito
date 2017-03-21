@@ -7,7 +7,7 @@ import { ClassType } from '../type';
 import { ViewContainerRef } from './view_container_ref';
 import {
   ViewData, ViewState, RootData, ViewDefinition, NodeFlags, ProviderData,
-  NodeData
+  NodeData, BindingFlags
 } from './types';
 import { tokenKey, createProviderInstance } from './provider';
 import { createViewContainerData } from './refs';
@@ -37,6 +37,9 @@ export function createView(root: RootData,
     component: undefined,
     state: ViewState.FirstCheck | ViewState.ChecksEnabled,
     disposables: undefined,
+    bindings: undefined,
+    bindingFlags: 0,
+    bindingIndex: 0
   };
   if (def.nodeFlags & NodeFlags.TypeComponent) {
     view.viewContainer = createViewContainerData(view);
