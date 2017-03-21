@@ -10,6 +10,7 @@ import {
   NodeData
 } from './types';
 import { tokenKey, createProviderInstance } from './provider';
+import { createViewContainerData } from './refs';
 
 export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
@@ -31,12 +32,15 @@ export function createView(root: RootData,
     nodes,
     parent,
     viewContainerParent: undefined,
+    viewContainer: undefined,
     context: undefined,
     component: undefined,
-    embeddedViews: def.nodeFlags & NodeFlags.TypeComponent ? [] : undefined,
     state: ViewState.FirstCheck | ViewState.ChecksEnabled,
     disposables: undefined,
   };
+  if (def.nodeFlags & NodeFlags.TypeComponent) {
+    view.viewContainer = createViewContainerData(view);
+  }
   createViewNodes(view);
   return view;
 }
@@ -64,7 +68,6 @@ export function destroyView(view: ViewData) {
 }
 
 function createViewNodes(view: ViewData) {
-
   const def = view.def;
   const nodes = view.nodes;
   let nodeData: any;

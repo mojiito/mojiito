@@ -37,65 +37,37 @@ export class Compiler {
     if (compileSummary) {
       return compileSummary;
     }
+
+    // grab component metadata
     const metadata = this._resolver.resolve(component);
 
-    // TODO
-    // Always compile a visitor even if no sub components are there
-    // Issue: #38
-    let visitor: Visitor;
-    let compiledComponents: CompileComponentSummary[];
-    let componentRendererType: RendererType;
+    // compile child components
+    let childComponents: CompileComponentSummary[];
+    let rendererType: RendererType;
     if (metadata.components) {
-      compiledComponents = this.compileComponents(ListWrapper.flatten(metadata.components));
-      visitor = new DomVisitor(compiledComponents);
-      componentRendererType = {
-        visitor,
-        data: null
-      };
+      childComponents = this.compileComponents(ListWrapper.flatten(metadata.components));
+
+      // create a renderer type with a visitor for this component with all
+      // sub components
+      rendererType = this._createComponentRendererType(new DomVisitor(childComponents));
     }
 
-    const viewDefinitionFactory: ViewDefinitionFactory = () => {
-      const nodes: NodeDef[] = [];
-      let nodeFlags = NodeFlags.ComponentView;
+    // create a view definition factory for this component type
+    const viewDefinitionFactory =
+      this._createComponentViewDef(component, metadata.providers, rendererType);
 
-      // Create public provider instances and add to nodes
-      const providers = metadata.providers;
-      let publicProviders: {[key: string]: NodeDef} = {};
-      if (providers) {
-        this._createProviderNodes(providers, nodes, NodeFlags.TypeProvider).forEach(node => {
-          publicProviders[node.provider.tokenKey] = node;
-        });
-        nodeFlags |= NodeFlags.TypeProvider;
-      }
-
-      // Create component instance and add to nodes
-      this._createProviderNodes([component], nodes, NodeFlags.TypeComponent);
-      const componentProvider = nodes[nodes.length - 1];
-      nodeFlags |= NodeFlags.TypeComponent;
-
-      // Set allProviders to publicProviders plus private providers (componentProvider)
-      const allProviders = publicProviders;
-      allProviders[componentProvider.provider.tokenKey] = componentProvider;
-
-      return <ViewDefinition>{
-        factory: viewDefinitionFactory,
-        nodeFlags,
-        nodes,
-        componentProvider,
-        publicProviders,
-        allProviders,
-        componentRendererType
-      };
-    };
+    // create a component factory for this component type
+    const componentFactory =
+      createComponentFactory(metadata.selector, component, viewDefinitionFactory);
 
     compileSummary = {
       type: component,
       selector: metadata.selector,
       hostListeners: metadata.host,
       childListeners: metadata.childs,
-      componentFactory: createComponentFactory(metadata.selector, component, viewDefinitionFactory),
+      componentFactory,
       viewDefinitionFactory,
-      components: compiledComponents
+      components: childComponents
     };
     this._compileResults.set(component, compileSummary);
     return compileSummary;
@@ -133,5 +105,49 @@ export class Compiler {
       });
     nodes.push(...nodeDefs);
     return nodeDefs;
+  }
+
+  private _createComponentRendererType(visitor: Visitor): RendererType {
+    return {
+      visitor,
+      data: null
+    };
+  }
+
+  private _createComponentViewDef(component: ClassType<any>, providers: Provider[],
+      componentRendererType: RendererType): ViewDefinitionFactory {
+    const viewDefinitionFactory: ViewDefinitionFactory = () => {
+      const nodes: NodeDef[] = [];
+      let nodeFlags = NodeFlags.ComponentView;
+
+      // Create public provider instances and add to nodes
+      let publicProviders: {[key: string]: NodeDef} = {};
+      if (providers) {
+        this._createProviderNodes(providers, nodes, NodeFlags.TypeProvider).forEach(node => {
+          publicProviders[node.provider.tokenKey] = node;
+        });
+        nodeFlags |= NodeFlags.TypeProvider;
+      }
+
+      // Create component instance and add to nodes
+      this._createProviderNodes([component], nodes, NodeFlags.TypeComponent);
+      const componentProvider = nodes[nodes.length - 1];
+      nodeFlags |= NodeFlags.TypeComponent;
+
+      // Set allProviders to publicProviders plus private providers (componentProvider)
+      const allProviders = publicProviders;
+      allProviders[componentProvider.provider.tokenKey] = componentProvider;
+
+      return <ViewDefinition>{
+        factory: viewDefinitionFactory,
+        nodeFlags,
+        nodes,
+        componentProvider,
+        publicProviders,
+        allProviders,
+        componentRendererType
+      };
+    };
+    return viewDefinitionFactory;
   }
 }
