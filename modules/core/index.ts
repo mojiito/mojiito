@@ -46,6 +46,7 @@ export { reflector, ReflectorReader, Reflector }
 // Others
 export * from './src/type';
 export * from './src/render';
+export { EventEmitter } from './src/event_emitter';
 
 // Providers
 export const CORE_PROVIDERS: Provider[] = [
