@@ -118,6 +118,6 @@ function callProviderLifecycles(view: ViewData, index: number, lifecycles: NodeF
     return;
   }
   if (lifecycles & NodeFlags.OnDestroy) {
-    provider.ngOnDestroy();
+    provider.onDestroy();
   }
 }
