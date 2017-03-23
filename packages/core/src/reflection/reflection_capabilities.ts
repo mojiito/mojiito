@@ -7,7 +7,7 @@
  */
 
 import {Type, isType} from '../type';
-import {global, stringify} from '../util';
+import {global, stringify} from '../facade/lang';
 import {PlatformReflectionCapabilities} from './platform_reflection_capabilities';
 import {GetterFn, MethodFn, SetterFn} from './types';
 

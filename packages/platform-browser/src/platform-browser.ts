@@ -11,7 +11,7 @@ import { DomRendererFactory } from './dom_renderer';
 import { ExpressionParser } from './expression/expression';
 import { BindingParser } from './binding_parser';
 
-export { DOCUMENT, DomRendererFactory, BrowserPlatformRef };
+export { DOCUMENT, DomRendererFactory, BrowserPlatformRef, ExpressionParser };
 
 export const PLATFORM_PROVIDERS: Provider[] = [
   { provide: PlatformRef, useClass: BrowserPlatformRef },

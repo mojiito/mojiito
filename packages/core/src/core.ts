@@ -44,8 +44,8 @@ export {
 export { reflector, ReflectorReader, Reflector }
 
 // Others
-export * from './type';
-export * from './render';
+export { ClassType, Type } from './type';
+export { Renderer, RendererFactory, RendererType, Visitor } from './render';
 
 // Providers
 export const CORE_PROVIDERS: Provider[] = [
