@@ -6,13 +6,13 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import { ClassType } from '../type';
-import { PlatformReflectionCapabilities } from './platform_reflection_capabilities';
-import { ReflectorReader } from './reflector_reader';
-import { GetterFn, MethodFn, SetterFn } from './types';
+import {Type} from '../type';
+import {PlatformReflectionCapabilities} from './platform_reflection_capabilities';
+import {ReflectorReader} from './reflector_reader';
+import {GetterFn, MethodFn, SetterFn} from './types';
 
-export { PlatformReflectionCapabilities } from './platform_reflection_capabilities';
-export { GetterFn, MethodFn, SetterFn } from './types';
+export {PlatformReflectionCapabilities} from './platform_reflection_capabilities';
+export {GetterFn, MethodFn, SetterFn} from './types';
 
 /**
  * Provides access to reflection data about symbols. Used internally by Angular
@@ -23,17 +23,17 @@ export class Reflector extends ReflectorReader {
 
   updateCapabilities(caps: PlatformReflectionCapabilities) { this.reflectionCapabilities = caps; }
 
-  factory(type: ClassType<any>): Function { return this.reflectionCapabilities.factory(type); }
+  factory(type: Type<any>): Function { return this.reflectionCapabilities.factory(type); }
 
-  parameters(typeOrFunc: ClassType<any>): any[][] {
+  parameters(typeOrFunc: Type<any>): any[][] {
     return this.reflectionCapabilities.parameters(typeOrFunc);
   }
 
-  annotations(typeOrFunc: ClassType<any>): any[] {
+  annotations(typeOrFunc: Type<any>): any[] {
     return this.reflectionCapabilities.annotations(typeOrFunc);
   }
 
-  propMetadata(typeOrFunc: ClassType<any>): { [key: string]: any[] } {
+  propMetadata(typeOrFunc: Type<any>): {[key: string]: any[]} {
     return this.reflectionCapabilities.propMetadata(typeOrFunc);
   }
 
@@ -49,8 +49,10 @@ export class Reflector extends ReflectorReader {
 
   importUri(type: any): string { return this.reflectionCapabilities.importUri(type); }
 
-  resolveIdentifier(name: string, moduleUrl: string, runtime: any): any {
-    return this.reflectionCapabilities.resolveIdentifier(name, moduleUrl, runtime);
+  resourceUri(type: any): string { return this.reflectionCapabilities.resourceUri(type); }
+
+  resolveIdentifier(name: string, moduleUrl: string, members: string[], runtime: any): any {
+    return this.reflectionCapabilities.resolveIdentifier(name, moduleUrl, members, runtime);
   }
 
   resolveEnum(identifier: any, name: string): any {
