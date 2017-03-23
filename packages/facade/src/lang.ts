@@ -7,7 +7,8 @@
  * @returns
  */
 export function getClassName<T>(klass: Function) {
-  return klass.name ? klass.name : /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];
+  return (klass as any).name ? (klass as any).name :
+    /^function\s+([\w\$]+)\s*\(/.exec(this.toString())[1];
 }
 
 /**

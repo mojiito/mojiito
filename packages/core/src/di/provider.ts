@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import { ClassType } from '../type';
+import { Type } from '../type';
 
 /**
  * @whatItDoes Configures the {@link Injector} to return an instance of `Type` when `Type' is used
@@ -32,7 +32,7 @@ import { ClassType } from '../type';
  *
  * @stable
  */
-export interface TypeProvider extends ClassType<any> { }
+export interface TypeProvider extends Type<any> {}
 
 /**
  * @whatItDoes Configures the {@link Injector} to return a value for a token.
@@ -103,7 +103,7 @@ export interface ClassProvider {
   /**
    * Class to instantiate for the `token`.
    */
-  useClass: ClassType<any>;
+  useClass: Type<any>;
 
   /**
    * If true, than injector returns an array of instances. This is useful to allow multiple

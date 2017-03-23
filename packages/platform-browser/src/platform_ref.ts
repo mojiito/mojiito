@@ -24,7 +24,7 @@ export class BrowserPlatformRef extends PlatformRef {
         provide: ComponentFactoryResolver,
         useFactory: () => this._compiler.createComponentFactoryResolver()
       },
-      ApplicationRef,
+      ApplicationRef
     ], this._injector);
 
     const app = appInjector.get(ApplicationRef) as ApplicationRef;

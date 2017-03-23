@@ -50,5 +50,5 @@ export * from './render';
 // Providers
 export const CORE_PROVIDERS: Provider[] = [
   { provide: ReflectorReader, useValue: reflector },
-  ComponentResolver,
+  ComponentResolver
 ];
