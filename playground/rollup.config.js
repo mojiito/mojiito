@@ -1,6 +1,6 @@
 export default {
-  entry: '../dist/all/playground/main.js',
-  dest: '../dist/all/playground/bundles/playground.umd.js',
+  entry: '../dist/playground/main.js',
+  dest: '../dist/playground/bundles/playground.umd.js',
   format: 'umd',
   moduleName: 'playground',
   globals: {

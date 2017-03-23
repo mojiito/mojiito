@@ -2,7 +2,7 @@
 
 PWD=`pwd`
 SRCDIR=${PWD}/playground
-DESTDIR=${PWD}/dist/all/playground
+DESTDIR=${PWD}/dist/playground
 TSC="node --max-old-space-size=3000 ./node_modules/@angular/tsc-wrapped/src/main"
 ROLLUP="../node_modules/.bin/rollup"
 SERVER="${PWD}/node_modules/.bin/http-server"
