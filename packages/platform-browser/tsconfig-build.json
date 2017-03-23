@@ -6,23 +6,25 @@
     "experimentalDecorators": true,
     "module": "es2015",
     "moduleResolution": "node",
-    "outDir": "../../dist/packages-dist/platform-browser",
+    "outDir": "../../dist/packages/platform-browser",
     "paths": {
-      "mojiito-core": ["../../dist/packages-dist/core"]
+      "mojiito-core": ["../../dist/packages/core"]
     },
     "rootDir": ".",
     "sourceMap": true,
     "inlineSources": true,
-    "target": "es5",
+    "target": "es2015",
     "lib": ["es2015", "dom"],
     "skipLibCheck": true,
     "types": []
   },
   "files": [
-    "index.ts"
+    "public_api.ts"
   ],
   "angularCompilerOptions": {
     "annotateForClosureCompiler": true,
-    "strictMetadataEmit": true
+    "strictMetadataEmit": true,
+    "flatModuleOutFile": "index.js",
+    "flatModuleId": "mojiito-platform-browser"
   }
 }

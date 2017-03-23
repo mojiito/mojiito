@@ -6,14 +6,17 @@
     "emitDecoratorMetadata": true,
     "module": "commonjs",
     "moduleResolution": "node",
+    "outDir": "../dist/all/mojiito",
     "noImplicitAny": true,
-    "lib": ["es5", "dom", "es2015"],
-    "target": "es5",
+    "noFallthroughCasesInSwitch": true,
     "paths": {
       "mojiito-*": ["./*"]
     },
-    "outDir": "../dist/all/",
     "rootDir": ".",
-    "inlineSourceMap": true
+    "inlineSourceMap": true,
+    "lib": ["es5", "dom", "es2015.promise", "es2015.collection", "es2015.iterable"],
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+    "target": "es5"
   }
 }

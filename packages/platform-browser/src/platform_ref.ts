@@ -1,16 +1,8 @@
 import {
-  createPlatformFactory, PlatformRef, Injectable, Inject, Injector, Provider,
-  InjectionToken, ClassType, ComponentFactory, ApplicationRef, RendererFactory,
-  CORE_PROVIDERS, ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
+  PlatformRef, Injectable, Injector, ClassType, ApplicationRef,
+  ComponentResolver, ReflectiveInjector, ComponentFactoryResolver
 } from 'mojiito-core';
-import { unimplemented } from './facade/error';
-import { ListWrapper } from './facade/collection';
-import { DOCUMENT } from './tokens';
 import { Compiler } from './compiler/compiler';
-import { DomTraverser } from './dom_traverser';
-import { DomRendererFactory } from './dom_renderer';
-import { ExpressionParser } from './expression/expression';
-import { BindingParser } from './binding_parser';
 
 @Injectable()
 export class BrowserPlatformRef extends PlatformRef {
@@ -52,14 +44,3 @@ export class BrowserPlatformRef extends PlatformRef {
     this._destroyed = true;
   }
 }
-
-export const PLATFORM_PROVIDERS = [
-  { provide: PlatformRef, useClass: BrowserPlatformRef },
-  { provide: DOCUMENT, useValue: document },
-  { provide: RendererFactory, useClass: DomRendererFactory},
-  Compiler,
-  ExpressionParser,
-  BindingParser
-];
-
-export const platformBrowser = createPlatformFactory([PLATFORM_PROVIDERS, CORE_PROVIDERS]);
