@@ -6,6 +6,6 @@ export default {
   moduleName: 'mj.platformBrowser',
   context: 'this',
   globals: {
-    'mojitto-core': 'mj.core',
+    'mojiito-core': 'mj.core'
   }
 };

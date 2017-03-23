@@ -9,7 +9,7 @@
   "author": "Mojiito Team",
   "license": "MIT",
   "peerDependencies": {
-    "@mojiito/core": "0.0.0-PLACEHOLDER"
+    "mojiito-core": "0.0.0-PLACEHOLDER"
   },
   "repository": {
     "type": "git",

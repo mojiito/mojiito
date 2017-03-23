@@ -16,7 +16,7 @@
     "lint": "node_modules/.bin/tslint -c ./tslint.json 'modules/**/*.ts'",
     "build": "./build.sh",
     "publish": "npm run build && ./scripts/publish.sh",
-    "build-playground": "./scripts/build-playground.sh",
+    "build-playground": "./scripts/build_playground.sh",
     "serve-playground": "npm run build-playground -- --serve"
   },
   "devDependencies": {
