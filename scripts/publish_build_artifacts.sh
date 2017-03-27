@@ -45,41 +45,41 @@ function publishRepo {
   # create local repo folder and clone build repo into it
   rm -rf $REPO_DIR
   mkdir -p $REPO_DIR
-  # (
-  #   cd $REPO_DIR && \
-  #   git init && \
-  #   git remote add origin $REPO_URL && \
-  #   # use the remote branch if it exists
-  #   if git ls-remote --exit-code origin ${BRANCH}; then
-  #     git fetch origin ${BRANCH} --depth=1 && \
-  #     git checkout origin/${BRANCH}
-  #   fi
-  #   git checkout -b "${BRANCH}"
-  # )
+  (
+    cd $REPO_DIR && \
+    git init && \
+    git remote add origin $REPO_URL && \
+    # use the remote branch if it exists
+    if git ls-remote --exit-code origin ${BRANCH}; then
+      git fetch origin ${BRANCH} --depth=1 && \
+      git checkout origin/${BRANCH}
+    fi
+    git checkout -b "${BRANCH}"
+  )
 
   # copy over build artifacts into the repo directory
   rm -rf $REPO_DIR/*
   cp -R $ARTIFACTS_DIR/* $REPO_DIR/
 
-  # Replace $$ANGULAR_VERSION$$ with the build version.
+  # Replace $$MOJIITO_VERSION$$ with the build version.
   BUILD_VER="${LATEST_TAG}+${SHORT_SHA}"
-  echo $BUILD_VER
-  # if [[ ${TRAVIS} ]]; then
-    # find $REPO_DIR/ -type f -name package.json -print0 | xargs -0 sed -i "s/\\\$\\\$ANGULAR_VERSION\\\$\\\$/${BUILD_VER}/g"
 
-  #   # Find umd.js and umd.min.js
-  #   UMD_FILES=$(find $REPO_DIR/ -type f -name "*.umd*.js" -print)
-  #   for UMD_FILE in ${UMD_FILES}; do
-  #     sed -i "s/\\\$\\\$ANGULAR_VERSION\\\$\\\$/${BUILD_VER}/g" ${UMD_FILE}
-  #   done
+  if [[ ${TRAVIS} ]]; then
+    find $REPO_DIR/ -type f -name package.json -print0 | xargs -0 sed -i "s/\\\$\\\$MOJIITO_VERSION\\\$\\\$/${BUILD_VER}/g"
 
-  #   (
-  #     cd $REPO_DIR && \
-  #     git config credential.helper "store --file=.git/credentials" && \
-  #     # SECURITY CRITICAL: DO NOT use shell to expand vars since it could be logged and leaked.
-  #     node -e "console.log('https://'+process.env.GITHUB_TOKEN_ANGULAR+':@github.com')" > .git/credentials
-  #   )
-  # fi
+    # Find umd.js and umd.min.js
+    UMD_FILES=$(find $REPO_DIR/ -type f -name "*.umd*.js" -print)
+    for UMD_FILE in ${UMD_FILES}; do
+      sed -i "s/\\\$\\\$MOJIITO_VERSION\\\$\\\$/${BUILD_VER}/g" ${UMD_FILE}
+    done
+
+    (
+      cd $REPO_DIR && \
+      git config credential.helper "store --file=.git/credentials" && \
+      # SECURITY CRITICAL: DO NOT use shell to expand vars since it could be logged and leaked.
+      node -e "console.log('https://'+process.env.GITHUB_TOKEN_MOJIITO+':@github.com')" > .git/credentials
+    )
+  fi
   echo `date` > $REPO_DIR/BUILD_INFO
   echo $SHA >> $REPO_DIR/BUILD_INFO
 
