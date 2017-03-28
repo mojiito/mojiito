@@ -94,6 +94,12 @@ function publishRepo {
   )
 }
 
+function publishRepoNpm {
+  COMPONENT=$1
+  ARTIFACTS_DIR=$2
+  npm publish $ARTIFACTS_DIR
+}
+
 # Publish all individual packages from packages-dist.
 function publishPackages {
   GIT_SCHEME=$1
@@ -115,14 +121,15 @@ function publishPackages {
     else
       die "Don't have a way to publish to scheme $GIT_SCHEME"
     fi
-    SHA=`git rev-parse HEAD`
-    SHORT_SHA=`git rev-parse --short HEAD`
-    COMMIT_MSG=`git log --oneline -1`
-    COMMITTER_USER_NAME=`git --no-pager show -s --format='%cN' HEAD`
-    COMMITTER_USER_EMAIL=`git --no-pager show -s --format='%cE' HEAD`
-    LATEST_TAG=`getLatestTag`
+    # SHA=`git rev-parse HEAD`
+    # SHORT_SHA=`git rev-parse --short HEAD`
+    # COMMIT_MSG=`git log --oneline -1`
+    # COMMITTER_USER_NAME=`git --no-pager show -s --format='%cN' HEAD`
+    # COMMITTER_USER_EMAIL=`git --no-pager show -s --format='%cE' HEAD`
+    # LATEST_TAG=`getLatestTag`
 
     publishRepo "${COMPONENT}" "${JS_BUILD_ARTIFACTS_DIR}"
+    publishRepoNpm "${COMPONENT}" "${JS_BUILD_ARTIFACTS_DIR}"
   done
 
   echo "Finished publishing build artifacts"
