@@ -14,7 +14,7 @@ import {
   ViewData, ViewDefinitionFactory, ViewDefinition, ViewState,
   asProviderData, DepFlags, ViewContainerData
 } from './types';
-import { resolveViewDefinition } from './utils';
+import { resolveViewDefinition } from './util';
 import { resolveDep, tokenKey } from './provider';
 
 const EMPTY_CONTEXT = new Object();

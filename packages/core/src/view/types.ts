@@ -7,7 +7,8 @@ import { ViewContainerRef } from './view_container_ref';
 export interface NodeDef {
   flags: NodeFlags;
   index: number;
-  provider: ProviderDef;
+  element: ElementDef|null;
+  provider: ProviderDef|null;
 }
 
 export interface ProviderDef {
@@ -48,6 +49,16 @@ export interface ViewDefinition {
 }
 
 export type ViewDefinitionFactory = () => ViewDefinition;
+
+export interface ElementDef {
+  name: string|null;
+  ns: string|null;
+  componentProvider: NodeDef|null;
+  componentRendererType: RendererType|null;
+  componentView: ViewDefinitionFactory|null;
+  publicProviders: {[tokenKey: string]: NodeDef}|null;
+  allProviders: {[tokenKey: string]: NodeDef}|null;
+}
 
 export interface BindingDef {
   flags: BindingFlags;

@@ -11,3 +11,12 @@ export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefin
   }
   return value;
 }
+
+const NS_PREFIX_RE = /^:([^:]+):(.+)$/;
+export function splitNamespace(name: string): string[] {
+  if (name[0] === ':') {
+    const match = name.match(NS_PREFIX_RE) !;
+    return [match[1], match[2]];
+  }
+  return ['', name];
+}
