@@ -1,8 +1,8 @@
 import { NodeFlags, NodeDef, ViewDefinitionFactory, BindingFlags, BindingDef } from './types';
-import { splitNamespace } from './util';
+import { splitNamespace, calcBindingFlags } from './util';
 import { RendererType } from '../render';
 
-export function elementDef(flags: NodeFlags, namespaceAndName: string,
+export function elementDef(flags: NodeFlags, childCount: number, namespaceAndName: string,
     bindings?: [BindingFlags, string, string][],
     componentView?: ViewDefinitionFactory, componentRendererType?: RendererType | null): NodeDef {
   let ns: string = null !;
@@ -19,9 +19,20 @@ export function elementDef(flags: NodeFlags, namespaceAndName: string,
     bindingDefs[i] = {flags: bindingFlags, ns, name, nonMinifiedName: name, suffix};
     // tslint:enable:no-shadowed-variable
   }
+  if (componentView) {
+    flags |= NodeFlags.ComponentView;
+  }
+  flags |= NodeFlags.TypeElement;
   return {
     index: -1,
+    parent: null,
+    bindingIndex: -1,
     flags,
+    childFlags: 0,
+    directChildFlags: 0,
+    childCount,
+    bindings: bindingDefs,
+    bindingFlags: calcBindingFlags(bindingDefs),
     element: {
       ns,
       name,

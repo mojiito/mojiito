@@ -7,8 +7,15 @@ import { ViewContainerRef } from './view_container_ref';
 export interface NodeDef {
   flags: NodeFlags;
   index: number;
+  parent: NodeDef|null;
+  childCount: number;
+  childFlags: NodeFlags;
+  directChildFlags: NodeFlags;
   element: ElementDef|null;
   provider: ProviderDef|null;
+  bindingIndex: number;
+  bindings: BindingDef[];
+  bindingFlags: BindingFlags;
 }
 
 export interface ProviderDef {
@@ -39,16 +46,26 @@ export function asProviderData(view: ViewData, index: number): ProviderData {
 
 export interface ViewDefinition {
   factory: ViewDefinitionFactory;
+  flags: ViewFlags;
   nodes: NodeDef[];
   /** aggregated NodeFlags for all nodes **/
   nodeFlags: NodeFlags;
+
   componentRendererType: RendererType;
   componentProvider: NodeDef;
   publicProviders: {[tokenKey: string]: NodeDef};
   allProviders: {[tokenKey: string]: NodeDef};
+
+  rootNodeFlags: NodeFlags;
+  bindingCount: number;
 }
 
 export type ViewDefinitionFactory = () => ViewDefinition;
+
+export const enum ViewFlags {
+  None = 0,
+  OnPush = 1 << 1,
+}
 
 export interface ElementDef {
   name: string|null;
@@ -118,7 +135,7 @@ export interface RootData {
 
 export const enum NodeFlags {
   None = 0,
-  // TypeElement = 1 << 0,
+  TypeElement = 1 << 0,
   // TypeText = 1 << 1,
   // CatRenderNode = TypeElement | TypeText,
   // TypeNgContent = 1 << 2,

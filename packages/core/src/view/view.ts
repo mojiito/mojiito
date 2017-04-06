@@ -7,10 +7,123 @@ import { ClassType } from '../type';
 import { ViewContainerRef } from './view_container_ref';
 import {
   ViewData, ViewState, RootData, ViewDefinition, NodeFlags, ProviderData,
-  NodeData, BindingFlags
+  NodeData, BindingFlags, ViewFlags, NodeDef
 } from './types';
 import { tokenKey, createProviderInstance } from './provider';
 import { createViewContainerData } from './refs';
+
+
+export function viewDefNew(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
+  let viewBindingCount = 0;
+  let viewNodeFlags = 0;
+  let viewRootNodeFlags = 0;
+  let currentParent: NodeDef|null = null;
+  let currentElementHasPublicProviders = false;
+  let currentElementHasPrivateProviders = false;
+
+  for (let i = 0; i < nodes.length; i++) {
+
+    while (currentParent && i > currentParent.index + currentParent.childCount) {
+      const newParent: NodeDef|null = currentParent.parent;
+      if (newParent) {
+        newParent.childFlags |= currentParent.childFlags !;
+      }
+      currentParent = newParent;
+    }
+
+    const node = nodes[i];
+    node.index = i;
+    node.parent = currentParent;
+    node.bindingIndex = viewBindingCount;
+
+    if (node.element) {
+      const elDef = node.element;
+      elDef.publicProviders =
+          currentParent ? currentParent.element !.publicProviders : Object.create(null);
+      elDef.allProviders = elDef.publicProviders;
+      // Note: We assume that all providers of an element are before any child element!
+      currentElementHasPublicProviders = false;
+      currentElementHasPrivateProviders = false;
+    }
+
+    validateNode(currentParent, node, nodes.length);
+    viewNodeFlags |= node.flags;
+    if (currentParent) {
+      currentParent.childFlags |= node.flags;
+      currentParent.directChildFlags |= node.flags;
+    } else {
+      viewRootNodeFlags |= node.flags;
+    }
+    viewBindingCount += node.bindings.length;
+
+    if (node.flags & NodeFlags.CatProvider) {
+      if (!currentElementHasPublicProviders) {
+        currentElementHasPublicProviders = true;
+        // Use prototypical inheritance to not get O(n^2) complexity...
+        currentParent !.element !.publicProviders =
+            Object.create(currentParent !.element !.publicProviders);
+        currentParent !.element !.allProviders = currentParent !.element !.publicProviders;
+      }
+      const isPrivateService = (node.flags & NodeFlags.PrivateProvider) !== 0;
+      const isComponent = (node.flags & NodeFlags.TypeComponent) !== 0;
+      if (!isPrivateService || isComponent) {
+        currentParent !.element !.publicProviders ![node.provider !.tokenKey] = node;
+      } else {
+        if (!currentElementHasPrivateProviders) {
+          currentElementHasPrivateProviders = true;
+          // Use protoyypical inheritance to not get O(n^2) complexity...
+          currentParent !.element !.allProviders =
+              Object.create(currentParent !.element !.publicProviders);
+        }
+        currentParent !.element !.allProviders ![node.provider !.tokenKey] = node;
+      }
+      if (isComponent) {
+        currentParent !.element !.componentProvider = node;
+      }
+    }
+    if (node.childCount) {
+      currentParent = node;
+    }
+  }
+  while (currentParent) {
+    const newParent = currentParent.parent;
+    if (newParent) {
+      newParent.childFlags |= currentParent.childFlags;
+    }
+    currentParent = newParent;
+  }
+  return {
+    // Will be filled later...
+    factory: null,
+    nodeFlags: viewNodeFlags,
+    rootNodeFlags: viewRootNodeFlags,
+    flags,
+    nodes: nodes,
+    bindingCount: viewBindingCount,
+
+    componentRendererType: null,
+    componentProvider: null,
+    publicProviders: null,
+    allProviders: null,
+  };
+}
+
+function validateNode(parent: NodeDef | null, node: NodeDef, nodeCount: number) {
+  if (node.flags & NodeFlags.CatProvider) {
+    const parentFlags = parent ? parent.flags : 0;
+    if ((parentFlags & NodeFlags.TypeElement) === 0) {
+      throw new Error(`Illegal State: Provider/Directive nodes need to be children of ` +
+      `elements or anchors, at index ${node.index}!`);
+    }
+  }
+  if (node.childCount) {
+    const parentEnd = parent ? parent.index + parent.childCount : nodeCount - 1;
+    if (node.index <= parentEnd && node.index + node.childCount > parentEnd) {
+      throw new Error(
+        `Illegal State: childCount of node leads outside of parent, at index ${node.index}!`);
+    }
+  }
+}
 
 export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
