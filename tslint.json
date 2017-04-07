@@ -25,6 +25,9 @@
     "no-bitwise": false,
     "no-shadowed-variable": true,
     "no-unused-expression": true,
+    "no-unused-variable": [
+      true
+    ],
     "one-line": [
       true,
       "check-catch",
