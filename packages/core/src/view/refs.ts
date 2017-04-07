@@ -1,42 +1,39 @@
 // tslint:disable:class-name
 import { ClassType } from '../type';
 import { ApplicationRef } from '../application/application';
-import { Renderer } from '../render';
 import { Injector } from '../di/injector';
 import { ComponentRef } from '../component/reference';
 import { ComponentFactory } from '../component/factory';
-import { createRootView, destroyView, initView } from './view';
+import { createRootView, destroyView } from './view';
 import { ViewRef, InternalViewRef } from './view_ref';
 import { ViewContainerRef } from './view_container_ref';
 import { attachEmbeddedView, detachEmbeddedView } from './view_attach';
 import { ElementRef } from './element_ref';
 import {
-  ViewData, ViewDefinitionFactory, ViewDefinition, ViewState,
-  asProviderData, DepFlags, ViewContainerData
+  ViewData, ViewDefinitionFactory, ViewState, NodeDef, ElementData,
+  asElementData, DepFlags, ViewContainerData
 } from './types';
-import { resolveViewDefinition } from './util';
+import { resolveViewDefinition, viewParentEl } from './util';
 import { resolveDep, tokenKey } from './provider';
 
 const EMPTY_CONTEXT = new Object();
 
-export function createInjector(view: ViewData): Injector {
-  return new Injector_(view);
-}
-
-/**
- * Internal ComponentFactory
- */
+// ====================================
+// Internal ComponentFactory
+// ====================================
 class ComponentFactory_ extends ComponentFactory<any> {
   constructor(public selector: string, public componentType: ClassType<any>,
-    private _viewDefFactory: ViewDefinitionFactory) {
+    public viewDefFactory: ViewDefinitionFactory) {
     super();
   }
   create(injector: Injector, rootSelectorOrNode?: string | any): ComponentRef<any> {
-    const viewDef = resolveViewDefinition(this._viewDefFactory);
-    const componentNodeIndex = viewDef.componentProvider.index;
+    const viewDef = resolveViewDefinition(this.viewDefFactory);
+    const componentNodeIndex = viewDef.nodes[0].element !.componentProvider !.index;
     const view = createRootView(viewDef, injector, rootSelectorOrNode, EMPTY_CONTEXT);
-    const component = asProviderData(view, componentNodeIndex).instance;
-    return new ComponentRef_(view, new ViewRef_(view), component);
+    console.log(view, componentNodeIndex);
+    // const component = asProviderData(view, componentNodeIndex).instance;
+    // return new ComponentRef_(view, new ViewRef_(view), component);
+    return null;
   }
 }
 
@@ -45,16 +42,25 @@ export function createComponentFactory(selector: string, componentType: ClassTyp
   return new ComponentFactory_(selector, componentType, viewDefFactory);
 }
 
-/**
- * Internal ComponentRef
- */
+export function getComponentViewDefinitionFactory(componentFactory: ComponentFactory<any>):
+    ViewDefinitionFactory {
+  return (componentFactory as ComponentFactory_).viewDefFactory;
+}
+
+// ====================================
+// Internal ComponentRef
+// ====================================
 class ComponentRef_ extends ComponentRef<any> {
+  private _elDef: NodeDef;
   constructor(private _view: ViewData, private _viewRef: ViewRef, private _component: any) {
     super();
+    this._elDef = this._view.def.nodes[0];
   }
 
-  get location(): ElementRef { return new ElementRef(null); }
-  get injector(): Injector { return new Injector_(this._view); }
+  get location(): ElementRef {
+    return new ElementRef(asElementData(this._view, this._elDef.index).renderElement);
+  }
+  get injector(): Injector { return new Injector_(this._view, this._elDef); }
   get instance(): any { return this._component; };
   get hostView(): ViewRef { return this._viewRef; };
   // get changeDetectorRef(): ChangeDetectorRef { return this._viewRef; };
@@ -64,25 +70,31 @@ class ComponentRef_ extends ComponentRef<any> {
   onDestroy(callback: Function): void { this._viewRef.onDestroy(callback); }
 }
 
-/**
- * Internal ViewContainerRef
- */
+// ====================================
+// Internal View Reference
+// ====================================
+export function createViewContainerData(
+    view: ViewData, elDef: NodeDef, elData: ElementData): ViewContainerData {
+  return new ViewContainerRef_(view, elDef, elData);
+}
+
 class ViewContainerRef_ implements ViewContainerData {
 
   /* @internal */
   _embeddedViews: ViewData[] = [];
-  constructor(private _view: ViewData) { }
+  constructor(private _view: ViewData, private _elDef: NodeDef, private _data: ElementData) { }
 
-  get anchorElement(): ElementRef { return new ElementRef(this._view.renderElement); }
-  get injector(): Injector { return new Injector_(this._view); }
+  get element(): ElementRef { return new ElementRef(this._data.renderElement); }
+  get injector(): Injector { return new Injector_(this._view, this._elDef); }
   get parentInjector(): Injector {
     let view = this._view;
-    let def = view.def;
-    while (!def && view) {
-      view = view.parent;
-      def = view.def;
+    let elDef = this._elDef.parent;
+    while (!elDef && view) {
+      elDef = viewParentEl(view);
+      view = view.parent !;
     }
-    return view ? new Injector_(view) : this._view.root.injector;
+
+    return view ? new Injector_(view, elDef) : new Injector_(this._view, null);
   }
 
   clear(): void { }
@@ -114,7 +126,7 @@ class ViewContainerRef_ implements ViewContainerData {
     // tslint:disable-next-line:variable-name
     const viewRef_ = <ViewRef_>viewRef;
     const viewData = viewRef_._view;
-    attachEmbeddedView(this._view, index, viewData);
+    attachEmbeddedView(this._view, this._data, index, viewData);
     viewRef_.attachToViewContainerRef(this);
     return viewRef;
   }
@@ -126,25 +138,21 @@ class ViewContainerRef_ implements ViewContainerData {
   }
 
   remove(index?: number): void {
-    const view = detachEmbeddedView(this._view, index);
-    if (view) {
-      destroyView(view);
+    const viewData = detachEmbeddedView(this._data, index);
+    if (viewData) {
+      destroyView(viewData);
     }
   }
 
   detach(index?: number): ViewRef {
-    const view = detachEmbeddedView(this._view, index);
-    return view ? new ViewRef_(view) : null;
+    const viewData = detachEmbeddedView(this._data, index);
+    return viewData ? new ViewRef_(viewData) : null;
   }
 }
 
-export function createViewContainerData(view: ViewData): ViewContainerData {
-  return new ViewContainerRef_(view);
-}
-
-/**
- * Internal View Reference
- */
+// ====================================
+// Internal View Reference
+// ====================================
 class ViewRef_ implements InternalViewRef {
   _view: ViewData;
   private _viewContainerRef: ViewContainerRef;
@@ -203,13 +211,17 @@ class ViewRef_ implements InternalViewRef {
   }
 }
 
-/**
- * Internal View Injector
- */
+// ====================================
+// Internal Injector
+// ====================================
+export function createInjector(view: ViewData, elDef: NodeDef): Injector {
+  return new Injector_(view, elDef);
+}
+
 class Injector_ implements Injector {
-  constructor(private _view: ViewData) { }
+  constructor(private view: ViewData, private elDef: NodeDef|null) { }
   get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
-    return resolveDep(this._view,
+    return resolveDep(this.view,
       {flags: DepFlags.None, token, tokenKey: tokenKey(token)}, notFoundValue);
   }
 }

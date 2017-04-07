@@ -1,16 +1,17 @@
-import { ViewData } from './types';
+import { ViewData, ElementData } from './types';
 
-export function attachEmbeddedView(parentView: ViewData, viewIndex: number, view: ViewData) {
-  let embeddedViews = parentView.viewContainer._embeddedViews;
-  if (viewIndex == null) {
+export function attachEmbeddedView(parentView: ViewData, elementData: ElementData,
+    viewIndex: number | undefined | null, view: ViewData) {
+  let embeddedViews = elementData.viewContainer !._embeddedViews;
+  if (viewIndex === null || viewIndex === undefined) {
     viewIndex = embeddedViews.length;
   }
   view.viewContainerParent = parentView;
   addToArray(embeddedViews, viewIndex, view);
 }
 
-export function detachEmbeddedView(parent: ViewData, viewIndex: number): ViewData {
-  const embeddedViews = parent.viewContainer._embeddedViews;
+export function detachEmbeddedView(elementData: ElementData, viewIndex?: number): ViewData|null {
+  const embeddedViews = elementData.viewContainer !._embeddedViews;
   if (viewIndex == null || viewIndex >= embeddedViews.length) {
     viewIndex = embeddedViews.length - 1;
   }

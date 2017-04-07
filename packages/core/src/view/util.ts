@@ -1,6 +1,7 @@
-import { Injector } from '../di/injector';
-import { ViewDefinition, ViewDefinitionFactory, ViewData, BindingDef, BindingFlags } from './types';
-import { createInjector } from './refs';
+import {
+  ViewDefinition, ViewDefinitionFactory, ViewData, BindingDef, BindingFlags,
+  NodeDef, NodeFlags
+} from './types';
 
 const VIEW_DEFINITION_CACHE = new WeakMap<any, ViewDefinition>();
 export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefinition {
@@ -15,7 +16,7 @@ export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefin
 const NS_PREFIX_RE = /^:([^:]+):(.+)$/;
 export function splitNamespace(name: string): string[] {
   if (name[0] === ':') {
-    const match = name.match(NS_PREFIX_RE) !;
+    const match = name.match(NS_PREFIX_RE)!;
     return [match[1], match[2]];
   }
   return ['', name];
@@ -27,4 +28,17 @@ export function calcBindingFlags(bindings: BindingDef[]): BindingFlags {
     flags |= bindings[i].flags;
   }
   return flags;
+}
+
+export function viewParentEl(view: ViewData): NodeDef | null {
+  const parentView = view.parent;
+  if (parentView) {
+    return view.parentNodeDef!.parent;
+  } else {
+    return null;
+  }
+}
+
+export function isComponentView(view: ViewData): boolean {
+  return !!view.parent && !!(view.parentNodeDef !.flags & NodeFlags.TypeComponent);
 }

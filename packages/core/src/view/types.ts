@@ -1,8 +1,11 @@
-import { ClassType } from '../type';
 import { Renderer, RendererFactory, RendererType } from '../render';
 import { Injector } from '../di/injector';
-import { Provider } from '../di/provider';
 import { ViewContainerRef } from './view_container_ref';
+
+
+// ==================================
+// DEFS
+// ==================================
 
 export interface NodeDef {
   flags: NodeFlags;
@@ -16,6 +19,8 @@ export interface NodeDef {
   bindingIndex: number;
   bindings: BindingDef[];
   bindingFlags: BindingFlags;
+  outputIndex: number;
+  outputs: OutputDef[];
 }
 
 export interface ProviderDef {
@@ -38,26 +43,15 @@ export const enum DepFlags {
   Value = 2 << 2,
 }
 
-export interface ProviderData { instance: any; }
-
-export function asProviderData(view: ViewData, index: number): ProviderData {
-  return <any>view.nodes[index];
-}
-
 export interface ViewDefinition {
   factory: ViewDefinitionFactory;
   flags: ViewFlags;
   nodes: NodeDef[];
   /** aggregated NodeFlags for all nodes **/
   nodeFlags: NodeFlags;
-
-  componentRendererType: RendererType;
-  componentProvider: NodeDef;
-  publicProviders: {[tokenKey: string]: NodeDef};
-  allProviders: {[tokenKey: string]: NodeDef};
-
   rootNodeFlags: NodeFlags;
   bindingCount: number;
+  outputCount: number;
 }
 
 export type ViewDefinitionFactory = () => ViewDefinition;
@@ -85,30 +79,46 @@ export interface BindingDef {
   suffix: string;
 }
 
+export interface OutputDef {
+  type: OutputType;
+  target: 'window'|'document'|'body'|'component'|null;
+  eventName: string;
+  propName: string|null;
+}
+
+export const enum OutputType {ElementOutput, DirectiveOutput}
 
 // ==================================
 // DATA
 // ==================================
 
-// tslint:disable-next-line:variable-name
+// tslint:disable-next-line
 export class NodeData { private __brand: any; }
 
 export interface ViewData {
   def: ViewDefinition;
-  renderElement: any;
   root: RootData;
   renderer: Renderer;
-  nodes: NodeData[];
+  parentNodeDef: NodeDef|null;
   parent: ViewData;
-  viewContainerParent: ViewData;
-  viewContainer: ViewContainerData;
+  viewContainerParent: ViewData|null;
   component: any;
   context: any;
+  nodes: {[key: number]: NodeData};
   state: ViewState;
-  disposables: DisposableFn[];
-  bindingIndex: number;
-  bindings: BindingData[];
-  bindingFlags: BindingFlags;
+  oldValues: any[];
+  disposables: DisposableFn[]|null;
+  // renderElement: any;
+  // nodes: NodeData[];
+  // viewContainerParent: ViewData;
+  // viewContainer: ViewContainerData;
+  // component: any;
+  // context: any;
+  // state: ViewState;
+  // disposables: DisposableFn[];
+  // bindingIndex: number;
+  // bindings: BindingData[];
+  // bindingFlags: BindingFlags;
 }
 
 export const enum ViewState {
@@ -116,6 +126,17 @@ export const enum ViewState {
   ChecksEnabled = 1 << 1,
   Errored = 1 << 2,
   Destroyed = 1 << 3
+}
+
+export interface ElementData {
+  renderElement: any;
+  componentView: ViewData;
+  viewContainer: ViewContainerData|null;
+  // template: TemplateData;
+}
+
+export function asElementData(view: ViewData, index: number): ElementData {
+  return <any>view.nodes[index];
 }
 
 export interface ViewContainerData extends ViewContainerRef {
@@ -129,9 +150,13 @@ export interface RootData {
   selectorOrNode: any;
   renderer: Renderer;
   rendererFactory: RendererFactory;
-  element: any;
 }
 
+export interface ProviderData { instance: any; }
+
+export function asProviderData(view: ViewData, index: number): ProviderData {
+  return <any>view.nodes[index];
+}
 
 export const enum NodeFlags {
   None = 0,

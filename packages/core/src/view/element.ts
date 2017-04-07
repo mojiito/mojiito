@@ -1,12 +1,15 @@
-import { NodeFlags, NodeDef, ViewDefinitionFactory, BindingFlags, BindingDef } from './types';
+import {
+  NodeFlags, NodeDef, ViewDefinitionFactory, BindingFlags, BindingDef,
+  OutputDef, OutputType
+} from './types';
 import { splitNamespace, calcBindingFlags } from './util';
 import { RendererType } from '../render';
 
 export function elementDef(flags: NodeFlags, childCount: number, namespaceAndName: string,
-    bindings?: [BindingFlags, string, string][],
-    componentView?: ViewDefinitionFactory, componentRendererType?: RendererType | null): NodeDef {
-  let ns: string = null !;
-  let name: string = null !;
+  bindings?: [BindingFlags, string, string][], outputs?: ([string, string])[],
+  componentView?: ViewDefinitionFactory, componentRendererType?: RendererType | null): NodeDef {
+  let ns: string = null!;
+  let name: string = null!;
   if (namespaceAndName) {
     [ns, name] = splitNamespace(namespaceAndName);
   }
@@ -15,9 +18,19 @@ export function elementDef(flags: NodeFlags, childCount: number, namespaceAndNam
   for (let i = 0; i < bindings.length; i++) {
     // tslint:disable:no-shadowed-variable
     const [bindingFlags, namespaceAndName, suffix] = bindings[i];
-    const [nx, name] = splitNamespace(namespaceAndName);
-    bindingDefs[i] = {flags: bindingFlags, ns, name, nonMinifiedName: name, suffix};
+    const [ns, name] = splitNamespace(namespaceAndName);
+    bindingDefs[i] = { flags: bindingFlags, ns, name, nonMinifiedName: name, suffix };
     // tslint:enable:no-shadowed-variable
+  }
+  outputs = outputs || [];
+  const outputDefs: OutputDef[] = new Array(outputs.length);
+  for (let i = 0; i < outputs.length; i++) {
+    const [target, eventName] = outputs[i];
+    outputDefs[i] = {
+      type: OutputType.ElementOutput,
+      target: <any>target, eventName,
+      propName: null
+    };
   }
   if (componentView) {
     flags |= NodeFlags.ComponentView;
@@ -27,12 +40,14 @@ export function elementDef(flags: NodeFlags, childCount: number, namespaceAndNam
     index: -1,
     parent: null,
     bindingIndex: -1,
+    outputIndex: -1,
     flags,
     childFlags: 0,
     directChildFlags: 0,
     childCount,
     bindings: bindingDefs,
     bindingFlags: calcBindingFlags(bindingDefs),
+    outputs: outputDefs,
     element: {
       ns,
       name,

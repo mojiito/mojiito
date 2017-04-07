@@ -1,16 +1,13 @@
-import {
-  ClassType, Component, ComponentResolver, Injectable, Renderer, RendererType, ComponentRef,
-  ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
-  ElementRef, Injector, ApplicationRef, Provider, ReflectiveInjector, ReflectorReader,
-  HostListener, ChildListener, createViewDefinitionFactory, SkipSelf, NodeFlags, NodeDef,
-  ViewDefinitionFactory, ViewDefinition, DepFlags, constructDependencies, ProviderDef, DepDef,
-  Visitor
-} from 'mojiito-core';
 import { ListWrapper } from '../facade/collection';
-import { stringify } from '../facade/lang';
+import {
+  ClassType, ComponentResolver, Injectable, RendererType,
+  ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
+  Provider, SkipSelf, NodeFlags, ViewDefinitionFactory, DepFlags, Visitor, viewDef, providerDef,
+  elementDef, componentDef, ViewFlags
+} from 'mojiito-core';
+import { CssSelector } from '../selector';
 import { DomVisitor } from '../dom_visitor';
-import { DomTraverser } from '../dom_traverser';
-import { BindingParser, EventBindingParseResult } from '../binding_parser';
+import { BindingParser } from '../binding_parser';
 import { CompileComponentSummary } from './compile_result';
 
 @Injectable()
@@ -40,6 +37,7 @@ export class Compiler {
 
     // grab component metadata
     const metadata = this._resolver.resolve(component);
+    const selector = CssSelector.parse(metadata.selector);
 
     // compile child components
     let childComponents: CompileComponentSummary[];
@@ -53,8 +51,8 @@ export class Compiler {
     }
 
     // create a view definition factory for this component type
-    const viewDefinitionFactory =
-      this._createComponentViewDef(component, metadata.providers, rendererType);
+    const viewDefinitionFactory = this._createComponentViewDef(
+      component, metadata.providers, selector[0].element || '*', rendererType);
 
     // create a component factory for this component type
     const componentFactory =
@@ -62,7 +60,7 @@ export class Compiler {
 
     compileSummary = {
       type: component,
-      selector: metadata.selector,
+      selector: selector,
       hostListeners: metadata.host,
       childListeners: metadata.childs,
       componentFactory,
@@ -73,40 +71,6 @@ export class Compiler {
     return compileSummary;
   }
 
-  private _createProviderNodes(providers: Provider[], nodes: NodeDef[],
-    nodeType: NodeFlags): NodeDef[] {
-    const nodeDefs = resolveReflectiveProviders(ListWrapper.flatten(providers))
-      .map((provider, index) => {
-        const factory = provider.resolvedFactories[0];
-        const node = <NodeDef>{
-          flags: nodeType,
-          index: nodes.length + index,
-          provider: <ProviderDef>{
-            token: provider.key.token,
-            tokenKey: provider.key.displayName,
-            factory: factory.factory,
-            deps: factory.dependencies.map(dep => {
-              let flags = 0;
-              if (dep.optional) {
-                flags += DepFlags.Optional;
-              }
-              if (dep.visibility instanceof SkipSelf) {
-                flags += DepFlags.SkipSelf;
-              }
-              return <DepDef>{
-                flags,
-                token: dep.key.token,
-                tokenKey: dep.key.displayName
-              };
-            })
-          }
-        };
-        return node;
-      });
-    nodes.push(...nodeDefs);
-    return nodeDefs;
-  }
-
   private _createComponentRendererType(visitor: Visitor): RendererType {
     return {
       visitor,
@@ -115,39 +79,44 @@ export class Compiler {
   }
 
   private _createComponentViewDef(component: ClassType<any>, providers: Provider[],
-      componentRendererType: RendererType): ViewDefinitionFactory {
+      namespaceAndName: string, componentRendererType: RendererType): ViewDefinitionFactory {
     const viewDefinitionFactory: ViewDefinitionFactory = () => {
-      const nodes: NodeDef[] = [];
-      let nodeFlags = NodeFlags.ComponentView;
+      const { token, factory, deps } = this._transformProviders([component])[0];
+      const elementChildCount =  providers.length + 1;
+      return viewDef(ViewFlags.None, [
+        // Create element node
+        elementDef(NodeFlags.TypeElement, elementChildCount, '*', [], [],
+          viewDefinitionFactory, componentRendererType),
 
-      // Create public provider instances and add to nodes
-      let publicProviders: {[key: string]: NodeDef} = {};
-      if (providers) {
-        this._createProviderNodes(providers, nodes, NodeFlags.TypeProvider).forEach(node => {
-          publicProviders[node.provider.tokenKey] = node;
-        });
-        nodeFlags |= NodeFlags.TypeProvider;
-      }
+        // Create component node
+        componentDef(NodeFlags.TypeComponent, 0, token, factory, deps, null, null),
 
-      // Create component instance and add to nodes
-      this._createProviderNodes([component], nodes, NodeFlags.TypeComponent);
-      const componentProvider = nodes[nodes.length - 1];
-      nodeFlags |= NodeFlags.TypeComponent;
-
-      // Set allProviders to publicProviders plus private providers (componentProvider)
-      const allProviders = publicProviders;
-      allProviders[componentProvider.provider.tokenKey] = componentProvider;
-
-      return <ViewDefinition>{
-        factory: viewDefinitionFactory,
-        nodeFlags,
-        nodes,
-        componentProvider,
-        publicProviders,
-        allProviders,
-        componentRendererType
-      };
+        // Create provider nodes
+        ...this._transformProviders(providers).map(provider => {
+          return providerDef(
+            NodeFlags.TypeProvider, provider.token, provider.factory, provider.deps);
+        })
+      ]);
     };
     return viewDefinitionFactory;
+  }
+
+  private _transformProviders(providers: Provider[]) {
+    return resolveReflectiveProviders(ListWrapper.flatten(providers)).map(provider => {
+      const token = provider.key.token;
+      const factoryObj = provider.resolvedFactories[0];
+      const factory = factoryObj.factory as (...deps: any[]) => any;
+      const deps: ([DepFlags, any] | any)[] = factoryObj.dependencies.map(dep => {
+        let flags = DepFlags.None;
+        if (dep.optional) {
+          flags += DepFlags.Optional;
+        }
+        if (dep.visibility instanceof SkipSelf) {
+          flags += DepFlags.SkipSelf;
+        }
+        return [flags, dep.key.token];
+      });
+      return { token, factory, deps };
+    });
   }
 }

@@ -12,8 +12,7 @@ export class DomVisitor implements Visitor {
 
   constructor(components: CompileComponentSummary[]) {
     components.forEach((component, index) => {
-      const selector = CssSelector.parse(component.selector);
-      this._selectorMatcher.addSelectables(selector, component);
+      this._selectorMatcher.addSelectables(component.selector, component);
       this._componentsIndex.set(component, index);
     });
   }
@@ -36,7 +35,7 @@ export class DomVisitor implements Visitor {
     // console.log(`Found ${stringify(matchingComponent.type)} on element:`, element);
 
     const viewDef = matchingComponent.viewDefinitionFactory();
-    const view = createView(context.root, context, element, viewDef);
+    // const view = createView(context.root, context, element, viewDef);
 
     // console.log(`Created ${stringify(matchingComponent.type)} ` +
     //   `with parent ${stringify(context.component.constructor)}`);
@@ -45,7 +44,8 @@ export class DomVisitor implements Visitor {
 
     });
 
-    return view;
+    // return view;
+    return null;
   }
 
   visitAttribute(element: Element, attr: Attr, context: any) { }

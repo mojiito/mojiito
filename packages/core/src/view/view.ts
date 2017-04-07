@@ -1,20 +1,16 @@
-import { Renderer, RendererFactory, RendererType } from '../render';
-import { ComponentRef } from '../component/reference';
+import { RendererFactory, Renderer } from '../render';
 import { Injector } from '../di/injector';
-import { Provider } from '../di/provider';
-import { resolveReflectiveProviders } from '../di/reflective_provider';
-import { ClassType } from '../type';
-import { ViewContainerRef } from './view_container_ref';
 import {
-  ViewData, ViewState, RootData, ViewDefinition, NodeFlags, ProviderData,
-  NodeData, BindingFlags, ViewFlags, NodeDef
+  ViewData, ViewState, RootData, ViewDefinition, NodeFlags,
+  NodeData, ViewFlags, NodeDef, asElementData
 } from './types';
-import { tokenKey, createProviderInstance } from './provider';
 import { createViewContainerData } from './refs';
+import { isComponentView } from './util';
 
 
-export function viewDefNew(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
+export function viewDef(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
   let viewBindingCount = 0;
+  let viewDisposableCount = 0;
   let viewNodeFlags = 0;
   let viewRootNodeFlags = 0;
   let currentParent: NodeDef|null = null;
@@ -35,6 +31,7 @@ export function viewDefNew(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
     node.index = i;
     node.parent = currentParent;
     node.bindingIndex = viewBindingCount;
+    node.outputIndex = viewDisposableCount;
 
     if (node.element) {
       const elDef = node.element;
@@ -55,6 +52,7 @@ export function viewDefNew(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
       viewRootNodeFlags |= node.flags;
     }
     viewBindingCount += node.bindings.length;
+    viewDisposableCount += node.outputs.length;
 
     if (node.flags & NodeFlags.CatProvider) {
       if (!currentElementHasPublicProviders) {
@@ -100,19 +98,16 @@ export function viewDefNew(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
     flags,
     nodes: nodes,
     bindingCount: viewBindingCount,
-
-    componentRendererType: null,
-    componentProvider: null,
-    publicProviders: null,
-    allProviders: null,
+    outputCount: viewDisposableCount
   };
 }
 
 function validateNode(parent: NodeDef | null, node: NodeDef, nodeCount: number) {
   if (node.flags & NodeFlags.CatProvider) {
     const parentFlags = parent ? parent.flags : 0;
+    console.log(parent);
     if ((parentFlags & NodeFlags.TypeElement) === 0) {
-      throw new Error(`Illegal State: Provider/Directive nodes need to be children of ` +
+      throw new Error(`Illegal State: Provider/Component nodes need to be children of ` +
       `elements or anchors, at index ${node.index}!`);
     }
   }
@@ -129,35 +124,36 @@ export function createRootView(def: ViewDefinition, injector: Injector,
   rootSelectorOrNode: string | any, context?: any): ViewData {
   const rendererFactory: RendererFactory = injector.get(RendererFactory);
   const root = createRootData(injector, rendererFactory, rootSelectorOrNode);
-  const view = createView(root, null, root.element, def);
-  view.renderer.parse(view);
+
+  let renderElement = rootSelectorOrNode;
+  if (typeof rootSelectorOrNode === 'string') {
+    renderElement = root.renderer.selectRootElement(rootSelectorOrNode);
+  }
+  const view = createView(root, root.renderer, null, null, renderElement, def);
+  createViewNodes(view);
+  // view.renderer.parse(view);
   return view;
 }
 
-export function createView(root: RootData,
-  parent: ViewData, renderElement: any, def: ViewDefinition): ViewData {
+export function createView(root: RootData, renderer: Renderer, parent: ViewData,
+    parentNodeDef: NodeDef | null, renderElement: any, def: ViewDefinition): ViewData {
   const nodes: NodeData[] = new Array(def.nodes.length);
+  const disposables = def.outputCount ? new Array(def.outputCount) : null;
   const view: ViewData = {
     def,
-    renderElement,
-    root,
-    renderer: createRenderer(renderElement, def, parent, root),
-    nodes,
     parent,
-    viewContainerParent: undefined,
-    viewContainer: undefined,
-    context: undefined,
-    component: undefined,
+    viewContainerParent: null,
+    parentNodeDef,
+    context: null,
+    component: null,
+    nodes,
     state: ViewState.FirstCheck | ViewState.ChecksEnabled,
-    disposables: undefined,
-    bindings: undefined,
-    bindingFlags: 0,
-    bindingIndex: 0
+    root,
+    renderer,
+    oldValues: new Array(def.bindingCount),
+    disposables
   };
-  if (def.nodeFlags & NodeFlags.TypeComponent) {
-    view.viewContainer = createViewContainerData(view);
-  }
-  createViewNodes(view);
+  // createViewNodes(view);
   return view;
 }
 
@@ -184,102 +180,126 @@ export function destroyView(view: ViewData) {
 }
 
 function createViewNodes(view: ViewData) {
+  let renderHost: any;
+  if (isComponentView(view)) {
+    const hostDef = view.parentNodeDef;
+    renderHost = asElementData(view.parent !, hostDef !.parent !.index).renderElement;
+  }
   const def = view.def;
   const nodes = view.nodes;
-  let nodeData: any;
   for (let i = 0; i < def.nodes.length; i++) {
     const nodeDef = def.nodes[i];
+    let nodeData: any;
     switch (nodeDef.flags & NodeFlags.Types) {
-      case NodeFlags.TypeProvider: {
-        const instance = createProviderInstance(view, nodeDef);
-        nodeData = <ProviderData>{ instance };
+      case NodeFlags.TypeElement:
+        console.log('element', nodeDef);
         break;
-      }
-      case NodeFlags.TypeComponent: {
-        const instance = createProviderInstance(view, nodeDef);
-        nodeData = <ProviderData>{ instance };
-
-        initView(view, instance, instance);
+      case NodeFlags.TypeProvider:
+        console.log('provider', nodeDef);
         break;
-      }
+      case NodeFlags.TypeComponent:
+        console.log('component', nodeDef);
+        break;
     }
     nodes[i] = nodeData;
   }
 }
 
 function destroyViewNodes(view: ViewData) {
-  view.renderer.destroyNode(view.renderElement);
+  // view.renderer.destroyNode(view.renderElement);
 }
 
 function createRootData(
-  injector: Injector, rendererFactory: RendererFactory, rootSelectorOrNode: any): RootData {
+    injector: Injector, rendererFactory: RendererFactory, rootSelectorOrNode: any): RootData {
   const renderer = rendererFactory.createRenderer(null, null);
-  let element = rootSelectorOrNode;
-  if (typeof rootSelectorOrNode === 'string') {
-    element = renderer.selectRootElement(rootSelectorOrNode);
-  }
+
   return {
     injector,
     selectorOrNode: rootSelectorOrNode,
-    element,
+    // element,
     rendererFactory,
     renderer
   };
 }
 
-function viewDef(publicProviders: Provider[], componentProvider: any): ViewDefinition {
-  var viewDef: any = {};
-  // resolve public providers
-  const publicProv: any = Object.create(null);
-  if (publicProviders) {
-    resolveReflectiveProviders(publicProviders).forEach(p => {
-      const resolvedFactory = p.resolvedFactories[0];
-      publicProv[tokenKey(p.key)] = {
-        factory: resolvedFactory.factory,
-        dependencies: resolvedFactory.dependencies,
-        multi: p.multiProvider
-      };
-    });
-  }
-  viewDef.publicProviders = publicProv;
+// function viewDef(publicProviders: Provider[], componentProvider: any): ViewDefinition {
+//   var viewDef: any = {};
+//   // resolve public providers
+//   const publicProv: any = Object.create(null);
+//   if (publicProviders) {
+//     resolveReflectiveProviders(publicProviders).forEach(p => {
+//       const resolvedFactory = p.resolvedFactories[0];
+//       publicProv[tokenKey(p.key)] = {
+//         factory: resolvedFactory.factory,
+//         dependencies: resolvedFactory.dependencies,
+//         multi: p.multiProvider
+//       };
+//     });
+//   }
+//   viewDef.publicProviders = publicProv;
 
-  // combine to all providers
-  const allProviders = Object.create(publicProv);
-  viewDef.allProviders = allProviders;
+//   // combine to all providers
+//   const allProviders = Object.create(publicProv);
+//   viewDef.allProviders = allProviders;
 
-  // resolve component provider
-  if (componentProvider) {
-    const resolvedComp = resolveReflectiveProviders([componentProvider])[0];
-    const resolvedCompFactory = resolvedComp.resolvedFactories[0];
-    viewDef.componentProvider = {
-      factory: resolvedCompFactory.factory,
-      dependencies: resolvedCompFactory.dependencies,
-      multi: false,
-    };
-    allProviders[tokenKey(resolvedComp.key)] = viewDef.componentProvider;
-  }
+//   // resolve component provider
+//   if (componentProvider) {
+//     const resolvedComp = resolveReflectiveProviders([componentProvider])[0];
+//     const resolvedCompFactory = resolvedComp.resolvedFactories[0];
+//     viewDef.componentProvider = {
+//       factory: resolvedCompFactory.factory,
+//       dependencies: resolvedCompFactory.dependencies,
+//       multi: false,
+//     };
+//     allProviders[tokenKey(resolvedComp.key)] = viewDef.componentProvider;
+//   }
 
-  return viewDef;
+//   return viewDef;
+// }
+
+// function createRenderer(hostElement: any, viewDef: ViewDefinition,
+//       parentView: ViewData, root: RootData) {
+//     let rendererType: RendererType = viewDef.componentRendererType;
+//     let view = parentView;
+//     while (view && !rendererType) {
+//       rendererType = view.def.componentRendererType;
+//       view = view.parent;
+//     }
+
+//     if (!rendererType) {
+//       return root.renderer;
+//     } else {
+//       return root.rendererFactory.createRenderer(hostElement, rendererType);
+//     }
+// }
+
+enum ViewAction {
+  CreateViewNodes,
+  CheckNoChanges,
+  CheckAndUpdate,
+  Destroy
 }
 
-export function createViewDefinitionFactory(publicProviders: Provider[], componentProvider: any) {
-  return () => {
-    return viewDef(publicProviders, componentProvider);
-  };
-}
-
-function createRenderer(hostElement: any, viewDef: ViewDefinition,
-      parentView: ViewData, root: RootData) {
-    let rendererType: RendererType = viewDef.componentRendererType;
-    let view = parentView;
-    while (view && !rendererType) {
-      rendererType = view.def.componentRendererType;
-      view = view.parent;
-    }
-
-    if (!rendererType) {
-      return root.renderer;
-    } else {
-      return root.rendererFactory.createRenderer(hostElement, rendererType);
-    }
+function callViewAction(view: ViewData, action: ViewAction) {
+  const viewState = view.state;
+  switch (action) {
+    case ViewAction.CheckNoChanges:
+      if ((viewState & ViewState.ChecksEnabled) &&
+          (viewState & (ViewState.Errored | ViewState.Destroyed)) === 0) {
+        // checkNoChangesView(view);
+      }
+      break;
+    case ViewAction.CheckAndUpdate:
+      if ((viewState & ViewState.ChecksEnabled) &&
+          (viewState & (ViewState.Errored | ViewState.Destroyed)) === 0) {
+        // checkAndUpdateView(view);
+      }
+      break;
+    case ViewAction.Destroy:
+      destroyView(view);
+      break;
+    case ViewAction.CreateViewNodes:
+      createViewNodes(view);
+      break;
+  }
 }

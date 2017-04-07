@@ -6,7 +6,7 @@ import { ComponentRef } from '../component/reference';
 
 export abstract class ViewContainerRef {
 
-  abstract get anchorElement(): ElementRef;
+  abstract get element(): ElementRef;
   abstract get injector(): Injector;
   abstract get parentInjector(): Injector;
 
