@@ -166,8 +166,8 @@ export function destroyView(view: ViewData) {
   if (view.state & ViewState.Destroyed) {
     return;
   }
-  // execEmbeddedViewsAction(view, ViewAction.Destroy);
-  // execComponentViewsAction(view, ViewAction.Destroy);
+  execEmbeddedViewsAction(view, ViewAction.Destroy);
+  execComponentViewsAction(view, ViewAction.Destroy);
   // callLifecycleHooksChildrenFirst(view, NodeFlags.OnDestroy);
   if (view.disposables) {
     for (let i = 0; i < view.disposables.length; i++) {
@@ -278,6 +278,47 @@ enum ViewAction {
   CheckNoChanges,
   CheckAndUpdate,
   Destroy
+}
+
+function execComponentViewsAction(view: ViewData, action: ViewAction) {
+  const def = view.def;
+  if (!(def.nodeFlags & NodeFlags.ComponentView)) {
+    return;
+  }
+  for (let i = 0; i < def.nodes.length; i++) {
+    const nodeDef = def.nodes[i];
+    if (nodeDef.flags & NodeFlags.ComponentView) {
+      // a leaf
+      callViewAction(asElementData(view, i).componentView, action);
+    } else if ((nodeDef.childFlags & NodeFlags.ComponentView) === 0) {
+      // a parent with leafs
+      // no child is a component,
+      // then skip the children
+      i += nodeDef.childCount;
+    }
+  }
+}
+
+function execEmbeddedViewsAction(view: ViewData, action: ViewAction) {
+  const def = view.def;
+  if (!(def.nodeFlags & NodeFlags.EmbeddedViews)) {
+    return;
+  }
+  for (let i = 0; i < def.nodes.length; i++) {
+    const nodeDef = def.nodes[i];
+    if (nodeDef.flags & NodeFlags.EmbeddedViews) {
+      // a leaf
+      const embeddedViews = asElementData(view, i).viewContainer !._embeddedViews;
+      for (let k = 0; k < embeddedViews.length; k++) {
+        callViewAction(embeddedViews[k], action);
+      }
+    } else if ((nodeDef.childFlags & NodeFlags.EmbeddedViews) === 0) {
+      // a parent with leafs
+      // no child is a component,
+      // then skip the children
+      i += nodeDef.childCount;
+    }
+  }
 }
 
 function callViewAction(view: ViewData, action: ViewAction) {
