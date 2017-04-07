@@ -22,14 +22,14 @@ export class EventEmitter<T> implements ISubscription {
 
   /**
    * Subscribes to the custom event and sets up the handler for the underlying data stream.
-   * @param {PartialObserver|Function} generatorOrNext (optional) either an observer defining all
+   * @param generatorOrNext (optional) either an observer defining all
    *  functions to be called, or the first of three possible handlers, which is the handler for
    *  each value emitted from the observable.
-   * @param {Function} error (optional) a handler for a terminal event resulting from an error.
+   * @param error (optional) a handler for a terminal event resulting from an error.
    *  If no error handler is provided, the error will be thrown as unhandled
-   * @param {Function} complete (optional) a handler for a terminal event resulting from successful
+   * @param complete (optional) a handler for a terminal event resulting from successful
    *  completion.
-   * @return {ISubscription} a subscription reference to the registered handlers
+   * @return a subscription reference to the registered handlers
    */
   subscribe(generatorOrNext?: any, error?: any, complete?: any): ISubscription {
     let schedulerFn: (t: any) => any;
