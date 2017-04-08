@@ -19,4 +19,5 @@ We currently working very hard on developing the new Version 2.0 completely rewr
 Run `npm install mojiito-core mojiito-platform-browser --save` in your command line tool.
 
 ## Getting Started & Documentation
-Visit the [Getting Started](docs/getting-started.md) guide and [Documentation](docs/README.md)
+Visit the [Getting Started Guide](docs/getting-started.md) or the [Documentation Section](docs/README.md)   
+Note: Documentation is still WIP. If you want to contribute, pls contact me :)
