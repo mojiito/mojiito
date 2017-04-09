@@ -119,6 +119,7 @@ export function resolveDep(view: ViewData, elDef: NodeDef, allowPrivateServices:
 
 
 function _createProviderInstance(view: ViewData, def: NodeDef): any {
+  console.log('create ', def);
   // private services can see other private services
 
   const allowPrivateServices = (def.flags & NodeFlags.PrivateProvider) > 0;
@@ -354,6 +355,7 @@ export function createComponentInstance(view: ViewData, def: NodeDef): any {
   const allowPrivateServices = true;
   const instance = createClass(
       view, def.parent !, allowPrivateServices, def.provider !.value, def.provider !.deps);
+  console.log(instance);
   if (def.outputs.length) {
     for (let i = 0; i < def.outputs.length; i++) {
       const output = def.outputs[i];
@@ -362,7 +364,7 @@ export function createComponentInstance(view: ViewData, def: NodeDef): any {
       view.disposables ![def.outputIndex + i] = subscription.unsubscribe.bind(subscription);
     }
   }
-  // return instance;
+  return instance;
 }
 
 function eventHandlerClosure(view: ViewData, index: number, eventName: string) {

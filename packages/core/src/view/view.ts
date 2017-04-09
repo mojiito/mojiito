@@ -109,7 +109,6 @@ export function viewDef(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
 function validateNode(parent: NodeDef | null, node: NodeDef, nodeCount: number) {
   if (node.flags & NodeFlags.CatProvider) {
     const parentFlags = parent ? parent.flags : 0;
-    console.log(parent);
     if ((parentFlags & NodeFlags.TypeElement) === 0) {
       throw new Error(`Illegal State: Provider/Component nodes need to be children of ` +
       `elements or anchors, at index ${node.index}!`);
@@ -221,6 +220,7 @@ function createViewNodes(view: ViewData, renderElement?: any) {
         break;
       case NodeFlags.TypeComponent:
         const instance = createComponentInstance(view, nodeDef);
+        console.log(instance);
         // nodeData = <ProviderData>{instance};
         // if (nodeDef.flags & NodeFlags.Component) {
         //   const compView = asElementData(view, nodeDef.parent !.index).componentView;

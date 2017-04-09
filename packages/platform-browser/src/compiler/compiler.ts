@@ -102,7 +102,6 @@ export class Compiler {
   }
 
   private _transformProviders(providers: Provider[]) {
-    debugger;
     return resolveReflectiveProviders(ListWrapper.flatten(providers)).map(provider => {
       const token = provider.key.token;
       const factoryObj = provider.resolvedFactories[0];
