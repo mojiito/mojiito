@@ -26,7 +26,8 @@ export interface NodeDef {
 export interface ProviderDef {
   token: any;
   tokenKey: string;
-  factory: (...deps: any[]) => any;
+  factory?: (...deps: any[]) => any;
+  value?: any;
   deps: DepDef[];
 }
 
@@ -52,9 +53,14 @@ export interface ViewDefinition {
   rootNodeFlags: NodeFlags;
   bindingCount: number;
   outputCount: number;
+  handleEvent: ViewHandleEventFn;
 }
 
 export type ViewDefinitionFactory = () => ViewDefinition;
+
+export interface ViewHandleEventFn {
+  (view: ViewData, nodeIndex: number, eventName: string, event: any): boolean;
+}
 
 export const enum ViewFlags {
   None = 0,
@@ -69,7 +75,10 @@ export interface ElementDef {
   componentView: ViewDefinitionFactory|null;
   publicProviders: {[tokenKey: string]: NodeDef}|null;
   allProviders: {[tokenKey: string]: NodeDef}|null;
+  handleEvent: ElementHandleEventFn|null;
 }
+
+export interface ElementHandleEventFn { (view: ViewData, eventName: string, event: any): boolean; }
 
 export interface BindingDef {
   flags: BindingFlags;
@@ -193,7 +202,7 @@ export const enum NodeFlags {
 
   // mutually exclusive values...
   // Types = CatRenderNode | TypeNgContent | TypePipe | CatPureExpression | CatProvider | CatQuery
-  Types = CatProvider
+  Types = TypeElement | CatProvider
 }
 
 export interface BindingData extends BindingDef {}

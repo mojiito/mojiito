@@ -1,11 +1,12 @@
 import { RendererFactory, Renderer } from '../render';
 import { Injector } from '../di/injector';
 import {
-  ViewData, ViewState, RootData, ViewDefinition, NodeFlags,
-  NodeData, ViewFlags, NodeDef, asElementData
+  ViewData, ViewState, RootData, ViewDefinition, NodeFlags, NodeData,
+  ViewFlags, NodeDef, asElementData, ElementData, ViewHandleEventFn
 } from './types';
 import { createViewContainerData } from './refs';
-import { isComponentView } from './util';
+import { createComponentInstance, callLifecycleHooksChildrenFirst } from './provider';
+import { isComponentView, resolveViewDefinition, NOOP } from './util';
 
 
 export function viewDef(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
@@ -90,6 +91,8 @@ export function viewDef(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
     }
     currentParent = newParent;
   }
+  const handleEvent: ViewHandleEventFn = (view, nodeIndex, eventName, event) =>
+      nodes[nodeIndex].element !.handleEvent !(view, eventName, event);
   return {
     // Will be filled later...
     factory: null,
@@ -97,6 +100,7 @@ export function viewDef(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
     rootNodeFlags: viewRootNodeFlags,
     flags,
     nodes: nodes,
+    handleEvent: handleEvent || NOOP,
     bindingCount: viewBindingCount,
     outputCount: viewDisposableCount
   };
@@ -129,14 +133,14 @@ export function createRootView(def: ViewDefinition, injector: Injector,
   if (typeof rootSelectorOrNode === 'string') {
     renderElement = root.renderer.selectRootElement(rootSelectorOrNode);
   }
-  const view = createView(root, root.renderer, null, null, renderElement, def);
-  createViewNodes(view);
+  const view = createView(root, root.renderer, null, null, def);
+  createViewNodes(view, renderElement);
   // view.renderer.parse(view);
   return view;
 }
 
 export function createView(root: RootData, renderer: Renderer, parent: ViewData,
-    parentNodeDef: NodeDef | null, renderElement: any, def: ViewDefinition): ViewData {
+    parentNodeDef: NodeDef | null, def: ViewDefinition): ViewData {
   const nodes: NodeData[] = new Array(def.nodes.length);
   const disposables = def.outputCount ? new Array(def.outputCount) : null;
   const view: ViewData = {
@@ -153,7 +157,6 @@ export function createView(root: RootData, renderer: Renderer, parent: ViewData,
     oldValues: new Array(def.bindingCount),
     disposables
   };
-  // createViewNodes(view);
   return view;
 }
 
@@ -168,7 +171,7 @@ export function destroyView(view: ViewData) {
   }
   execEmbeddedViewsAction(view, ViewAction.Destroy);
   execComponentViewsAction(view, ViewAction.Destroy);
-  // callLifecycleHooksChildrenFirst(view, NodeFlags.OnDestroy);
+  callLifecycleHooksChildrenFirst(view, NodeFlags.OnDestroy);
   if (view.disposables) {
     for (let i = 0; i < view.disposables.length; i++) {
       view.disposables[i]();
@@ -179,7 +182,7 @@ export function destroyView(view: ViewData) {
   view.state |= ViewState.Destroyed;
 }
 
-function createViewNodes(view: ViewData) {
+function createViewNodes(view: ViewData, renderElement?: any) {
   let renderHost: any;
   if (isComponentView(view)) {
     const hostDef = view.parentNodeDef;
@@ -187,22 +190,48 @@ function createViewNodes(view: ViewData) {
   }
   const def = view.def;
   const nodes = view.nodes;
+  let el: any = renderElement || null;
   for (let i = 0; i < def.nodes.length; i++) {
     const nodeDef = def.nodes[i];
     let nodeData: any;
     switch (nodeDef.flags & NodeFlags.Types) {
       case NodeFlags.TypeElement:
-        console.log('element', nodeDef);
+        let componentView: ViewData = undefined !;
+        if (nodeDef.flags & NodeFlags.ComponentView) {
+          const compViewDef = resolveViewDefinition(nodeDef.element !.componentView !);
+          const rendererType = nodeDef.element !.componentRendererType;
+          let compRenderer: Renderer;
+          if (!rendererType) {
+            compRenderer = view.root.renderer;
+          } else {
+            compRenderer = view.root.rendererFactory.createRenderer(el, rendererType);
+          }
+          componentView = createView(
+              view.root, compRenderer, view, nodeDef.element !.componentProvider, compViewDef);
+        }
+        // listenToElementOutputs(view, componentView, nodeDef, el);
+        nodeData = <ElementData>{
+          renderElement: null, // el,
+          componentView,
+          viewContainer: createViewContainerData(view, nodeDef, nodeData),
+          // template: nodeDef.element !.template ? createTemplateData(view, nodeDef) : undefined
+        };
         break;
       case NodeFlags.TypeProvider:
-        console.log('provider', nodeDef);
         break;
       case NodeFlags.TypeComponent:
-        console.log('component', nodeDef);
+        const instance = createComponentInstance(view, nodeDef);
+        // nodeData = <ProviderData>{instance};
+        // if (nodeDef.flags & NodeFlags.Component) {
+        //   const compView = asElementData(view, nodeDef.parent !.index).componentView;
+        //   initView(compView, instance, instance);
+        // }
         break;
     }
     nodes[i] = nodeData;
   }
+  // TODO: Why? vvvvvv
+  // execComponentViewsAction(view, ViewAction.CreateViewNodes);
 }
 
 function destroyViewNodes(view: ViewData) {

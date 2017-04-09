@@ -11,7 +11,7 @@ import { attachEmbeddedView, detachEmbeddedView } from './view_attach';
 import { ElementRef } from './element_ref';
 import {
   ViewData, ViewDefinitionFactory, ViewState, NodeDef, ElementData,
-  asElementData, DepFlags, ViewContainerData
+  asElementData, DepFlags, ViewContainerData, NodeFlags
 } from './types';
 import { resolveViewDefinition, viewParentEl } from './util';
 import { resolveDep, tokenKey } from './provider';
@@ -221,7 +221,10 @@ export function createInjector(view: ViewData, elDef: NodeDef): Injector {
 class Injector_ implements Injector {
   constructor(private view: ViewData, private elDef: NodeDef|null) { }
   get(token: any, notFoundValue: any = Injector.THROW_IF_NOT_FOUND): any {
-    return resolveDep(this.view,
-      {flags: DepFlags.None, token, tokenKey: tokenKey(token)}, notFoundValue);
+    const allowPrivateServices =
+      this.elDef ? (this.elDef.flags & NodeFlags.ComponentView) !== 0 : false;
+    return resolveDep(
+        this.view, this.elDef, allowPrivateServices,
+        {flags: DepFlags.None, token, tokenKey: tokenKey(token)}, notFoundValue);
   }
 }

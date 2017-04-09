@@ -81,7 +81,7 @@ export class Compiler {
   private _createComponentViewDef(component: ClassType<any>, providers: Provider[],
       namespaceAndName: string, componentRendererType: RendererType): ViewDefinitionFactory {
     const viewDefinitionFactory: ViewDefinitionFactory = () => {
-      const { token, factory, deps } = this._transformProviders([component])[0];
+      const { deps } = this._transformProviders([component])[0];
       const elementChildCount =  providers.length + 1;
       return viewDef(ViewFlags.None, [
         // Create element node
@@ -89,7 +89,7 @@ export class Compiler {
           viewDefinitionFactory, componentRendererType),
 
         // Create component node
-        componentDef(NodeFlags.TypeComponent, 0, token, factory, deps, null, null),
+        componentDef(NodeFlags.TypeComponent, 0, component, deps, null, null),
 
         // Create provider nodes
         ...this._transformProviders(providers).map(provider => {
@@ -102,6 +102,7 @@ export class Compiler {
   }
 
   private _transformProviders(providers: Provider[]) {
+    debugger;
     return resolveReflectiveProviders(ListWrapper.flatten(providers)).map(provider => {
       const token = provider.key.token;
       const factoryObj = provider.resolvedFactories[0];

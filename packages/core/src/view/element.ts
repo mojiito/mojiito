@@ -56,6 +56,7 @@ export function elementDef(flags: NodeFlags, childCount: number, namespaceAndNam
       componentRendererType: componentRendererType,
       publicProviders: null,
       allProviders: null,
+      handleEvent: null
     },
     provider: null,
   };

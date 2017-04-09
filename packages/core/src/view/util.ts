@@ -3,6 +3,8 @@ import {
   NodeDef, NodeFlags
 } from './types';
 
+export const NOOP: any = () => {};
+
 const VIEW_DEFINITION_CACHE = new WeakMap<any, ViewDefinition>();
 export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefinition {
   let value: ViewDefinition = VIEW_DEFINITION_CACHE.get(factory);
@@ -41,4 +43,13 @@ export function viewParentEl(view: ViewData): NodeDef | null {
 
 export function isComponentView(view: ViewData): boolean {
   return !!view.parent && !!(view.parentNodeDef !.flags & NodeFlags.TypeComponent);
+}
+
+export function dispatchEvent(view: ViewData, nodeIndex: number,
+    eventName: string, event: any): boolean {
+  // const nodeDef = view.def.nodes[nodeIndex];
+  // const startView =
+  //     nodeDef.flags & NodeFlags.ComponentView ? asElementData(view, nodeIndex).componentView : view;
+  // markParentViewsForCheck(startView);
+  return view.def.handleEvent(view, nodeIndex, eventName, event);
 }
