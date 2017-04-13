@@ -1,9 +1,21 @@
+import { stringify } from '../facade/lang';
 import {
   ViewDefinition, ViewDefinitionFactory, ViewData, BindingDef, BindingFlags,
   NodeDef, NodeFlags
 } from './types';
 
 export const NOOP: any = () => {};
+
+const _tokenKeyCache = new Map<any, string>();
+
+export function tokenKey(token: any): string {
+  let key = _tokenKeyCache.get(token);
+  if (!key) {
+    key = stringify(token) + '_' + _tokenKeyCache.size;
+    _tokenKeyCache.set(token, key);
+  }
+  return key;
+}
 
 const VIEW_DEFINITION_CACHE = new WeakMap<any, ViewDefinition>();
 export function resolveViewDefinition(factory: ViewDefinitionFactory): ViewDefinition {
@@ -49,7 +61,7 @@ export function dispatchEvent(view: ViewData, nodeIndex: number,
     eventName: string, event: any): boolean {
   // const nodeDef = view.def.nodes[nodeIndex];
   // const startView =
-  //     nodeDef.flags & NodeFlags.ComponentView ? asElementData(view, nodeIndex).componentView : view;
+  // nodeDef.flags & NodeFlags.ComponentView ? asElementData(view, nodeIndex).componentView : view;
   // markParentViewsForCheck(startView);
   return view.def.handleEvent(view, nodeIndex, eventName, event);
 }

@@ -1,22 +1,17 @@
-import { stringify } from '../facade/lang';
 import { Renderer } from '../render';
 import { Injector } from '../di/injector';
-import { resolveReflectiveProviders, ReflectiveDependency } from '../di/reflective_provider';
-import { ReflectiveKey } from '../di/reflective_key';
-import { Provider } from '../di/provider';
 import { ElementRef } from './element_ref';
 import { ViewContainerRef } from './view_container_ref';
-import { createViewContainerData, createInjector } from './refs';
+import { createInjector } from './refs';
 import {
-  ViewData, ProviderData, NodeDef, NodeFlags, DepDef, DepFlags, asProviderData,
+  ViewData, NodeDef, NodeFlags, DepDef, DepFlags, asProviderData,
   BindingDef, OutputDef, BindingFlags, OutputType, asElementData,
 } from './types';
-import { calcBindingFlags, dispatchEvent, isComponentView, viewParentEl } from './util';
+import { calcBindingFlags, dispatchEvent, isComponentView, viewParentEl, tokenKey } from './util';
 
 const NOT_CREATED = new Object();
 
 // tslint:disable:variable-name
-const _tokenKeyCache = new Map<any, string>();
 const RendererTokenKey = tokenKey(Renderer);
 const ElementRefTokenKey = tokenKey(ElementRef);
 const ViewContainerRefTokenKey = tokenKey(ViewContainerRef);
@@ -24,25 +19,7 @@ const ViewContainerRefTokenKey = tokenKey(ViewContainerRef);
 const InjectorRefTokenKey = tokenKey(Injector);
 // tslint:enable:variable-name
 
-export function tokenKey(token: any): string {
-  let key = _tokenKeyCache.get(token);
-  if (!key) {
-    key = stringifyToken(token); // + '_' + _tokenKeyCache.size;
-    _tokenKeyCache.set(token, key);
-  }
-  return key;
-}
 export const NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR = {};
-
-function stringifyToken(token: any): string {
-  if (token instanceof ReflectiveDependency) {
-    return token.key.displayName;
-  }
-  if (token instanceof ReflectiveKey) {
-    return token.displayName;
-  }
-  return stringify(token);
-}
 
 export function resolveDep(view: ViewData, elDef: NodeDef, allowPrivateServices: boolean,
     depDef: DepDef, notFoundValue = Injector.THROW_IF_NOT_FOUND): any {
@@ -113,43 +90,32 @@ export function resolveDep(view: ViewData, elDef: NodeDef, allowPrivateServices:
     //   (notFoundValue === NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR)
     return value;
   }
-
   return startView.root.injector.get(depDef.token, notFoundValue);
 }
 
 
 function _createProviderInstance(view: ViewData, def: NodeDef): any {
-  console.log('create ', def);
   // private services can see other private services
-
   const allowPrivateServices = (def.flags & NodeFlags.PrivateProvider) > 0;
   const providerDef = def.provider;
-  // let injectable: any;
-  // switch (def.flags & NodeFlags.Types) {
-  //   case NodeFlags.TypeClassProvider:
-  //     injectable = createClass(
-  //         view, def.parent !, allowPrivateServices, providerDef !.value, providerDef !.deps);
-  //     break;
-  //   case NodeFlags.TypeFactoryProvider:
-  //     injectable = callFactory(
-  //         view, def.parent !, allowPrivateServices, providerDef !.value, providerDef !.deps);
-  //     break;
-  //   case NodeFlags.TypeUseExistingProvider:
-  //     injectable = resolveDep(view, def.parent !, allowPrivateServices, providerDef !.deps[0]);
-  //     break;
-  //   case NodeFlags.TypeValueProvider:
-  //     injectable = providerDef !.value;
-  //     break;
-  // }
-  // return injectable;
-
-  let deps: any[] = providerDef !.deps || [];
-  const len = deps.length;
-  const depValues = new Array(len);
-  for (let i = 0; i < len; i++) {
-    depValues[i] = resolveDep(view, def.parent, allowPrivateServices, deps[i]);
+  let injectable: any;
+  switch (def.flags & NodeFlags.Types) {
+    case NodeFlags.TypeClassProvider:
+      injectable = createClass(
+          view, def.parent !, allowPrivateServices, providerDef !.value, providerDef !.deps);
+      break;
+    case NodeFlags.TypeFactoryProvider:
+      injectable = callFactory(
+          view, def.parent !, allowPrivateServices, providerDef !.value, providerDef !.deps);
+      break;
+    case NodeFlags.TypeUseExistingProvider:
+      injectable = resolveDep(view, def.parent !, allowPrivateServices, providerDef !.deps[0]);
+      break;
+    case NodeFlags.TypeValueProvider:
+      injectable = providerDef !.value;
+      break;
   }
-  return providerDef.factory(...deps);
+  return injectable;
 }
 
 
@@ -295,13 +261,13 @@ export function componentDef(
   return _def(flags, childCount, ctor, ctor, deps, bindings, outputDefs);
 }
 
-export function providerDef(flags: NodeFlags, token: any, ctorOrFactory: any,
+export function providerDef(flags: NodeFlags, token: any, ctor: any,
     deps: ([DepFlags, any] | any)[]): NodeDef {
-  return _def(flags, 0, token, ctorOrFactory, deps);
+  return _def(flags, 0, token, ctor, deps);
 }
 
 export function _def(
-    flags: NodeFlags, childCount: number, token: any, ctorOrFactory: any,
+    flags: NodeFlags, childCount: number, token: any, ctor: any,
     deps: ([DepFlags, any] | any)[], bindings?: BindingDef[], outputs?: OutputDef[]): NodeDef {
   if (!outputs) {
     outputs = [];
@@ -309,7 +275,6 @@ export function _def(
   if (!bindings) {
     bindings = [];
   }
-
   // tslint:disable:no-shadowed-variable
   const depDefs: DepDef[] = deps.map(value => {
     let token: any;
@@ -323,14 +288,6 @@ export function _def(
     return {flags, token, tokenKey: tokenKey(token)};
   });
   // tslint:enable:no-shadowed-variable
-
-  let ctor: any;
-  let factory: any;
-  if ('constructor' in ctorOrFactory) {
-    ctor = ctorOrFactory;
-  } else {
-    factory = ctorOrFactory;
-  }
 
   return {
     // will bet set by the view definition
@@ -346,7 +303,7 @@ export function _def(
     bindings,
     bindingFlags: calcBindingFlags(bindings), outputs,
     element: null,
-    provider: {token, tokenKey: tokenKey(token), factory, value: ctor, deps: depDefs},
+    provider: {token, tokenKey: tokenKey(token), value: ctor, deps: depDefs},
   };
 }
 
@@ -355,7 +312,6 @@ export function createComponentInstance(view: ViewData, def: NodeDef): any {
   const allowPrivateServices = true;
   const instance = createClass(
       view, def.parent !, allowPrivateServices, def.provider !.value, def.provider !.deps);
-  console.log(instance);
   if (def.outputs.length) {
     for (let i = 0; i < def.outputs.length; i++) {
       const output = def.outputs[i];

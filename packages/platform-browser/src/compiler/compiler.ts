@@ -1,14 +1,15 @@
 import { ListWrapper } from '../facade/collection';
 import {
-  ClassType, ComponentResolver, Injectable, RendererType,
-  ComponentFactory, ComponentFactoryResolver, createComponentFactory, resolveReflectiveProviders,
+  ClassType, ComponentResolver, Injectable, Inject, Optional, RendererType,
+  ComponentFactory, ComponentFactoryResolver, createComponentFactory,
   Provider, SkipSelf, NodeFlags, ViewDefinitionFactory, DepFlags, Visitor, viewDef, providerDef,
-  elementDef, componentDef, ViewFlags
+  elementDef, componentDef, ViewFlags, reflector
 } from 'mojiito-core';
 import { CssSelector } from '../selector';
 import { DomVisitor } from '../dom_visitor';
 import { BindingParser } from '../binding_parser';
 import { CompileComponentSummary } from './compile_result';
+import { NoAnnotationError } from './compiler_errors';
 
 @Injectable()
 export class Compiler {
@@ -81,42 +82,89 @@ export class Compiler {
   private _createComponentViewDef(component: ClassType<any>, providers: Provider[],
       namespaceAndName: string, componentRendererType: RendererType): ViewDefinitionFactory {
     const viewDefinitionFactory: ViewDefinitionFactory = () => {
-      const { deps } = this._transformProviders([component])[0];
       const elementChildCount =  providers.length + 1;
       return viewDef(ViewFlags.None, [
         // Create element node
         elementDef(NodeFlags.TypeElement, elementChildCount, '*', [], [],
           viewDefinitionFactory, componentRendererType),
 
-        // Create component node
-        componentDef(NodeFlags.TypeComponent, 0, component, deps, null, null),
-
         // Create provider nodes
-        ...this._transformProviders(providers).map(provider => {
-          return providerDef(
-            NodeFlags.TypeProvider, provider.token, provider.factory, provider.deps);
-        })
+        ...this._resolveProviders(providers),
+
+        // Create component node
+        componentDef(NodeFlags.TypeComponent, 0, component,
+          this._resolveDependencies(component), null, null)
       ]);
     };
     return viewDefinitionFactory;
   }
 
-  private _transformProviders(providers: Provider[]) {
-    return resolveReflectiveProviders(ListWrapper.flatten(providers)).map(provider => {
-      const token = provider.key.token;
-      const factoryObj = provider.resolvedFactories[0];
-      const factory = factoryObj.factory as (...deps: any[]) => any;
-      const deps: ([DepFlags, any] | any)[] = factoryObj.dependencies.map(dep => {
-        let flags = DepFlags.None;
-        if (dep.optional) {
-          flags += DepFlags.Optional;
+  private _resolveProviders(providers: Provider[]): any[] {
+    return ListWrapper.flatten(providers).map(provider => {
+      let token: any;
+      let value: any;
+      let flags: NodeFlags;
+      let deps: ([DepFlags, any] | any)[] = [];
+      if (provider instanceof Function) {
+        token = provider;
+        value = provider;
+        flags = NodeFlags.TypeClassProvider;
+        deps = this._resolveDependencies(value);
+      } else {
+        token = provider.provide;
+        if (provider.useClass) {
+          value = provider.useClass;
+          flags = NodeFlags.TypeClassProvider;
+          deps = this._resolveDependencies(value);
+        } else if (provider.useValue) {
+          value = provider.useValue;
+          flags = NodeFlags.TypeValueProvider;
+        } else if (provider.useFactory) {
+          value = provider.useFactory;
+          flags = NodeFlags.TypeFactoryProvider;
+          deps = provider.deps.map((dep: any) => [DepFlags.None, dep]);
+        } else if (provider.useExisting) {
+          flags = NodeFlags.TypeUseExistingProvider;
+          deps = [provider.useExisting];
         }
-        if (dep.visibility instanceof SkipSelf) {
-          flags += DepFlags.SkipSelf;
+      }
+      return providerDef(flags, token, value, deps);
+    });
+  }
+
+  private _resolveDependencies(typeOrFunc: any) {
+    const deps = reflector.parameters(typeOrFunc);
+    if (!deps) return [];
+    if (deps.some(p => p == null)) {
+      throw new NoAnnotationError(typeOrFunc, deps);
+    }
+    return deps.map((metadata: any) => {
+      if (!Array.isArray(metadata)) {
+        if (metadata instanceof Inject) {
+          return [DepFlags.None, metadata.token];
+        } else {
+          return [DepFlags.None, metadata];
         }
-        return [flags, dep.key.token];
-      });
-      return { token, factory, deps };
+      }
+      let token: any = null;
+      let flags: DepFlags = DepFlags.None;
+      for (let i = 0; i < metadata.length; ++i) {
+        const paramMetadata = metadata[i];
+        if (paramMetadata instanceof Function) {
+          token = paramMetadata;
+        } else if (paramMetadata instanceof Inject) {
+          token = paramMetadata.token;
+        } else if (paramMetadata instanceof Optional) {
+          flags |= DepFlags.Optional;
+        } else if (paramMetadata instanceof SkipSelf) {
+          flags |= DepFlags.SkipSelf;
+        }
+      }
+      if (token != null) {
+        return [flags, token];
+      } else {
+        throw new NoAnnotationError(typeOrFunc, deps);
+      }
     });
   }
 }

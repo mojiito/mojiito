@@ -11,10 +11,10 @@ import { attachEmbeddedView, detachEmbeddedView } from './view_attach';
 import { ElementRef } from './element_ref';
 import {
   ViewData, ViewDefinitionFactory, ViewState, NodeDef, ElementData,
-  asElementData, DepFlags, ViewContainerData, NodeFlags
+  asElementData, DepFlags, ViewContainerData, NodeFlags, asProviderData
 } from './types';
-import { resolveViewDefinition, viewParentEl } from './util';
-import { resolveDep, tokenKey } from './provider';
+import { resolveViewDefinition, viewParentEl, tokenKey } from './util';
+import { resolveDep } from './provider';
 
 const EMPTY_CONTEXT = new Object();
 
@@ -30,10 +30,8 @@ class ComponentFactory_ extends ComponentFactory<any> {
     const viewDef = resolveViewDefinition(this.viewDefFactory);
     const componentNodeIndex = viewDef.nodes[0].element !.componentProvider !.index;
     const view = createRootView(viewDef, injector, rootSelectorOrNode, EMPTY_CONTEXT);
-    console.log(view, componentNodeIndex);
-    // const component = asProviderData(view, componentNodeIndex).instance;
-    // return new ComponentRef_(view, new ViewRef_(view), component);
-    return null;
+    const component = asProviderData(view, componentNodeIndex).instance;
+    return new ComponentRef_(view, new ViewRef_(view), component);
   }
 }
 

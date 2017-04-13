@@ -26,8 +26,7 @@ export interface NodeDef {
 export interface ProviderDef {
   token: any;
   tokenKey: string;
-  factory?: (...deps: any[]) => any;
-  value?: any;
+  value: any;
   deps: DepDef[];
 }
 
@@ -178,12 +177,16 @@ export const enum NodeFlags {
   // TypePureObject = 1 << 5,
   // TypePurePipe = 1 << 6,
   // CatPureExpression = TypePureArray | TypePureObject | TypePurePipe,
-  TypeProvider = 1 << 7,
+  TypeValueProvider = 1 << 7,
+  TypeClassProvider = 1 << 8,
+  TypeFactoryProvider = 1 << 9,
+  TypeUseExistingProvider = 1 << 10,
   LazyProvider = 1 << 11,
   PrivateProvider = 1 << 12,
   // TypeDirective = 1 << 13,
   TypeComponent = 1 << 14,
-  CatProvider = TypeProvider | TypeComponent,
+  CatProvider = TypeValueProvider | TypeClassProvider | TypeFactoryProvider |
+      TypeUseExistingProvider | TypeComponent,
   // OnInit = 1 << 15,
   OnDestroy = 1 << 16,
   // DoCheck = 1 << 17,

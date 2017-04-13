@@ -7,7 +7,6 @@
  */
 
 import {reflector} from '../reflection/reflection';
-import { ClassType } from '../type';
 import { resolveForwardRef } from './forward_ref';
 import { Inject, Optional, SkipSelf, Self } from './metadata';
 import {
