@@ -49,12 +49,12 @@ export class DomTraverser implements Traverser {
     // }
 
     // Start traversing the child nodes
-    // let childNode = node.firstChild;
-    // if (childNode) {
-    //   this.traverse(childNode, visitor, lclCntxt);
-    //   while (childNode = childNode.nextSibling) {
-    //     this.traverse(childNode, visitor, lclCntxt);
-    //   }
-    // }
+    let childNode = node.firstChild;
+    if (childNode) {
+      this.traverse(childNode, visitor, lclCntxt);
+      while (childNode = childNode.nextSibling) {
+        this.traverse(childNode, visitor, lclCntxt);
+      }
+    }
   }
 }

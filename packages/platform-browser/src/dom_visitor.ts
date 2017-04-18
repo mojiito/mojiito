@@ -1,5 +1,5 @@
 import { CssSelector, SelectorMatcher } from './selector';
-import { ClassType, Visitor, createView, ViewData } from 'mojiito-core';
+import { ClassType, Visitor, createComponentView, ViewData } from 'mojiito-core';
 import { WrappedError } from './facade/error';
 import { stringify } from './facade/lang';
 import { ListWrapper } from './facade/collection';
@@ -35,14 +35,14 @@ export class DomVisitor implements Visitor {
     // console.log(`Found ${stringify(matchingComponent.type)} on element:`, element);
 
     const viewDef = matchingComponent.viewDefinitionFactory();
-    // const view = createView(context.root, context, element, viewDef);
+    const view = createComponentView(context, viewDef, element);
 
     // console.log(`Created ${stringify(matchingComponent.type)} ` +
     //   `with parent ${stringify(context.component.constructor)}`);
 
-    ListWrapper.forEach(element.attributes, attr => {
+    // ListWrapper.forEach(element.attributes, attr => {
 
-    });
+    // });
 
     // return view;
     return null;

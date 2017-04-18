@@ -53,7 +53,7 @@ export class Compiler {
 
     // create a view definition factory for this component type
     const viewDefinitionFactory = this._createComponentViewDef(
-      component, metadata.providers, selector[0].element || '*', rendererType);
+      component, metadata.providers || [], selector[0].element || '*', rendererType);
 
     // create a component factory for this component type
     const componentFactory =
@@ -82,7 +82,7 @@ export class Compiler {
   private _createComponentViewDef(component: ClassType<any>, providers: Provider[],
       namespaceAndName: string, componentRendererType: RendererType): ViewDefinitionFactory {
     const viewDefinitionFactory: ViewDefinitionFactory = () => {
-      const elementChildCount =  providers.length + 1;
+      const elementChildCount =  (providers && providers.length || 0) + 1;
       return viewDef(ViewFlags.None, [
         // Create element node
         elementDef(NodeFlags.TypeElement, elementChildCount, '*', [], [],

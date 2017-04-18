@@ -26,7 +26,7 @@ function getGlobalEventTarget(target: string): any {
 
 @Injectable()
 export class DomRendererFactory implements RendererFactory {
-  private rendererByCompId = new Map<string, Renderer>();
+  // private rendererByCompId = new Map<string, Renderer>();
   private defaultRenderer: Renderer;
 
   constructor() {

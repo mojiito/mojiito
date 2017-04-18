@@ -25,7 +25,7 @@ export { ViewContainerRef } from './view/view_container_ref';
 export { ElementRef } from './view/element_ref';
 export { elementDef } from './view/element';
 export { providerDef, componentDef } from './view/provider';
-export { viewDef, createView } from './view/view';
+export { viewDef, createComponentView } from './view/view';
 
 // Dependency Injection
 export { forwardRef } from './di/forward_ref';

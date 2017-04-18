@@ -137,19 +137,26 @@ export function createRootView(def: ViewDefinition, injector: Injector,
   }
   const view = createView(root, root.renderer, null, null, def);
   createViewNodes(view, renderElement);
-  // view.renderer.parse(view);
+  const renderer = asElementData(view, 0).componentView.renderer;
+  renderer.parse(view);
   return view;
 }
 
-export function createView(root: RootData, renderer: Renderer, parent: ViewData,
-  parentNodeDef: NodeDef | null, def: ViewDefinition): ViewData {
+export function createComponentView(parent: ViewData, def: ViewDefinition, renderElement: any) {
+  const view = createView(parent.root, parent.renderer, parent, null, def);
+  createViewNodes(view, renderElement);
+  console.log(view);
+}
+
+function createView(root: RootData, renderer: Renderer, parent: ViewData | null,
+    parentNodeDef: NodeDef | null, def: ViewDefinition): ViewData {
   const nodes: NodeData[] = new Array(def.nodes.length);
   const disposables = def.outputCount ? new Array(def.outputCount) : null;
   const view: ViewData = {
     def,
     parent,
-    viewContainerParent: null,
     parentNodeDef,
+    viewContainerParent: null,
     context: null,
     component: null,
     nodes,
@@ -185,11 +192,6 @@ export function destroyView(view: ViewData) {
 }
 
 function createViewNodes(view: ViewData, renderElement?: any) {
-  let renderHost: any;
-  if (isComponentView(view)) {
-    const hostDef = view.parentNodeDef;
-    renderHost = asElementData(view.parent!, hostDef!.parent!.index).renderElement;
-  }
   const def = view.def;
   const nodes = view.nodes;
   let el: any = renderElement || null;
@@ -208,12 +210,12 @@ function createViewNodes(view: ViewData, renderElement?: any) {
           } else {
             compRenderer = view.root.rendererFactory.createRenderer(el, rendererType);
           }
-          componentView = createView(
-            view.root, compRenderer, view, nodeDef.element!.componentProvider, compViewDef);
+          componentView = createView(view.root, compRenderer, view,
+            nodeDef.element !.componentProvider, compViewDef);
         }
         // listenToElementOutputs(view, componentView, nodeDef, el);
         nodeData = <ElementData>{
-          renderElement: null, // el,
+          renderElement: el,
           componentView,
           viewContainer: createViewContainerData(view, nodeDef, nodeData),
           // template: nodeDef.element !.template ? createTemplateData(view, nodeDef) : undefined
@@ -257,41 +259,6 @@ function createRootData(
     renderer
   };
 }
-
-// function viewDef(publicProviders: Provider[], componentProvider: any): ViewDefinition {
-//   var viewDef: any = {};
-//   // resolve public providers
-//   const publicProv: any = Object.create(null);
-//   if (publicProviders) {
-//     resolveReflectiveProviders(publicProviders).forEach(p => {
-//       const resolvedFactory = p.resolvedFactories[0];
-//       publicProv[tokenKey(p.key)] = {
-//         factory: resolvedFactory.factory,
-//         dependencies: resolvedFactory.dependencies,
-//         multi: p.multiProvider
-//       };
-//     });
-//   }
-//   viewDef.publicProviders = publicProv;
-
-//   // combine to all providers
-//   const allProviders = Object.create(publicProv);
-//   viewDef.allProviders = allProviders;
-
-//   // resolve component provider
-//   if (componentProvider) {
-//     const resolvedComp = resolveReflectiveProviders([componentProvider])[0];
-//     const resolvedCompFactory = resolvedComp.resolvedFactories[0];
-//     viewDef.componentProvider = {
-//       factory: resolvedCompFactory.factory,
-//       dependencies: resolvedCompFactory.dependencies,
-//       multi: false,
-//     };
-//     allProviders[tokenKey(resolvedComp.key)] = viewDef.componentProvider;
-//   }
-
-//   return viewDef;
-// }
 
 // function createRenderer(hostElement: any, viewDef: ViewDefinition,
 //       parentView: ViewData, root: RootData) {

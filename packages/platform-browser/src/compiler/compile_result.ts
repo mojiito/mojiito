@@ -1,4 +1,4 @@
-import { ClassType, ComponentFactory } from 'mojiito-core';
+import { ClassType, ComponentFactory, ViewDefinitionFactory } from 'mojiito-core';
 import { CssSelector } from '../selector';
 
 export interface CompileComponentSummary {
@@ -7,6 +7,6 @@ export interface CompileComponentSummary {
   hostListeners: { [key: string]: string };
   childListeners: { [key: string]: string };
   componentFactory: ComponentFactory<any>;
-  viewDefinitionFactory: () => any;
+  viewDefinitionFactory: ViewDefinitionFactory;
   components: CompileComponentSummary[];
 }
