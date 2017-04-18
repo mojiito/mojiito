@@ -95,7 +95,13 @@ class ViewContainerRef_ implements ViewContainerData {
     return view ? new Injector_(view, elDef) : new Injector_(this._view, null);
   }
 
-  clear(): void { }
+  clear(): void {
+    const len = this._embeddedViews.length;
+    for (let i = len - 1; i >= 0; i--) {
+      const view = detachEmbeddedView(this._data, i) !;
+      destroyView(view);
+    }
+  }
 
   get(index: number): ViewRef {
     const view = this._embeddedViews[index];

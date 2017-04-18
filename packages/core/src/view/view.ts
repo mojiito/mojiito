@@ -186,7 +186,9 @@ export function destroyView(view: ViewData) {
       view.disposables[i]();
     }
   }
-  destroyViewNodes(view);
+  if (view.renderer.destroyNode) {
+    destroyViewNodes(view);
+  }
   view.renderer.destroy();
   view.state |= ViewState.Destroyed;
 }
@@ -244,7 +246,15 @@ function createViewNodes(view: ViewData, renderElement?: any) {
 }
 
 function destroyViewNodes(view: ViewData) {
-  // view.renderer.destroyNode(view.renderElement);
+  const len = view.def.nodes.length;
+  for (let i = 0; i < len; i++) {
+    const def = view.def.nodes[i];
+    if (def.flags & NodeFlags.TypeElement) {
+      view.renderer.destroyNode !(asElementData(view, i).renderElement);
+    // } else if (def.flags & NodeFlags.TypeText) {
+    //   view.renderer.destroyNode !(asTextData(view, i).renderText);
+    }
+  }
 }
 
 function createRootData(

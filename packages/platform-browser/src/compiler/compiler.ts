@@ -85,7 +85,7 @@ export class Compiler {
       const elementChildCount =  (providers && providers.length || 0) + 1;
       return viewDef(ViewFlags.None, [
         // Create element node
-        elementDef(NodeFlags.TypeElement, elementChildCount, '*', [], [],
+        elementDef(NodeFlags.TypeElement, elementChildCount, namespaceAndName, [], [],
           viewDefinitionFactory, componentRendererType),
 
         // Create provider nodes
