@@ -9,7 +9,7 @@ import { createViewContainerData } from './refs';
 import {
   createComponentInstance, callLifecycleHooksChildrenFirst, createProviderInstance,
 } from './provider';
-import { isComponentView, resolveViewDefinition, NOOP } from './util';
+import { resolveViewDefinition, NOOP } from './util';
 
 
 export function viewDef(flags: ViewFlags, nodes: NodeDef[]): ViewDefinition {
