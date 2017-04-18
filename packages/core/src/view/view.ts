@@ -270,22 +270,6 @@ function createRootData(
   };
 }
 
-// function createRenderer(hostElement: any, viewDef: ViewDefinition,
-//       parentView: ViewData, root: RootData) {
-//     let rendererType: RendererType = viewDef.componentRendererType;
-//     let view = parentView;
-//     while (view && !rendererType) {
-//       rendererType = view.def.componentRendererType;
-//       view = view.parent;
-//     }
-
-//     if (!rendererType) {
-//       return root.renderer;
-//     } else {
-//       return root.rendererFactory.createRenderer(hostElement, rendererType);
-//     }
-// }
-
 enum ViewAction {
   CreateViewNodes,
   CheckNoChanges,
