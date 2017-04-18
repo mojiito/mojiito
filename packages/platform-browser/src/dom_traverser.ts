@@ -1,4 +1,4 @@
-import { Visitor, ViewData } from 'mojiito-core';
+import { Visitor, ViewData, asElementData } from 'mojiito-core';
 import { DomVisitor } from './dom_visitor';
 
 export interface Traverser {
@@ -32,21 +32,22 @@ export class DomTraverser implements Traverser {
 
     // Check if context has changed and look up the corresponding
     // NodeVisitor if available
-    // if (!!lclCntxt && lclCntxt !== context) {
-    //   let rendererType = lclCntxt.def.componentRendererType;
-    //   if (rendererType) {
-    //     visitor = rendererType.visitor;
-    //   }
-    // } else {
-    //   // Traverse through all the attributes of the node
-    //   // if it is type of Element
-    //   if (node instanceof Element && node.attributes.length) {
-    //     for (let i = 0, max = node.attributes.length; i < max; i++) {
-    //       lclCntxt = visitor.visitAttribute(node, node.attributes[i], lclCntxt) || lclCntxt;
-    //       this._attributeCount++;
-    //     }
-    //   }
-    // }
+    if (!!lclCntxt && lclCntxt !== context) {
+      // console.log(lclCntxt);
+      // let rendererType = asElementData()
+      // if (rendererType) {
+      //   visitor = rendererType.visitor;
+      // }
+    } else {
+      // Traverse through all the attributes of the node
+      // if it is type of Element
+      if (node instanceof Element && node.attributes.length) {
+        for (let i = 0, max = node.attributes.length; i < max; i++) {
+          lclCntxt = visitor.visitAttribute(node, node.attributes[i], lclCntxt) || lclCntxt;
+          this._attributeCount++;
+        }
+      }
+    }
 
     // Start traversing the child nodes
     let childNode = node.firstChild;

@@ -17,7 +17,7 @@ export class DomVisitor implements Visitor {
     });
   }
 
-  visitElement(element: Element, context: ViewData): any {
+  visitElement(element: Element, parentView: ViewData): any {
     const elementCssSelector = CssSelector.fromElement(element);
     let matchingComponent: CompileComponentSummary;
     this._selectorMatcher.match(elementCssSelector, (selector, component) => {
@@ -29,13 +29,14 @@ export class DomVisitor implements Visitor {
 
     // if no matching component return current context
     if (!matchingComponent) {
-      return context;
+      return parentView;
     }
 
     // console.log(`Found ${stringify(matchingComponent.type)} on element:`, element);
 
     const viewDef = matchingComponent.viewDefinitionFactory();
-    const view = createComponentView(context, viewDef, element);
+    const view = createComponentView(parentView, viewDef, element);
+    console.log(view);
 
     // console.log(`Created ${stringify(matchingComponent.type)} ` +
     //   `with parent ${stringify(context.component.constructor)}`);
@@ -44,8 +45,7 @@ export class DomVisitor implements Visitor {
 
     // });
 
-    // return view;
-    return null;
+    return view;
   }
 
   visitAttribute(element: Element, attr: Attr, context: any) { }

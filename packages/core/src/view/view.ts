@@ -137,8 +137,8 @@ export function createRootView(def: ViewDefinition, injector: Injector,
   }
   const view = createView(root, root.renderer, null, null, def);
   createViewNodes(view, renderElement);
-  const renderer = asElementData(view, 0).componentView.renderer;
-  renderer.parse(view);
+  const compView = asElementData(view, 0).componentView;
+  compView.renderer.parse(compView);
   return view;
 }
 
@@ -146,6 +146,7 @@ export function createComponentView(parent: ViewData, def: ViewDefinition, rende
   const view = createView(parent.root, parent.renderer, parent, null, def);
   createViewNodes(view, renderElement);
   console.log(view);
+  return asElementData(view, 0).componentView;
 }
 
 function createView(root: RootData, renderer: Renderer, parent: ViewData | null,
