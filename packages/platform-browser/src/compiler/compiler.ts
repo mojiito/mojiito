@@ -80,6 +80,11 @@ export class Compiler {
   private _createComponentViewDef(component: ClassType<any>, providers: Provider[],
       namespaceAndName: string, visitor: Visitor,
       parent?: CompileComponentSummary): ViewDefinitionFactory {
+
+    const compViewDefFactory: ViewDefinitionFactory = () => {
+      return viewDef(ViewFlags.None, []);
+    };
+
     const viewDefinitionFactory: ViewDefinitionFactory = () => {
       const elementChildCount =  (providers && providers.length || 0) + 1;
 
@@ -101,7 +106,7 @@ export class Compiler {
       return viewDef(ViewFlags.None, [
         // Create element node
         elementDef(NodeFlags.TypeElement, elementChildCount, namespaceAndName, [], [],
-          viewDefinitionFactory, rendererType),
+          compViewDefFactory, rendererType),
 
         // Create provider nodes
         ...this._resolveProviders(providers),
