@@ -127,14 +127,14 @@ export class DefaultDomRenderer implements Renderer {
 }
 
 export class ParseableDomRenderer extends DefaultDomRenderer {
-  constructor(private _visitor: Visitor,
+  constructor(public visitor: Visitor,
     public hostElement: Node) {
     super();
   }
 
   parse(context: any) {
     const traverser = new DomTraverser();
-    traverser.traverse(this.hostElement, this._visitor, context);
+    traverser.traverse(this.hostElement, this.visitor, context);
   }
 
   destroyNode(node: any) {

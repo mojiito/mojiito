@@ -1,6 +1,7 @@
 import { BaseError } from '../facade/error';
 import { stringify } from '../facade/lang';
 import { Type } from 'mojiito-core';
+import { CompileComponentSummary } from './compile_result';
 
 export class NoAnnotationError extends BaseError {
   constructor(typeOrFunc: Type<any> | Function, params: any[][]) {
@@ -21,5 +22,11 @@ export class NoAnnotationError extends BaseError {
       signature.join(', ') + '). ' +
       'Make sure that all the parameters are decorated with Inject or have valid type ' +
       'annotations and that \'' + stringify(typeOrFunc) + '\' is decorated with Injectable.';
+  }
+}
+
+export class NoVisitorError extends BaseError {
+  constructor(typeOrFunc: Type<any>) {
+    super(`No visitor found for component ${stringify(typeOrFunc)}`);
   }
 }

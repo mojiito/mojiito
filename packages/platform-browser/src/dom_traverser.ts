@@ -1,5 +1,5 @@
-import { Visitor, ViewData, asElementData } from 'mojiito-core';
-import { DomVisitor } from './dom_visitor';
+import { Visitor, ViewData } from 'mojiito-core';
+import { ParseableDomRenderer } from './dom_renderer';
 
 export interface Traverser {
   traverse(node: any, visitor: Visitor, context: ViewData): void;
@@ -33,11 +33,7 @@ export class DomTraverser implements Traverser {
     // Check if context has changed and look up the corresponding
     // NodeVisitor if available
     if (!!lclCntxt && lclCntxt !== context) {
-      // console.log(lclCntxt);
-      // let rendererType = asElementData()
-      // if (rendererType) {
-      //   visitor = rendererType.visitor;
-      // }
+      visitor = (<ParseableDomRenderer>lclCntxt.renderer).visitor;
     } else {
       // Traverse through all the attributes of the node
       // if it is type of Element

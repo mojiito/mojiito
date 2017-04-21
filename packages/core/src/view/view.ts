@@ -145,8 +145,7 @@ export function createRootView(def: ViewDefinition, injector: Injector,
 export function createComponentView(parent: ViewData, def: ViewDefinition, renderElement: any) {
   const view = createView(parent.root, parent.renderer, parent, null, def);
   createViewNodes(view, renderElement);
-  console.log(view);
-  return asElementData(view, 0).componentView;
+  return view;
 }
 
 function createView(root: RootData, renderer: Renderer, parent: ViewData | null,
@@ -206,7 +205,7 @@ function createViewNodes(view: ViewData, renderElement?: any) {
         let componentView: ViewData = undefined!;
         if (nodeDef.flags & NodeFlags.ComponentView) {
           const compViewDef = resolveViewDefinition(nodeDef.element!.componentView!);
-          const rendererType = nodeDef.element!.componentRendererType;
+          let rendererType = nodeDef.element!.componentRendererType;
           let compRenderer: Renderer;
           if (!rendererType) {
             compRenderer = view.root.renderer;

@@ -36,7 +36,6 @@ export class DomVisitor implements Visitor {
 
     const viewDef = matchingComponent.viewDefinitionFactory();
     const view = createComponentView(parentView, viewDef, element);
-    console.log(view);
 
     // console.log(`Created ${stringify(matchingComponent.type)} ` +
     //   `with parent ${stringify(context.component.constructor)}`);
