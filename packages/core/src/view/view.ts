@@ -143,7 +143,7 @@ export function createRootView(def: ViewDefinition, injector: Injector,
 }
 
 export function createComponentView(parent: ViewData, def: ViewDefinition, renderElement: any) {
-  const view = createView(parent.root, parent.renderer, parent, null, def);
+  const view = createView(parent.root, parent.renderer, parent, parent.parentNodeDef, def);
   createViewNodes(view, renderElement);
   return view;
 }

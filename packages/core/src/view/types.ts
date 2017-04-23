@@ -116,17 +116,6 @@ export interface ViewData {
   state: ViewState;
   oldValues: any[];
   disposables: DisposableFn[]|null;
-  // renderElement: any;
-  // nodes: NodeData[];
-  // viewContainerParent: ViewData;
-  // viewContainer: ViewContainerData;
-  // component: any;
-  // context: any;
-  // state: ViewState;
-  // disposables: DisposableFn[];
-  // bindingIndex: number;
-  // bindings: BindingData[];
-  // bindingFlags: BindingFlags;
 }
 
 export const enum ViewState {
