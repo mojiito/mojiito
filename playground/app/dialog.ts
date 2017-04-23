@@ -3,15 +3,18 @@ import {
   ComponentFactoryResolver, ComponentRef, Renderer
 } from 'mojiito-core';
 import { DOCUMENT } from 'mojiito-platform-browser';
+import { ButtonComponent } from './button.component';
 
 @Component({
-  selector: '.mdl-dialog__actions'
+  selector: '.mdl-dialog__actions',
+  components: [ButtonComponent]
 })
 export class DialogActionsComponent {
 
   constructor(elementRef: ElementRef, renderer: Renderer, dialog: Dialog) {
     const buttons = [].slice.call(elementRef.nativeElement.querySelectorAll('button'));
     buttons.forEach(b => renderer.listen(b, 'click', dialog.close.bind(dialog)));
+    console.log(elementRef.nativeElement);
   }
 
 }
