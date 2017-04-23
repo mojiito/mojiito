@@ -10,6 +10,7 @@ If you find a bug in the source code, you can help us by submitting an issue to 
 *TODO*
 
 ## Missing a Feature?
+You can request a new feature by submitting an issue to our GitHub Repository. If you would like to implement a new feature, please submit an issue with a proposal for your work first, to be sure that we can use it. 
 *TODO*
 
 ## Coding Rules
