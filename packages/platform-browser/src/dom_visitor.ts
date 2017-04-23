@@ -31,14 +31,13 @@ export class DomVisitor implements Visitor {
     if (!matchingComponent) {
       return parentView;
     }
-
     // console.log(`Found ${stringify(matchingComponent.type)} on element:`, element);
 
     const viewDef = matchingComponent.viewDefinitionFactory();
     const view = createComponentView(parentView, viewDef, element);
 
     // console.log(`Created ${stringify(matchingComponent.type)} ` +
-    //   `with parent ${stringify(context.component.constructor)}`);
+    //   `with parent ${stringify(parentView.component)}`);
 
     // ListWrapper.forEach(element.attributes, attr => {
 

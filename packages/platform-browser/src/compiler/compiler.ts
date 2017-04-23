@@ -57,7 +57,7 @@ export class Compiler {
     // compile child components
     let childComponents: CompileComponentSummary[];
     let visitor: Visitor = null;
-    if (metadata.components) {
+    if (metadata.components && metadata.components.length) {
       childComponents =
         this.compileComponents(ListWrapper.flatten(metadata.components), compileSummary);
       visitor = new DomVisitor(childComponents);
@@ -96,7 +96,6 @@ export class Compiler {
       if (visitor === null) {
         throw new NoVisitorError(component);
       }
-
       // create a renderer type with a visitor
       const rendererType: RendererType = {
         visitor,
