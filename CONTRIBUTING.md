@@ -14,4 +14,8 @@ You can request a new feature by submitting an issue to our GitHub Repository. I
 *TODO*
 
 ## Coding Rules
-*TODO*
+To ensure consistency throughout the source code, keep these rules in mind as you are working:
+
+- All features or bug fixes must be tested by one or more specs (unit-tests will follow).
+- All public API methods must be documented. (Documentation needs work - Wanna contribute?).
+- Code has to be successfully linted with tslint (see rules in tslint.json)
