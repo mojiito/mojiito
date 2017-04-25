@@ -4,13 +4,14 @@ import { WrappedError } from './facade/error';
 import { stringify } from './facade/lang';
 import { ListWrapper } from './facade/collection';
 import { CompileComponentSummary } from './compiler/compile_result';
+import { BindingParser } from './compiler/binding_parser';
 
 export class DomVisitor implements Visitor {
 
   private _selectorMatcher = new SelectorMatcher();
   private _componentsIndex = new Map<CompileComponentSummary, number>();
 
-  constructor(components: CompileComponentSummary[]) {
+  constructor(components: CompileComponentSummary[], private _bindParser: BindingParser) {
     components.forEach((component, index) => {
       this._selectorMatcher.addSelectables(component.selector, component);
       this._componentsIndex.set(component, index);
@@ -31,13 +32,9 @@ export class DomVisitor implements Visitor {
     if (!matchingComponent) {
       return parentView;
     }
-    // console.log(`Found ${stringify(matchingComponent.type)} on element:`, element);
 
     const viewDef = matchingComponent.viewDefinitionFactory();
     const view = createComponentView(parentView, viewDef, element);
-
-    // console.log(`Created ${stringify(matchingComponent.type)} ` +
-    //   `with parent ${stringify(parentView.component)}`);
 
     // ListWrapper.forEach(element.attributes, attr => {
 
@@ -46,7 +43,9 @@ export class DomVisitor implements Visitor {
     return view;
   }
 
-  visitAttribute(element: Element, attr: Attr, context: any) { }
+  visitAttribute(element: Element, attr: Attr, context: any) {
+    // this._bindParser.parseAttr(attr);
+  }
   visitText(text: Text, context: any) { }
   visitComment(comment: Comment, context: any) { }
 

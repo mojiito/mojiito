@@ -1,8 +1,5 @@
 import { Renderer, RendererFactory, Injectable, RendererType, Visitor } from 'mojiito-core';
-import { isPresent, stringify } from './facade/lang';
-import { DOCUMENT } from './tokens';
 import { DomTraverser } from './dom_traverser';
-import { DomVisitor } from './dom_visitor';
 
 export const NAMESPACE_URIS: { [ns: string]: string } = {
   'xlink': 'http://www.w3.org/1999/xlink',

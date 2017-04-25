@@ -1,13 +1,13 @@
 import { ListWrapper } from '../facade/collection';
 import {
-  ClassType, ComponentResolver, Injectable, Inject, Optional, RendererType,
-  ComponentFactory, ComponentFactoryResolver, createComponentFactory,
-  Provider, SkipSelf, NodeFlags, ViewDefinitionFactory, DepFlags, Visitor, viewDef, providerDef,
-  elementDef, componentDef, ViewFlags, reflector
+  ClassType, Injectable, Inject, Optional, RendererType, ComponentFactory, ComponentResolver,
+  ComponentFactoryResolver, createComponentFactory, Provider, SkipSelf, NodeFlags,
+  ViewDefinitionFactory, DepFlags, Visitor, viewDef, providerDef, elementDef, componentDef,
+  ViewFlags, reflector
 } from 'mojiito-core';
 import { CssSelector } from '../selector';
 import { DomVisitor } from '../dom_visitor';
-import { BindingParser } from '../binding_parser';
+import { BindingParser } from './binding_parser';
 import { CompileComponentSummary } from './compile_result';
 import { NoAnnotationError, NoVisitorError } from './compiler_errors';
 
@@ -60,7 +60,7 @@ export class Compiler {
     if (metadata.components && metadata.components.length) {
       childComponents =
         this.compileComponents(ListWrapper.flatten(metadata.components), compileSummary);
-      visitor = new DomVisitor(childComponents);
+      visitor = new DomVisitor(childComponents, this._bindParser);
       compileSummary.visitor = visitor;
     }
 
