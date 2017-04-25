@@ -18,4 +18,4 @@ To ensure consistency throughout the source code, keep these rules in mind as yo
 
 - All features or bug fixes must be tested by one or more specs (unit-tests will follow).
 - All public API methods must be documented. (Documentation needs work - Wanna contribute?).
-- Code has to be successfully linted with tslint (see rules in tslint.json)
+- Code has to be successfully linted with tslint (Execute `npm run lint` in your command line tool)
