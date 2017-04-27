@@ -1,6 +1,6 @@
 import {
   NodeFlags, NodeDef, ViewDefinitionFactory, BindingFlags, BindingDef,
-  OutputDef, OutputType, ViewData, ElementData
+  OutputDef, OutputType, ViewData
 } from './types';
 import {
   splitNamespace, calcBindingFlags, dispatchEvent, elementEventFullName, getParentRenderElement
@@ -88,7 +88,7 @@ function renderEventHandlerClosure(view: ViewData, index: number, eventName: str
   return (event: any) => dispatchEvent(view, index, eventName, event);
 }
 
-export function createElement(view: ViewData, renderHost: any, def: NodeDef): ElementData {
+export function createElement(view: ViewData, renderHost: any, def: NodeDef): any {
   const elDef = def.element !;
   const rootSelectorOrNode = view.root.selectorOrNode;
   const renderer = view.renderer;
