@@ -10,6 +10,7 @@ import { DomVisitor } from '../dom_visitor';
 import { BindingParser } from './binding_parser';
 import { CompileComponentSummary } from './compile_result';
 import { NoAnnotationError, NoVisitorError } from './compiler_errors';
+import { ExpressionParser } from './expression_parser';
 
 @Injectable()
 export class Compiler {
@@ -187,3 +188,9 @@ export class Compiler {
     });
   }
 }
+
+export const COMPILER_PROVIDERS = [
+  Compiler,
+  ExpressionParser,
+  BindingParser
+];

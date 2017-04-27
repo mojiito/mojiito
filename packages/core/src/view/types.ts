@@ -11,6 +11,7 @@ export interface NodeDef {
   flags: NodeFlags;
   index: number;
   parent: NodeDef|null;
+  renderParent: NodeDef|null;
   childCount: number;
   childFlags: NodeFlags;
   directChildFlags: NodeFlags;
@@ -69,6 +70,8 @@ export const enum ViewFlags {
 export interface ElementDef {
   name: string|null;
   ns: string|null;
+  attrs: [string, string, string][]|null;
+  template: ViewDefinition|null;
   componentProvider: NodeDef|null;
   componentRendererType: RendererType|null;
   componentView: ViewDefinitionFactory|null;
@@ -113,6 +116,7 @@ export interface ViewData {
   component: any;
   context: any;
   nodes: {[key: number]: NodeData};
+  nodeIndex: number;
   state: ViewState;
   oldValues: any[];
   disposables: DisposableFn[]|null;

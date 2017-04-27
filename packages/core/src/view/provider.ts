@@ -293,6 +293,7 @@ export function _def(
     // will bet set by the view definition
     index: -1,
     parent: null,
+    renderParent: null,
     bindingIndex: -1,
     outputIndex: -1,
     // regular values

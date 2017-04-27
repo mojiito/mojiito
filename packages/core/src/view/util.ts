@@ -1,7 +1,7 @@
 import { stringify } from '../facade/lang';
 import {
   ViewDefinition, ViewDefinitionFactory, ViewData, BindingDef, BindingFlags,
-  NodeDef, NodeFlags
+  NodeDef, NodeFlags, asElementData
 } from './types';
 
 export const NOOP: any = () => {};
@@ -64,4 +64,25 @@ export function dispatchEvent(view: ViewData, nodeIndex: number,
   // nodeDef.flags & NodeFlags.ComponentView ? asElementData(view, nodeIndex).componentView : view;
   // markParentViewsForCheck(startView);
   return view.def.handleEvent(view, nodeIndex, eventName, event);
+}
+
+export function elementEventFullName(target: string | null, name: string): string {
+  return target ? `${target}:${name}` : name;
+}
+
+export function getParentRenderElement(view: ViewData, renderHost: any, def: NodeDef): any {
+  let renderParent = def.renderParent;
+  if (renderParent) {
+    if ((renderParent.flags & NodeFlags.TypeElement) === 0 ||
+        (renderParent.flags & NodeFlags.ComponentView) === 0 ||
+        (renderParent.element !.componentRendererType/* &&
+         renderParent.element !.componentRendererType !.encapsulation ===
+             ViewEncapsulation.Native*/)) {
+      // only children of non components, or children of components with native encapsulation should
+      // be attached.
+      return asElementData(view, def.renderParent !.index).renderElement;
+    }
+  } else {
+    return renderHost;
+  }
 }

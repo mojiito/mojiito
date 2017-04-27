@@ -1,8 +1,10 @@
 import {
   NodeFlags, NodeDef, ViewDefinitionFactory, BindingFlags, BindingDef,
-  OutputDef, OutputType
+  OutputDef, OutputType, ViewData, ElementData
 } from './types';
-import { splitNamespace, calcBindingFlags } from './util';
+import {
+  splitNamespace, calcBindingFlags, dispatchEvent, elementEventFullName, getParentRenderElement
+} from './util';
 import { RendererType } from '../render';
 
 export function elementDef(flags: NodeFlags, childCount: number, namespaceAndName: string,
@@ -39,6 +41,7 @@ export function elementDef(flags: NodeFlags, childCount: number, namespaceAndNam
   return {
     index: -1,
     parent: null,
+    renderParent: null,
     bindingIndex: -1,
     outputIndex: -1,
     flags,
@@ -51,6 +54,8 @@ export function elementDef(flags: NodeFlags, childCount: number, namespaceAndNam
     element: {
       ns,
       name,
+      attrs: null,
+      template: null,
       componentProvider: null,
       componentView: componentView || null,
       componentRendererType: componentRendererType,
@@ -60,4 +65,52 @@ export function elementDef(flags: NodeFlags, childCount: number, namespaceAndNam
     },
     provider: null,
   };
+}
+
+export function listenToElementOutputs(view: ViewData, compView: ViewData, def: NodeDef, el: any) {
+  for (let i = 0; i < def.outputs.length; i++) {
+    const output = def.outputs[i];
+    const handleEventClosure = renderEventHandlerClosure(
+        view, def.index, elementEventFullName(output.target, output.eventName));
+    let listenTarget: 'window'|'document'|'body'|'component'|null = output.target;
+    let listenerView = view;
+    if (output.target === 'component') {
+      listenTarget = null;
+      listenerView = compView;
+    }
+    const disposable =
+      <any>listenerView.renderer.listen(listenTarget || el, output.eventName, handleEventClosure);
+    view.disposables ![def.outputIndex + i] = disposable;
+  }
+}
+
+function renderEventHandlerClosure(view: ViewData, index: number, eventName: string) {
+  return (event: any) => dispatchEvent(view, index, eventName, event);
+}
+
+export function createElement(view: ViewData, renderHost: any, def: NodeDef): ElementData {
+  const elDef = def.element !;
+  const rootSelectorOrNode = view.root.selectorOrNode;
+  const renderer = view.renderer;
+  let el: any;
+  if (view.parent || !rootSelectorOrNode) {
+    if (elDef.name) {
+      el = renderer.createElement(elDef.name, elDef.ns);
+    } else {
+      el = renderer.createComment('');
+    }
+    const parentEl = getParentRenderElement(view, renderHost, def);
+    if (parentEl) {
+      renderer.appendChild(parentEl, el);
+    }
+  } else {
+    el = renderer.selectRootElement(rootSelectorOrNode);
+  }
+  if (elDef.attrs) {
+    for (let i = 0; i < elDef.attrs.length; i++) {
+      const [ns, name, value] = elDef.attrs[i];
+      renderer.setAttribute(el, name, value, ns);
+    }
+  }
+  return el;
 }
