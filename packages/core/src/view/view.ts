@@ -251,6 +251,7 @@ function createViewNodes(view: ViewData, parentComponentView: ViewData = null,
     }
     nodes[i] = nodeData;
     contextView.nodes[contextView.nodeIndex + i] = nodeData;
+    contextView.nodeIndex += i;
   }
   // execComponentViewsAction(view, ViewAction.CreateViewNodes);
 }
