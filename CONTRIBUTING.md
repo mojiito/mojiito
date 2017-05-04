@@ -6,11 +6,11 @@ We would love for you to contribute to Mojiito. As Mojiito is very similar to [A
 *TODO*
 
 ## Found a Bug?
-If you find a bug in the source code, you can help us by submitting an issue to our GitHub Repository. Even better, you can submit a Pull Request with a fix.
+If you find a bug in the source code, you can help us by submitting an issue to our GitHub Repository. Even better, you can submit a Pull Request with a fix.    
 *TODO*
 
 ## Missing a Feature?
-You can request a new feature by submitting an issue to our GitHub Repository. If you would like to implement a new feature, please submit an issue with a proposal for your work first, to be sure that we can use it. 
+You can request a new feature by submitting an issue to our GitHub Repository. If you would like to implement a new feature, please submit an issue with a proposal for your work first, to be sure that we can use it.    
 *TODO*
 
 ## Coding Rules
