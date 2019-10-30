@@ -4,6 +4,7 @@
   <br>
   Mojiito
   <br>
+  Deprecated - No longer maintained
   <br>
 </h1>
 Mojiito is a JavaScript framework, heavily inspired by Angular, which brings the benefits of components, services, ... to your (static) website.
@@ -13,8 +14,7 @@ It takes many usefull core concepts provided by Angular, like Dependency Injecti
 Mojiito is not a JavaScript framework for Web Applications. Use Angular, Ember, React, ... instead. Mojiito shines when used on your website where your DOM is already in place.
 
 ## Status
-We currently working very hard on developing the new Version 2.0 completely rewritten in TypeScript.   
-Mojiito is right now in Alpha State (2.0.0-alpha.3).
+Deprecated - No longer maintained
 
 ## Install
 Run `npm install mojiito-core mojiito-platform-browser --save` in your command line tool.
